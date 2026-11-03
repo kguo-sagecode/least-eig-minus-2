@@ -1,0 +1,634 @@
+\documentclass[11pt]{amsart}
+\usepackage[margin=27mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{array,booktabs}
+\usepackage[obeyspaces,spaces]{url}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+% The author's macros.
+%
+% some calligraphy
+%
+\newcommand\cA{{\mathcal A}}
+\newcommand\cB{{\mathcal B}}
+\newcommand\cC{{\mathcal C}}
+\newcommand\cD{{\mathcal D}}
+\newcommand\cE{{\mathcal E}}
+\newcommand\cF{{\mathcal F}}
+\newcommand\cG{{\mathcal G}}
+\newcommand\cH{{\mathcal H}}
+\newcommand\cI{{\mathcal I}}
+\newcommand\cJ{{\mathcal J}}
+\newcommand\cK{{\mathcal K}}
+\newcommand\cL{{\mathcal L}}
+\newcommand\cM{{\mathcal M}}
+\newcommand\cN{{\mathcal N}}
+\newcommand\cP{{\mathcal P}}
+\newcommand\cQ{{\mathcal Q}}
+\newcommand\cR{{\mathcal R}}
+\newcommand\cS{{\mathcal S}}
+\newcommand\cT{{\mathcal T}}
+\newcommand\cU{{\mathcal U}}
+\newcommand\cV{{\mathcal V}}
+
+%
+% fields and rings (and a semigroup)
+%
+\newcommand\cx{{\mathbb C}}% complexes
+\newcommand\fld{{\mathbb F}}
+\newcommand\flde{{\mathbb E}}
+\newcommand\ints{{\mathbb Z}}
+\newcommand\nn{{\mathbb N}}%non-negative integers
+\newcommand\re{{\mathbb R}}%reals
+\newcommand\rats{{\mathbb Q}}
+
+\newcommand\Zu{{\mathbf u}}
+\newcommand\Zv{{\mathbf v}}
+\newcommand\Zw{{\mathbf w}}
+\newcommand\Zy{{\mathbf y}}
+\newcommand\Zz{{\mathbf z}}
+\newcommand\Zx{{\mathbf x}}
+\newcommand\Zj{{\mathbf j}}
+
+
+%
+% the really useful stuff
+%
+%\newcommand\opk[1]{\mathop{\hbox{\rm #1}}\nolimits} %% old version
+\newcommand\opk[1]{\mathop{\mathrm{#1}}\nolimits}
+\newcommand\comp[1]{{\mkern2mu\overline{\mkern-2mu#1}}}
+\newcommand\diff{\mathbin{\mkern-1.5mu\setminus\mkern-1.5mu}}% for \setminus
+\newcommand\gbin[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}}
+\newcommand\inv{^{-1}}
+\newcommand\res{\mathbin{\mkern-2.0mu\restriction\mkern-2.0mu}}% ch2
+\newcommand\sbs{\subseteq}
+\newcommand\sps{\supseteq}
+\newcommand\seq[3]{#1_{#2},\ldots,#1_{#3}}
+\newcommand\supp{\opk{supp}}
+\newcommand\im{\opk{im}}
+\newcommand\row{\opk{row}}
+\newcommand\pmat[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\newcommand\cprod{\mathbin{\square}}
+%
+% matrix theory
+%
+\newcommand\ip[2]{\langle#1,#2\rangle}
+\newcommand\one{{\bf1}}
+\newcommand\rk{\opk{rk}}
+\newcommand\tr{\opk{tr}}
+\newcommand\col{\opk{col}}
+\newcommand\mat[3]{\mathrm{Mat}_{#1\times #2}(#3)}
+
+%
+% some group theory
+%
+\newcommand\aut[1]{{\rm Aut}(#1)}
+\newcommand\fx[1]{{\rm fix}(#1)}% ch2
+\newcommand\grp[1]{\langle #1\rangle}
+\newcommand\nrml{\vartriangleleft}
+\newcommand\nrmleq{\trianglelefteq}
+\newcommand\alt[1]{\opk{Alt}(#1)}
+\DeclareMathOperator{\Sym}{Sym}
+% End of the author's macros.
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\DeclareRobustCommand{\ml}[1]{\ifmmode\text{\normalfont\small\ttfamily\detokenize{#1}}\else{\normalfont\small\nolinkurl{#1}}\fi}
+\DeclareUnicodeCharacter{03BC}{\ensuremath{\mu}}
+\DeclareUnicodeCharacter{2113}{\ensuremath{\ell}}
+\DeclareUnicodeCharacter{1D9C}{\ensuremath{^{\mathrm c}}}
+\DeclareUnicodeCharacter{2243}{\ensuremath{\simeq}}
+\DeclareUnicodeCharacter{2206}{\ensuremath{\triangle}}
+\DeclareUnicodeCharacter{00D7}{\ensuremath{\times}}
+\DeclareUnicodeCharacter{2295}{\ensuremath{\oplus}}
+\DeclareUnicodeCharacter{0393}{\ensuremath{\Gamma}}
+\DeclareUnicodeCharacter{21A6}{\ensuremath{\mapsto}}
+\DeclareUnicodeCharacter{2229}{\ensuremath{\cap}}
+\DeclareUnicodeCharacter{2086}{\ensuremath{_6}}
+\DeclareUnicodeCharacter{2087}{\ensuremath{_7}}
+\newcommand{\mlu}[1]{{\normalfont\small\ttfamily #1}}
+\newcommand{\nb}{N}
+\newcommand{\sd}{\mathbin{\triangle}}
+\emergencystretch=2em
+\title[The Clebsch and Schl\"afli graphs]{The Clebsch and Schl\"afli graphs}
+\date{28 September 2026}
+
+\begin{document}
+\raggedbottom
+\begin{abstract}
+A strongly regular graph with parameters $(16,5,0,2)$ is isomorphic to the folded 5-cube, and so
+one with parameters $(16,10,6,6)$ is isomorphic to the Clebsch graph; a strongly regular graph
+with parameters $(27,16,10,8)$ is isomorphic to the Schl\"afli graph. These are prerequisites SE2
+and SE3 of \ml{cgss/prerequisites.md}, used in step $\langle1\rangle11$ of Remark 4.14 of
+[CGSS]. We give a direct proof of the first, reduce the second to the uniqueness assertion of
+Lemma 2.10 of [CGSS] as repaired in the blueprint, check both with SageMath, and describe the
+shape of the Lean statements.
+\end{abstract}
+\maketitle
+
+\section{Statement}\label{sec:statement}
+
+All graphs are simple and finite. For a vertex $v$ of a graph $X$ we will write $\nb(v)$ for its
+neighbourhood, $u\sim w$ when $u$ and $w$ are adjacent, and $\comp X$ for the complement of $X$.
+A graph $X$ on $n$ vertices is \emph{strongly regular with parameters $(n,k,a,c)$} if it is
+$k$-regular, any two adjacent vertices have exactly $a$ common neighbours, and any two distinct
+nonadjacent vertices have exactly $c$ common neighbours. This is Mathlib's
+\ml{SimpleGraph.IsSRGWith n k a c}, with no further condition; in particular $X$ may be complete
+or empty. For sets $s,t$ we will write $s\sd t$ for the symmetric
+difference, and for a set $\Omega$ we will write $\binom{\Omega}{2}$ for the set of its 2-subsets.
+
+\begin{definition}\label{def:clebsch}
+Let $\Omega_5=\{1,\dots,5\}$, and let $V_{16}$ be the set of the subsets of $\Omega_5$ of even
+size; thus $V_{16}$ consists of $\emptyset$, the ten 2-subsets and the five 4-subsets, and
+$\lvert V_{16}\rvert=16$. The \emph{folded 5-cube} $\square_5$ is the graph on $V_{16}$ in which
+$s\sim t$ if and only if $\lvert s\sd t\rvert=4$. The \emph{Clebsch graph} is its complement
+$\comp{\square_5}$.
+\end{definition}
+
+For distinct $s,t\in V_{16}$ the size $\lvert s\sd t\rvert=\lvert s\rvert+\lvert t\rvert-2\lvert
+s\cap t\rvert$ is even, positive and at most 5, so it is 2 or 4. Thus $s$ and $t$ are adjacent
+in the Clebsch graph if and only if $\lvert s\sd t\rvert=2$, and the Clebsch graph is the halved
+5-cube. The folded 5-cube is the 5-cube with antipodal vertices identified: each pair $\{x,\Omega_5\diff
+x\}$ contains exactly one set of even size, and $x\mapsto x\cup\{i\}$ or $x\diff\{i\}$ becomes $s\mapsto
+\Omega_5\diff(s\sd\{i\})$, at distance 4 from $s$. Neither description is needed below; both are
+checked in Section~\ref{sec:sage}. We follow [CGSS] Example 4.8 and \ml{cgss/notation.md} \S6 in
+giving the name to the 10-regular graph; SageMath's \ml{graphs.ClebschGraph()} is the 5-regular
+one, our $\square_5$. [CGSS] Example 4.8 gives the Clebsch graph by the 16 vectors
+$\mathbf e_i+\mathbf e_5$, $\mathbf e_i+\mathbf e_6$, $\mathbf c-\mathbf e_i-\mathbf e_7$ and
+$\mathbf c-\mathbf e_i-\mathbf e_8$ ($1\le i\le4$) of $\mathrm E_8$, with $\mathbf
+c=\frac12\sum_{m=1}^8\mathbf e_m$, two of them adjacent when their inner product is 1; this graph
+is isomorphic to $\comp{\square_5}$ (Section~\ref{sec:sage}), and in Lean the two are different
+graphs joined by an explicit isomorphism (Section~\ref{sec:lean}).
+
+\begin{definition}\label{def:schlafli}
+Let $\Omega_6=\{1,\dots,6\}$, and let $V_{27}$ be the set of the 27 symbols $a_i$, $b_i$
+($i\in\Omega_6$) and $c_{ij}=c_{ji}$ ($\{i,j\}\in\binom{\Omega_6}{2}$). Let $Q$ be the graph on
+$V_{27}$ with the following edges, and no others:
+\begin{enumerate}
+\item $a_i\sim b_j$ for $i\ne j$;
+\item $a_i\sim c_{jk}$ and $b_i\sim c_{jk}$ for $i\in\{j,k\}$;
+\item $c_{ij}\sim c_{kl}$ for $\{i,j\}\cap\{k,l\}=\emptyset$.
+\end{enumerate}
+The \emph{Schl\"afli graph} is its complement $\comp Q$. Thus in $\comp Q$ we have $a_i\sim a_j$
+and $b_i\sim b_j$ for $i\ne j$, $a_i\sim b_i$, $a_i\sim c_{jk}$ and $b_i\sim c_{jk}$ for
+$i\notin\{j,k\}$, and $c_{ij}\sim c_{kl}$ when $\lvert\{i,j\}\cap\{k,l\}\rvert=1$.
+\end{definition}
+
+This is Schl\"afli's double six: $a_i$, $b_i$ and $c_{ij}$ are the 27 lines on a smooth cubic
+surface, $Q$ is the graph of meeting lines, and the Schl\"afli graph is the graph of skew lines.
+The triangles of $Q$ are the 45 tritangent planes, and $Q$ is the collinearity graph of the
+generalized quadrangle of order $(2,4)$. We will not use this. [BCN] 3.11 (ii) gives the same graph in
+coordinates: $a_i=\mathbf e_i+\mathbf e_7$, $b_i=\mathbf e_i+\mathbf e_8$ and $c_{ij}=\mathbf
+c-\mathbf e_i-\mathbf e_j$ in $\mathrm E_8$, with $\mathbf c=\frac12\sum_{m=1}^8\mathbf e_m$, and
+two vertices adjacent in $\comp Q$ when their inner product is 1 (it is 0 otherwise); this too is
+checked in Section~\ref{sec:sage}.
+
+[CGSS] Example 4.6, with $\mathbf c$ in place of the misprinted $\frac13\sum_k\mathbf e_k$
+(\ml{cgss/errata.md}, Error 2), represents the Schl\"afli graph by other vectors of $\mathrm
+E_8$: $\mathbf x_{ij}=\mathbf e_i+\mathbf e_j$ for $1\le i<j\le6$, and $\mathbf y_i=\mathbf
+c-\mathbf e_i-\mathbf e_7$ and $\mathbf z_i=\mathbf c-\mathbf e_i-\mathbf e_8$ for $1\le i\le6$,
+two of them adjacent when their inner product is 1. The bijection
+\[
+a_i\mapsto\mathbf y_i=\mathbf c-\mathbf e_i-\mathbf e_7,\qquad
+b_i\mapsto\mathbf z_i=\mathbf c-\mathbf e_i-\mathbf e_8,\qquad
+c_{ij}\mapsto\mathbf x_{ij}=\mathbf e_i+\mathbf e_j
+\]
+is an isomorphism from $\comp Q$ onto the graph of these vectors: for $i\ne k$ we have $(\mathbf
+y_i,\mathbf y_k)=(\mathbf z_i,\mathbf z_k)=1$; $(\mathbf y_i,\mathbf z_k)$ is 1 if $i=k$ and 0
+otherwise; $(\mathbf x_{ij},\mathbf y_k)=(\mathbf x_{ij},\mathbf z_k)$ is 1 if $k\notin\{i,j\}$
+and 0 otherwise; and $(\mathbf x_{ij},\mathbf x_{kl})=\lvert\{i,j\}\cap\{k,l\}\rvert$ (the
+blueprint, Example 4.6, step \ml{s46ip}). These are the adjacencies of $\comp Q$ listed in
+Definition~\ref{def:schlafli}. The vectors of [BCN] and of [CGSS] are different, but under the
+two labellings they have the same Gram matrix. The correspondence is checked in
+Section~\ref{sec:sage}, and it is the certificate isomorphism of Section~\ref{sec:lean}.
+
+\emph{Why this model.} Of the three usual descriptions (the 27 lines, the 27 vectors of
+$\mathrm E_8$ above, and a quadric or Hermitian model over a finite field), the first is the
+easiest to state in Lean: its vertex type is a sum of two finite types, its adjacency is
+decidable by cases on four set conditions, and it needs no inner products and no field.
+Its vertices correspond one to one to the vectors of the second and to those of [CGSS]
+Example 4.6, so that the representation of the Schl\"afli graph in $\mathrm E_8$ becomes a check
+on explicit vectors of the form of step $\langle1\rangle9$ of Remark 4.14 of [CGSS]; and it uses
+2-subsets as the folded 5-cube does.
+
+\begin{theorem}[SE2]\label{thm:se2}
+Let $X$ be a strongly regular graph with parameters $(16,5,0,2)$. Then $X$ is isomorphic to the
+folded 5-cube $\square_5$. Thus a strongly regular graph with parameters $(16,10,6,6)$ is
+isomorphic to the Clebsch graph.
+\end{theorem}
+
+\begin{theorem}[SE3]\label{thm:se3}
+Let $X$ be a strongly regular graph with parameters $(27,16,10,8)$. Then $X$ is isomorphic to the
+Schl\"afli graph $\comp Q$. Equivalently, a strongly regular graph with parameters $(27,10,1,5)$
+is isomorphic to $Q$.
+\end{theorem}
+
+\section{Complements}\label{sec:compl}
+
+\begin{lemma}\label{lem:compl}
+If $X$ is strongly regular with parameters $(n,k,a,c)$, then $\comp X$ is strongly regular with
+parameters $(n,\ n-k-1,\ n-2-2k+c,\ n-2k+a)$, read in $\mathbb Z$.
+\end{lemma}
+
+A negative parameter here belongs to a condition that is vacuous: $n-2-2k+c$ is the number of
+common neighbours in $\comp X$ of two vertices adjacent in $\comp X$, and $n-2k+a$ that of two
+distinct vertices nonadjacent in $\comp X$, so either is negative only when there is no such pair,
+as when $X$ is complete or empty.
+
+\begin{proof}
+Each vertex has $n-1-k$ neighbours in $\comp X$. Let $u\ne w$. A common neighbour of $u$ and $w$
+in $\comp X$ is a vertex outside $\{u,w\}\cup\nb(u)\cup\nb(w)$. If $u\sim w$ in $X$, then $u,w\in
+\nb(u)\cup\nb(w)$ and $\lvert\nb(u)\cup\nb(w)\rvert=2k-a$, so $u$ and $w$, which are
+nonadjacent in $\comp X$, have $n-2k+a$ common neighbours there. If $u\not\sim w$ in $X$, then
+$u,w\notin\nb(u)\cup\nb(w)$ and $\lvert\nb(u)\cup\nb(w)\rvert=2k-c$, so $u$ and $w$, which are
+adjacent in $\comp X$, have $n-2-2k+c$ common neighbours there.
+\end{proof}
+
+This is \ml{SimpleGraph.IsSRGWith.compl}, in Mathlib's file
+\ml{Mathlib/Combinatorics/SimpleGraph/StronglyRegular.lean}, which states the parameters as
+\[
+\text{\mlu{n (n - k - 1) (n - (2 * k - μ) - 2) (n - (2 * k - ℓ))}}
+\]
+in truncated subtraction. The two forms agree whenever the condition is not vacuous, and for the
+four parameter sets below no subtraction is truncated (the smallest intermediate value is
+$n-(2k-c)-2=0$, for $(16,10,6,6)$). The lemma turns $(16,5,0,2)$ and
+$(16,10,6,6)$ into each other, and $(27,16,10,8)$ and $(27,10,1,5)$ into each other. Since
+$\comp{\comp X}=X$, and a bijection that preserves adjacency and nonadjacency of distinct
+vertices of $X$ and $Y$ does the same for $\comp X$ and $\comp Y$, we have $X\cong Y$ if and only
+if $\comp X\cong\comp Y$.
+
+\section{The folded 5-cube}\label{sec:se2}
+
+\begin{lemma}\label{lem:fold-param}
+The folded 5-cube is strongly regular with parameters $(16,5,0,2)$, and the Clebsch graph with
+parameters $(16,10,6,6)$.
+\end{lemma}
+
+\begin{proof}
+For $p\in V_{16}$ the map $s\mapsto s\sd p$ is a permutation of $V_{16}$ with $(s\sd p)\sd(t\sd
+p)=s\sd t$, and so an automorphism of $\square_5$; it sends $p$ to $\emptyset$. Thus it suffices to
+count at the vertex $\emptyset$. Its neighbours are the five 4-subsets $\Omega_5\diff\{i\}$. Two of
+them have symmetric difference of size 2, so they are not adjacent, and every edge at $\emptyset$
+lies in no triangle; thus $a=0$. A vertex not adjacent to $\emptyset$ and distinct from it is a
+2-subset $P$, and $\lvert(\Omega_5\diff\{i\})\sd P\rvert$ is $4$ if $i\in P$ and $2$ if
+$i\notin P$; so $\emptyset$ and $P$ have exactly the two common neighbours $\Omega_5\diff\{i\}$,
+$i\in P$, and $c=2$. The second assertion follows by Lemma~\ref{lem:compl}.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:se2}]
+Let $X$ be strongly regular with parameters $(16,5,0,2)$, fix a vertex $u$, and put $\nb=\nb(u)$
+and $R=V(X)\diff(\{u\}\cup\nb)$. Then $\lvert\nb\rvert=5$ and $\lvert R\rvert=10$.
+
+\emph{Step 1: $\nb$ is independent.} If $x,y\in\nb$ were adjacent, then $u$ would be a common
+neighbour of the adjacent vertices $x$ and $y$, whereas $a=0$.
+
+\emph{Step 2: the pairs.} Let $w\in R$. Then $w\ne u$ and $w\not\sim u$, so $w$ and $u$ have
+exactly $c=2$ common neighbours, which are the neighbours of $w$ in $\nb$. We will write
+$\varphi(w)=\nb(w)\cap\nb\in\binom{\nb}{2}$.
+
+\emph{Step 3: $\varphi$ is a bijection $R\to\binom{\nb}{2}$.} Suppose that $w\ne w'$ in $R$ and
+$\varphi(w)=\varphi(w')=\{x,y\}$. Then $x\ne y$, and $x\not\sim y$ by Step 1, while $u$, $w$ and
+$w'$ are three distinct common neighbours of $x$ and $y$; this contradicts $c=2$. Thus $\varphi$ is
+injective, and since $\lvert R\rvert=10=\binom52=\bigl\lvert\binom{\nb}{2}\bigr\rvert$, it is a
+bijection.
+
+\emph{Step 4: adjacency in $R$ is disjointness.} Let $w\in R$, with $\varphi(w)=\{x,y\}$. The five
+neighbours of $w$ are $x$, $y$ and three vertices of $R$, since $w\not\sim u$. Let $w'\in R$ be a
+neighbour of $w$. If $x\in\varphi(w')$, then $x$ would be a common neighbour of the adjacent
+vertices $w$ and $w'$, whereas $a=0$; thus $x\notin\varphi(w')$, and likewise
+$y\notin\varphi(w')$. Thus $\varphi(w')$ is one of the three 2-subsets of the 3-set
+$\nb\diff\{x,y\}$. By Step 3, the three neighbours of $w$ in $R$ have three distinct such pairs,
+so they are exactly the three vertices $w'\in R$ with $\varphi(w')\cap\varphi(w)=\emptyset$. Thus
+for $w\ne w'$ in $R$ we have $w\sim w'$ if and only if $\varphi(w)\cap\varphi(w')=\emptyset$.
+
+\emph{Step 5: the isomorphism.} Choose a bijection $\beta\colon\nb\to\Omega_5$, and define
+$f\colon V(X)\to V_{16}$ by
+\[
+f(u)=\emptyset,\qquad f(x)=\Omega_5\diff\{\beta(x)\}\ (x\in\nb),\qquad
+f(w)=\beta(\varphi(w))\ (w\in R).
+\]
+By Step 3, $f$ is a bijection onto $\{\emptyset\}\cup\{\text{4-subsets}\}\cup\binom{\Omega_5}{2}=
+V_{16}$. We compare adjacency for distinct vertices $p,q$, by the parts that contain them.
+\begin{enumerate}
+\item $u$ and $x\in\nb$: adjacent in $X$, and $\lvert\emptyset\sd(\Omega_5\diff\{\beta(x)\})\rvert=
+4$.
+\item $u$ and $w\in R$: not adjacent, and $\lvert\emptyset\sd f(w)\rvert=2$.
+\item $x,y\in\nb$: not adjacent by Step 1, and $\lvert f(x)\sd f(y)\rvert=\lvert\{\beta(x),
+\beta(y)\}\rvert=2$.
+\item $x\in\nb$ and $w\in R$: $x\sim w$ if and only if $x\in\varphi(w)$, that is, $\beta(x)\in
+f(w)$; and, as in the proof of Lemma~\ref{lem:fold-param}, $\lvert f(x)\sd f(w)\rvert=4$ if and
+only if $\beta(x)\in f(w)$.
+\item $w,w'\in R$: $w\sim w'$ if and only if $f(w)\cap f(w')=\emptyset$ by Step 4, and for two
+distinct 2-subsets $\lvert f(w)\sd f(w')\rvert=4-2\lvert f(w)\cap f(w')\rvert$ is 4 exactly when
+they are disjoint.
+\end{enumerate}
+Thus $f$ is an isomorphism $X\to\square_5$.
+
+For the consequence, let $Y$ be strongly regular with parameters $(16,10,6,6)$. By
+Lemma~\ref{lem:compl}, $\comp Y$ is strongly regular with parameters $(16,5,0,2)$, so
+$\comp Y\cong\square_5$, and $Y\cong\comp{\square_5}$ by Section~\ref{sec:compl}.
+\end{proof}
+
+\begin{remark}\label{rem:se2}
+The proof uses $c=2$ twice (Steps 2 and 3), $a=0$ twice (Steps 1 and 4), and the valency 5 and
+$n=16$ in Steps 3 and 4 (through $\lvert\nb\rvert=5$, $\lvert R\rvert=10$ and the three neighbours
+of $w$ in $R$). The remaining instances of $c=2$ are then consequences. For $w\in R$ and
+$z\in\nb\diff\varphi(w)$, the common neighbours of $w$ and $z$ are the two vertices $w'\in R$ with
+$\varphi(w')=\{z,z'\}$, where $\{z,z'\}\subseteq\nb\diff\varphi(w)$. For distinct nonadjacent
+$w,w'\in R$, whose pairs meet by Step 4 in one vertex $x$, the common neighbours of $w$ and $w'$
+are $x$ and the vertex $w''\in R$ whose pair is $\nb\diff(\varphi(w)\cup\varphi(w'))$. Thus the
+argument does not need them. The subgraph induced on $R$ is the Petersen graph (the Kneser graph of the 2-subsets of a
+5-set), in agreement with [BvM] \S10.7; we do not use SE1.
+\end{remark}
+
+\section{The Schl\"afli graph}\label{sec:se3}
+
+We will use the predicate of the blueprint (\ml{blueprint/sec2-lines.tex}, Definition \emph{the
+triangle property}, label \ml{def:triangle-property}): a graph $Y$ has the \emph{triangle
+property} if every edge $xy$ has exactly one common neighbour $z$, and every vertex outside
+$\{x,y,z\}$ is adjacent to exactly one of $x,y,z$.
+
+\begin{lemma}\label{lem:tri}
+Let $Y$ be strongly regular with parameters $(n,k,1,c)$, where $n+3=3k$. Then $Y$ has the triangle
+property.
+\end{lemma}
+
+The condition $n+3=3k$ is $n=3k-3$, and $n-3=3(k-2)$ as in the blueprint (Remark 4.14,
+\ml{lem:414-GQ1}), written without subtraction, and so in the form of the Lean hypothesis
+(Section~\ref{sec:lean}).
+
+\begin{proof}
+Let $x\sim y$. Since $a=1$, the edge $xy$ has exactly one common neighbour $z$, and $T=\{x,y,z\}$
+is a triangle. A vertex $w\notin T$ is adjacent to at most one vertex of $T$: if it were
+adjacent to two, say to $x$ and $y$ (the other cases are the same, since $xz$ and $yz$ are also
+edges whose unique common neighbour is the third vertex of $T$), then $w$ and $z$ would be two
+distinct common neighbours of $x$ and $y$. Each vertex of $T$ has exactly two neighbours in $T$,
+and so $k-2$ neighbours outside $T$. Thus there are $3(k-2)=n-3$ edges between $T$ and
+$V(Y)\diff T$, and no two of them end at the same vertex of $V(Y)\diff T$. Since $\lvert V(Y)\diff
+T\rvert=n-3$, every vertex outside $T$ is the end of exactly one of them, that is, adjacent to
+exactly one vertex of $T$.
+\end{proof}
+
+The condition $n+3=3k$ holds for $(9,4,1,2)$, $(15,6,1,3)$ and $(27,10,1,5)$, and more generally
+for the collinearity graph of a generalized quadrangle of order $(2,t)$, with $n=3(2t+1)$ and
+$k=2(t+1)$; the lemma is the converse half of GQ1. The parameter $c$ is not used.
+
+\begin{lemma}\label{lem:q-param}
+The graph $Q$ is strongly regular with parameters $(27,10,1,5)$, and the Schl\"afli graph with
+parameters $(27,16,10,8)$.
+\end{lemma}
+
+\begin{proof}
+The symmetric group on $\Omega_6$, acting on the indices, and the exchange $a_i\leftrightarrow
+b_i$ are automorphisms of $Q$. Under the group they generate, every vertex lies in the orbit of
+$a_1$ or of $c_{12}$, every edge in the orbit of $a_1b_2$, $a_1c_{12}$ or $c_{12}c_{34}$, and every
+pair of distinct nonadjacent vertices in the orbit of $a_1a_2$, $a_1b_1$, $a_1c_{23}$ or
+$c_{12}c_{13}$. The vertex $a_1$ has the ten neighbours $b_2,\dots,b_6$ and $c_{12},\dots,c_{16}$,
+and $c_{12}$ has the ten neighbours $a_1,a_2,b_1,b_2$ and the six $c_{kl}$ with $\{k,l\}\subseteq
+\{3,4,5,6\}$. The common neighbours are:
+\begin{center}
+\begin{tabular}{llc}
+\toprule
+pair & common neighbours & number\\
+\midrule
+$a_1b_2$ & $c_{12}$ & 1\\
+$a_1c_{12}$ & $b_2$ & 1\\
+$c_{12}c_{34}$ & $c_{56}$ & 1\\
+\midrule
+$a_1a_2$ & $b_3,b_4,b_5,b_6$, $c_{12}$ & 5\\
+$a_1b_1$ & $c_{12},\dots,c_{16}$ & 5\\
+$a_1c_{23}$ & $b_2$, $b_3$, $c_{14},c_{15},c_{16}$ & 5\\
+$c_{12}c_{13}$ & $a_1$, $b_1$, $c_{45},c_{46},c_{56}$ & 5\\
+\bottomrule
+\end{tabular}
+\end{center}
+The second assertion follows by Lemma~\ref{lem:compl}.
+\end{proof}
+
+We will use the following result of the blueprint, which the repaired Lemma 2.10 of [CGSS]
+applies in its step \ml{210unique}.
+
+\begin{proposition}[{\ml{blueprint/sec2-lines.tex}, Lemma \emph{isomorphism from the order},
+label \ml{lem:triangle-iso}}]\label{prop:triso}
+Let $Y$ and $Z$ be finite graphs with the triangle property, each with an edge, neither with a
+vertex adjacent to every other vertex, and with $\lvert V(Y)\rvert=\lvert V(Z)\rvert$. Then $Y\cong
+Z$.
+\end{proposition}
+
+This is the graph-theoretic uniqueness assertion behind Lemma 2.10 of [CGSS], stated without a vector
+representation; its Lean name is
+\[
+\text{\ml{SimpleGraph.HasTriangleProperty.nonempty_iso_of_card_eq}}
+\]
+(\ml{cgss/notation.md} \S10, row Lemma 2.10). We do not use the form
+\[
+\text{\mlu{LineSystem.Hyp24.orthGraph\_iso\_of\_card\_Γa\_eq}}
+\]
+of the uniqueness assertion, which asks that both graphs be orthogonality graphs of instances of Hypothesis 2.4; nor do we use the classification of
+the generalized quadrangles with lines of size 3 (GQ2).
+
+\begin{proof}[Proof of Theorem~\ref{thm:se3}]
+Let $X$ be strongly regular with parameters $(27,16,10,8)$. By Lemma~\ref{lem:compl}, $\comp X$
+is strongly regular with parameters $(27,10,1,5)$, and so is $Q$ by Lemma~\ref{lem:q-param}. Since
+$27+3=3\cdot10$, both have the triangle property by Lemma~\ref{lem:tri}. Both have an edge, since
+they are 10-regular on a nonempty set, and neither has a vertex adjacent to every other vertex,
+since $10<26$. They have 27 vertices each. By Proposition~\ref{prop:triso}, $\comp X\cong Q$, and
+so $X\cong\comp Q$ by Section~\ref{sec:compl}. The equivalent form is the same argument without
+the first complementation.
+\end{proof}
+
+Thus SE3 in Lean is a reduction to the result of Section 2 of the blueprint: it needs Mathlib's
+\ml{SimpleGraph.IsSRGWith.compl}, Lemma~\ref{lem:tri}, the parameters of $Q$, and
+\ml{SimpleGraph.HasTriangleProperty.nonempty_iso_of_card_eq}. Lemma~\ref{lem:tri} also shows that
+the strongly regular graphs with parameters $(9,4,1,2)$ and $(15,6,1,3)$ are unique, by the same
+argument with $L_2(3)$ and the complement of $T(6)$ in place of $Q$ (the orthogonality graphs of
+$\mathrm E_6$ and $\mathrm E_7$ in Section 2 of the blueprint; \ml{gq21} and \ml{gq22} in
+\ml{cgss/notation.md} \S6).
+
+\section{The computation}\label{sec:sage}
+
+The script \ml{cgss/proofs/clebsch/checks/clebsch_check.sage}, run with SageMath~10, does the
+following.
+\begin{enumerate}
+\item It builds $\square_5$ on the even subsets of $\{0,\dots,4\}$ and checks that it is strongly
+regular with parameters $(16,5,0,2)$, that the Clebsch graph has parameters $(16,10,6,6)$ and is
+the graph of symmetric differences of size 2, that $\square_5$ is isomorphic to
+\ml{graphs.ClebschGraph()}, to the antipodal quotient of \ml{graphs.CubeGraph(5)}, and that the
+Clebsch graph is isomorphic to the halved 5-cube.
+\item At each of the 16 vertices $u$ of \ml{graphs.ClebschGraph()} it checks Steps 1 to 4 of the
+proof of Theorem~\ref{thm:se2} ($\nb(u)$ independent, every $w\in R$ with two neighbours in
+$\nb(u)$, $\varphi$ injective, three neighbours in $R$, adjacency in $R$ equal to disjointness of
+the pairs), and that the map $f$ of Step 5 is an isomorphism onto $\square_5$.
+\item It builds $Q$ and $\comp Q$ from the case lists of Definition~\ref{def:schlafli}, checks
+that the two lists describe complementary graphs, that the parameters are $(27,10,1,5)$ and
+$(27,16,10,8)$, that $\comp Q$ is isomorphic to \ml{graphs.SchlaefliGraph()}, and that $\comp Q$
+is the graph of the $\mathrm E_8$ vectors of [BCN] 3.11 (ii) at inner product 1, and that the
+correspondence of Section~\ref{sec:statement} is an isomorphism from $\comp Q$ onto the graph of
+the vectors of [CGSS] Example 4.6 at inner product 1.
+\item It checks the formula of Lemma~\ref{lem:compl} against Mathlib's truncated one for the four
+parameter sets; the table of the proof of Lemma~\ref{lem:q-param}, pair by pair; that the
+permutations of the indices and the exchange $a_i\leftrightarrow b_i$ are automorphisms of $Q$,
+and that under the group they generate the vertices, the edges and the pairs of distinct
+nonadjacent vertices fall into 2, 3 and 4 orbits, with the representatives of that proof.
+\item It checks that the graph of the 16 vectors of [CGSS] Example 4.8 at inner product 1 is the
+subgraph of the graph of Example 4.6 induced on the neighbours of $\mathbf e_5+\mathbf e_6$, and
+that the map of Section~\ref{sec:lean} is an isomorphism from it onto $\comp{\square_5}$, the
+certificate for Computation C9.
+\item It checks the triangle property for $Q$ and for the complement of
+\ml{graphs.SchlaefliGraph()}, the identity $n+3=3k$ for the three parameter sets of
+Lemma 2.10 of [CGSS], that $Q$ has 45 triangles with 5 through each vertex, and that its automorphism
+group has order $51840=\lvert W(\mathrm E_6)\rvert$.
+\end{enumerate}
+All checks pass. The computation is an independent check and not a part of the proof, which is
+complete without it.
+
+\section{The shape of the Lean statements}\label{sec:lean}
+\raggedright
+
+We will follow \ml{cgss/notation.md} \S10: the namespace \ml{SimpleGraph}, lowerCamelCase for
+definitions, snake\_case theorems naming their conclusion, theorems about strongly regular graphs
+in the namespace \ml{SimpleGraph.IsSRGWith} so that dot notation works, and \ml{nonempty_iso}
+at the start of a theorem that an isomorphism exists (rule 1). Thus the uniqueness theorems are
+\ml{IsSRGWith.nonempty_iso_clebsch} and not \ml{iso_clebsch}, which by rule 1 would be the name of
+a definition building the isomorphism.
+
+The graph names are those of \S6, with one definition for each name. The graphs
+\ml{SimpleGraph.foldedFiveCube} and \ml{SimpleGraph.gq24} are the combinatorial graphs $\square_5$
+and $Q$ of Definitions~\ref{def:clebsch} and~\ref{def:schlafli}. The graphs
+\ml{SimpleGraph.clebsch} and \ml{SimpleGraph.schlafli} remain the graphs of the integer vectors of
+[CGSS] Examples 4.8 and 4.6, as in Computation C9 of the blueprint
+(\ml{blueprint/sec4-leasteigenvalue.tex}, \ml{comp:C9}), which gives them the parameters
+$(16,10,6,6)$ and $(27,16,10,8)$ (\ml{clebsch_isSRGWith}, \ml{schlafli_isSRGWith}). We do not
+define \mlu{clebsch := foldedFiveCubeᶜ} or \mlu{schlafli := gq24ᶜ}. Instead C9 supplies, as
+certificates checked by \ml{decide}, the explicit isomorphisms
+\begin{verbatim}
+def SimpleGraph.clebsch.foldedFiveCubeComplIso : clebsch ≃g foldedFiveCubeᶜ
+def SimpleGraph.schlafli.gq24ComplIso : schlafli ≃g gq24ᶜ
+\end{verbatim}
+named as \mlu{LineSystem.E₆.latticeGraphIso} and \mlu{LineSystem.E₇.triangularGraphComplIso} of
+Computation C4 are: a definition that builds an isomorphism, in the namespace of the graph it
+starts from, named after the other graph (rule 1). The second is the inverse of the
+correspondence $a_i\mapsto\mathbf y_i$, $b_i\mapsto\mathbf z_i$, $c_{ij}\mapsto\mathbf x_{ij}$ of
+Section~\ref{sec:statement}. The first, found by the script of Section~\ref{sec:sage}, sends
+\[
+\mathbf e_i+\mathbf e_5\mapsto s_i,\quad \mathbf e_i+\mathbf e_6\mapsto s_i\sd\{1,2\},\quad
+\mathbf c-\mathbf e_i-\mathbf e_7\mapsto s_i\sd\{1,3,4,5\},\quad
+\mathbf c-\mathbf e_i-\mathbf e_8\mapsto s_i\sd\{2,3,4,5\}
+\]
+for $1\le i\le4$, where $s_1=\emptyset$, $s_2=\{3,4\}$, $s_3=\{3,5\}$ and $s_4=\{4,5\}$.
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+object & Lean \\
+\midrule
+$\square_5$ & \ml{SimpleGraph.foldedFiveCube : SimpleGraph S}, where \\
+& \quad \ml{S = {s : Finset (Fin 5) // Even s.card}}, \\
+& \quad with \mlu{Adj s t := (s.1 ∆ t.1).card = 4} \\
+$\comp{\square_5}$ & \mlu{foldedFiveCubeᶜ}, with \\
+& \quad \ml{SimpleGraph.compl_foldedFiveCube_adj_iff} ($\lvert s\sd t\rvert=2$) \\
+$Q$ & \mlu{SimpleGraph.gq24 : SimpleGraph (Fin 2 × Fin 6 ⊕ T)}, where \\
+& \quad \ml{T = {s : Finset (Fin 6) // s.card = 2}} \\
+$\comp Q$ & \mlu{gq24ᶜ}, with \ml{SimpleGraph.compl_gq24_adj_iff} \\
+Clebsch graph (Ex.~4.8) & \ml{SimpleGraph.clebsch} (C9), with \\
+& \quad \ml{clebsch.foldedFiveCubeComplIso} \\
+Schl\"afli graph (Ex.~4.6) & \ml{SimpleGraph.schlafli} (C9), with \ml{schlafli.gq24ComplIso} \\
+Lemma~\ref{lem:fold-param} & \ml{SimpleGraph.foldedFiveCube_isSRGWith}, and \ml{.compl} \\
+Lemma~\ref{lem:q-param} & \ml{SimpleGraph.gq24_isSRGWith}, and \ml{.compl} for $\comp Q$ \\
+complements & \mlu{SimpleGraph.Iso.compl (f : X ≃g Y) : Xᶜ ≃g Yᶜ} \\
+Lemma~\ref{lem:tri} & \ml{SimpleGraph.IsSRGWith.hasTriangleProperty} \\
+\bottomrule
+\end{tabular}
+\end{center}
+The lemmas \ml{compl_foldedFiveCube_adj_iff} and \ml{compl_gq24_adj_iff} state the adjacencies of
+the complements given after Definitions~\ref{def:clebsch} and~\ref{def:schlafli}; they replace the
+earlier proposals \ml{clebsch_adj_iff} and \ml{schlafli_adj_iff}, which named the complements when
+these were called \ml{clebsch} and \ml{schlafli}. In \ml{gq24} the vertex $(0,i)$ is $a_{i+1}$,
+$(1,i)$ is $b_{i+1}$, and a 2-subset $\{i,j\}$ is $c_{i+1,j+1}$; adjacency is by cases:
+$(e,i)\sim(e',j)$ iff $e\ne e'$ and $i\ne j$, $(e,i)\sim s$ iff $i\in s$, and $s\sim t$ iff
+\ml{Disjoint s.1 t.1}. Both vertex types have decidable equality and adjacency, and their
+cardinalities, 16 and 27, follow by \ml{decide} or \ml{simp}. The docstrings record the
+parameters, the names of the other sources (\S6), and the descriptions of
+Section~\ref{sec:statement}. With \ml{X : SimpleGraph V}, \ml{[Fintype V] [DecidableEq V]
+[DecidableRel X.Adj]}, the theorems are
+\begin{verbatim}
+theorem SimpleGraph.IsSRGWith.nonempty_iso_foldedFiveCube
+    (h : X.IsSRGWith 16 5 0 2) : Nonempty (X ≃g foldedFiveCube)
+theorem SimpleGraph.IsSRGWith.nonempty_iso_clebsch
+    (h : X.IsSRGWith 16 10 6 6) : Nonempty (X ≃g clebsch)
+theorem SimpleGraph.IsSRGWith.hasTriangleProperty
+    (h : X.IsSRGWith n k 1 c) (hn : n + 3 = 3 * k) : X.HasTriangleProperty
+theorem SimpleGraph.IsSRGWith.nonempty_iso_gq24
+    (h : X.IsSRGWith 27 10 1 5) : Nonempty (X ≃g gq24)
+theorem SimpleGraph.IsSRGWith.nonempty_iso_schlafli
+    (h : X.IsSRGWith 27 16 10 8) : Nonempty (X ≃g schlafli)
+\end{verbatim}
+(the hypothesis \ml{hn} is $n+3=3k$ of Lemma~\ref{lem:tri}, without truncated subtraction). The
+proof of \ml{nonempty_iso_foldedFiveCube} defines the map $f$ of Step 5 from a vertex \ml{u}, the
+pair map \mlu{w ↦ X.neighborFinset u ∩ X.neighborFinset w} and an equivalence
+\mlu{X.neighborFinset u ≃ Fin 5} (from the cardinality 5 and \ml{Finset.equivFinOfCardEq}); Steps
+1 to 4 become four lemmas, and Step 5 a case split into the five cases. The proofs of
+\ml{nonempty_iso_clebsch} and \ml{nonempty_iso_schlafli} apply \ml{IsSRGWith.compl}, then
+\ml{nonempty_iso_foldedFiveCube} or \ml{nonempty_iso_gq24}, then \ml{Iso.compl} and
+\ml{compl_compl}, which give \mlu{X ≃g foldedFiveCubeᶜ} or \mlu{X ≃g gq24ᶜ}, and compose with the
+inverse of the certificate \ml{clebsch.foldedFiveCubeComplIso} or \ml{schlafli.gq24ComplIso}. The
+proof of \ml{nonempty_iso_gq24} applies
+\ml{SimpleGraph.HasTriangleProperty.nonempty_iso_of_card_eq} (Section 2 of the blueprint) to
+\ml{X} and \ml{gq24}, with \ml{hasTriangleProperty} for both, the edge from the valency, and the
+absence of a universal vertex (Mathlib's \ml{SimpleGraph.IsUniversal}) from $10<26$. The
+parameters of the models may be proved by \ml{decide} (a check over at most $27^3$ triples), or by
+the orbit argument of Lemmas~\ref{lem:fold-param} and~\ref{lem:q-param} if the kernel is too slow.
+
+The Mathlib declarations that we use are in Mathlib at commit \ml{082e2d37} (4 September 2026),
+the version pinned in \ml{lake-manifest.json}:
+\begin{itemize}
+\item \ml{Mathlib/Combinatorics/SimpleGraph/StronglyRegular.lean}: the structure
+\ml{SimpleGraph.IsSRGWith} with the fields \ml{card}, \ml{regular}, \ml{of_adj}, \ml{of_not_adj};
+\ml{SimpleGraph.IsSRGWith.compl}; \ml{IsSRGWith.card_neighborFinset_union_of_adj} and
+\ml{IsSRGWith.card_neighborFinset_union_of_not_adj} (the counts of Lemma~\ref{lem:compl}).
+\item \ml{Mathlib/Combinatorics/SimpleGraph/Basic.lean}: \ml{SimpleGraph.compl_adj},
+\ml{SimpleGraph.commonNeighbors}, \ml{SimpleGraph.mem_commonNeighbors},
+\ml{SimpleGraph.IsUniversal}; the instance \ml{SimpleGraph.completeAtomicBooleanAlgebra}, through
+which the generic \ml{compl_compl} (\ml{Mathlib/Order/BooleanAlgebra/Basic.lean}) applies.
+\item \ml{Mathlib/Combinatorics/SimpleGraph/Finite.lean}: \ml{SimpleGraph.neighborFinset},
+\ml{SimpleGraph.card_neighborFinset_eq_degree}, \ml{SimpleGraph.IsRegularOfDegree},
+\ml{IsRegularOfDegree.degree_eq}, \ml{IsRegularOfDegree.compl}.
+\item \ml{Mathlib/Combinatorics/SimpleGraph/Maps.lean}: \ml{SimpleGraph.Iso} (notation \mlu{≃g}),
+\ml{SimpleGraph.Iso.card_eq}, and \ml{SimpleGraph.Embedding.complEquiv}; Mathlib has the
+complement of an embedding but no \ml{Iso.compl}, which is new (a few lines, from \ml{compl_adj}
+and the injectivity of \ml{f}).
+\item \ml{Mathlib/Order/SymmDiff.lean}: \ml{symmDiff}, with the scoped notation \mlu{∆}
+(\ml{open symmDiff}); \ml{Mathlib/Data/Finset/Card.lean}: \ml{Finset.eq_of_subset_of_card_le};
+\ml{Mathlib/Data/Fintype/EquivFin.lean}: \ml{Fintype.bijective_iff_injective_and_card} (Step 3);
+\ml{Mathlib/Data/Finset/Powerset.lean}: \ml{Finset.card_powersetCard} (the count $\binom52=10$).
+\item \ml{Mathlib/Combinatorics/SimpleGraph/Triangle/Basic.lean}: \ml{SimpleGraph.LocallyLinear},
+which the triangle property implies (\S10, row Lemma 2.8); it is not needed here.
+\end{itemize}
+
+\section{Remarks on the sources}\label{sec:sources}
+
+The direct argument for SE2 is Cameron's [C17, Theorem 2.2], and Seidel sketches a matrix proof
+[S68, \S6, case 5]; we have written the direct argument in full. [BvM] \S10.7 and
+\S10.10 state both uniqueness theorems without proof. [BCN] \S3.11 (iii) prints the parameters of the
+complement of the Clebsch graph as $(16,5,0,1)$; they are
+$(16,5,0,2)$, as \ml{cgss/prerequisites.md} (SE2) says. Where \ml{cgss/prerequisites.md} (SE3)
+says that the graph is unique ``by GQ2'', we use instead the repaired uniqueness of Lemma 2.10, as
+GQ3 allows: the triangle property of Lemma~\ref{lem:tri} is exactly what
+Proposition~\ref{prop:triso} needs, and the lines of the quadrangle never appear.
+
+\begin{thebibliography}{CGSS}
+\bibitem[BCN]{BCN} A.~E. Brouwer, A.~M. Cohen and A. Neumaier, \emph{Distance-regular graphs},
+Springer, 1989.
+\bibitem[BvM]{BvM} A.~E. Brouwer and H. Van Maldeghem, \emph{Strongly regular graphs}, Cambridge
+University Press, 2022.
+\bibitem[C17]{C17} P.~J. Cameron, \emph{Eigenvalues and root systems in finite geometry}, lecture
+notes, 2017.
+\bibitem[CGSS]{CGSS} P.~J. Cameron, J.-M. Goethals, J.~J. Seidel and E.~E. Shult, Line graphs, root
+systems, and elliptic geometry, \emph{J. Algebra} \textbf{43} (1976), 305--327.
+\bibitem[S68]{S68} J.~J. Seidel, Strongly regular graphs with $(-1,1,0)$ adjacency matrix having
+eigenvalue 3, \emph{Linear Algebra Appl.} \textbf{1} (1968), 281--298.
+\end{thebibliography}
+
+\end{document}

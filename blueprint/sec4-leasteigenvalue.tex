@@ -1,0 +1,2053 @@
+\section{Graphs with least eigenvalue \texorpdfstring{$-2$}{-2}}\label{sec:4}
+\begingroup
+\emergencystretch=3em
+
+We will follow Section 4 of [CGSS]. The paper's graphs $G$ and $H$ are our graphs $X$ and $Y$.
+All graphs are finite and simple. For a graph $X$ we write $A=A(X)$ for its adjacency matrix,
+$J$ for the all-ones matrix and $\lambda_{\min}(X)$ for its least eigenvalue; the least
+eigenvalue of $X$ is at least $-2$ exactly when $2I+A$ is positive semidefinite, and we will
+state the results of this section in that form, as the Lean statements do. The coordinates
+$\Ze_1,\dots,\Ze_\ell$ are those of Definition~\ref{def:3.1}. For a vector
+$\Zx=\sum_i\Zx(i)\Ze_i$ the \emph{support} of $\Zx$ is $\supp(\Zx)=\{i:\Zx(i)\ne0\}$. For a graph $Y$,
+the line graph $L(Y)$ has the edges of $Y$ as its vertices, two of them adjacent when they are
+distinct and share an end.
+
+\begingroup\raggedright
+\medskip\noindent\textbf{Facts from Mathlib and the project.}\label{facts:sec4}
+We will use the following declarations of Mathlib (commit \path{082e2d37}):
+\path{Matrix.posSemidef_iff_eq_sum_vecMulVec} (a positive semidefinite real matrix is a sum of
+matrices $\Zv\Zv^T$), \path{Matrix.posSemidef_gram} (a Gram matrix is positive semidefinite),
+\path{Matrix.rank_eq_finrank_span_cols}, \path{Submodule.map_span},
+\path{LinearMap.finrank_range_of_inj}, \path{Submodule.finrank_le}, \path{stdOrthonormalBasis}
+with its field \path{OrthonormalBasis.repr},
+\path{Matrix.det_gram_ne_zero_iff_linearIndependent},
+\path{Matrix.posDef_gram_iff_linearIndependent},
+\path{LinearIndependent.fintype_card_le_finrank}, \path{finrank_euclideanSpace_fin}, the
+definition \path{Matrix.rank} (the dimension of the range), \path{Submodule.span_mono},
+\path{Submodule.finrank_mono}, \path{Submodule.finrank_sup_add_finrank_inf_eq},
+\path{finrank_span_singleton}, \path{SimpleGraph.adjMatrix_mulVec_const_apply_of_regular}, for a
+real symmetric matrix its eigenvalues \path{Matrix.IsHermitian.eigenvalues} with
+\path{Matrix.IsHermitian.spectral_theorem}, \path{Matrix.IsHermitian.trace_eq_sum_eigenvalues}
+and \path{Matrix.IsHermitian.rank_eq_card_non_zero_eigs}, \path{Matrix.trace_mul_comm}, the
+Cauchy--Schwarz inequality \path{Finset.sum_mul_sq_le_sq_mul_sq}, the predicate
+\path{SimpleGraph.IsBipartite} (a 2-colouring) with
+\path{SimpleGraph.two_colorable_iff_forall_loop_even} and
+\path{SimpleGraph.Coloring.even_length_iff_congr}, and the structure
+\path{SimpleGraph.IsSRGWith}. From the
+project we use the bridge \path{SimpleGraph.posSemidef_two_add_adjMatrix_iff} ($2I+A$ is
+positive semidefinite exactly when every eigenvalue of $X$ is at least $-2$) and
+\path{SimpleGraph.leastEigenvalue_eq_neg_two_iff} (for a graph with a vertex,
+$\lambda_{\min}(X)=-2$ exactly when $2I+A$ is positive semidefinite and singular), both in
+\path{LineGraphs/Spectral/Positivity.lean}; and the sets
+$N_\Zr=\{\Zx\in\Phi:(\Zx,\Zr)=1\}$ of \path{LineGraphs/Computations/NeighborCertificates.lean}.
+\par
+\endgroup
+
+\subsection{Theorem 4.1}
+
+\begin{namedresult}{Definition}{(representations)}\label{def:represented}
+ \lean{SimpleGraph.IsRepresentation}\lean{SimpleGraph.IsRepresentedIn}
+ \uses{def:line-system,def:3.2}
+ \assume{$X$ is a graph, $V$ is a real inner product space and $S$ is a line system in $V$.}
+ \pflet{A \emph{representation} of $X$ in $V$ is a family $(\Zx_u)_{u\in V(X)}$ of vectors of
+ $V$ whose Gram matrix is $2I+A(X)$; that is, $(\Zx_u,\Zx_u)=2$, $(\Zx_u,\Zx_w)=1$ when $u$ and
+ $w$ are adjacent, and $(\Zx_u,\Zx_w)=0$ when $u\ne w$ are not adjacent. The graph $X$ is
+ \emph{represented in $S$} if it has a representation with $\Zx_u\in\Phi(S)$ for every $u$.}
+ \new\ The paper speaks of a set of vectors and of the graph it represents; we will index the
+ vectors by the vertices, so that the graph is given first, as in Lean. For $S=\typ E_8$ we take
+ model (ii) of Definition~\ref{def:3.2} in $\re^8$.
+\end{namedresult}
+
+\begin{namedresult}{Lemma}{(Gram factorization)}\label{lem:4-gramfactor}
+ \lean{Matrix.rank_gram_eq_finrank_span}\lean{Matrix.PosSemidef.exists_gram_euclideanSpace}
+ \uses{facts:sec4}
+ \assume{$M$ is a real symmetric matrix indexed by a finite set $V$, and $r\ge0$.}
+ \prove{\begin{pfenum}
+  \item If $M$ is the Gram matrix of a family $(\Zx_u)_{u\in V}$ in a real inner product space,
+   then $\rk M$ is the dimension of the span of the $\Zx_u$.
+  \item If $M$ is positive semidefinite and $\rk M\le r$, then $M$ is the Gram matrix of a
+   family in $\re^r$, that is, in \texttt{EuclideanSpace}~$\re$~\texttt{(Fin r)}.
+ \end{pfenum}}
+ \new\ Mathlib factors a positive semidefinite matrix through a sum of an unspecified number of
+ terms; the sections below need the dimension.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will compare the columns of $M$ with the span, and then move the span into
+ $\re^r$ by an isometry.
+ \step{s4gfspan}{Assertion 1 holds.}
+ \begin{proof}\pf\ Let $W$ be the span of the $\Zx_u$ and $T\Zy=((\Zx_w,\Zy))_{w\in V}$ for
+  $\Zy\in W$. The column $u$ of $M$ is $T\Zx_u$, so the span of the columns is $T(W)$, and $T$
+  is injective on $W$, since $T\Zy=0$ gives $(\Zy,\Zy)=0$. So $\dim T(W)=\dim W$ by
+  \path{Submodule.map_span} and \path{LinearMap.finrank_range_of_inj}; apply
+  \path{Matrix.rank_eq_finrank_span_cols}.~\qed\end{proof}
+ \step{s4gfsum}{\assume{$M$ is positive semidefinite.}\prove{$M$ is the Gram matrix of a family
+  $(\Zy_u)$ in $\re^m$ for some $m$.}}
+ \begin{proof}\pf\ By \path{Matrix.posSemidef_iff_eq_sum_vecMulVec},
+  $M=\sum_{k=1}^m\Zv_k\Zv_k^T$ for some $m$ and vectors $\Zv_k\in\re^V$. Put
+  $\Zy_u=\sum_k\Zv_k(u)\Ze_k$; then $(\Zy_u,\Zy_w)=\sum_k\Zv_k(u)\Zv_k(w)$ is the $uw$-entry of
+  $M$.~\qed\end{proof}
+ \step{s4gfcoord}{\assume{$M$ is positive semidefinite.}\prove{$M$ is the Gram matrix of a
+  family in $\re^{\dim W}$, where $W$ is the span of the $\Zy_u$ of \stepref{s4gfsum}.}}
+ \begin{proof}\pf\ The coordinates in the orthonormal basis \path{stdOrthonormalBasis} of $W$,
+  that is, its \path{OrthonormalBasis.repr}, form a linear isometry of $W$ onto
+  $\re^{\dim W}$; they preserve inner products.~\qed\end{proof}
+ \step{s4gfpad}{\assume{$k\le r$.}\prove{Padding with $r-k$ zero coordinates maps $\re^k$
+  into $\re^r$ and preserves inner products.}}
+ \begin{proof}\pf\ The padded coordinates contribute $0$ to each inner
+  product.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is \stepref{s4gfspan}. For assertion 2, $\dim W=\rk M\le r$ by
+  \stepref{s4gfspan}; apply \stepref{s4gfcoord} and then \stepref{s4gfpad} with
+  $k=\dim W$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the Gram matrix)}\label{lem:4-gram}
+ \lean{SimpleGraph.exists_representation_iff_posSemidef}
+ \uses{def:represented,lem:4-gramfactor,facts:sec4}
+ \assume{$X$ is a graph on $n$ vertices.}
+ \prove{\begin{pfenum}
+  \item $X$ has a representation in $\re^n$ if and only if $2I+A(X)$ is positive semidefinite,
+   that is, if and only if every eigenvalue of $X$ is at least $-2$.
+  \item If $n\ge1$ and $X$ has a representation in a space of dimension less than $n$, then
+   $\lambda_{\min}(X)=-2$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will factor the matrix into a Gram matrix, and then count independent vectors.
+ \step{s4gramfwd}{\assume{$(\Zx_u)$ is a representation of $X$ in a real inner product
+  space $V$.}
+  \prove{$2I+A(X)$ is positive semidefinite.}}
+ \begin{proof}\pf\ $2I+A(X)$ is the Gram matrix of $(\Zx_u)$ by \asm{1} and
+  Definition~\ref{def:represented}; apply \path{Matrix.posSemidef_gram}.~\qed\end{proof}
+ \step{s4gramback}{\assume{$2I+A(X)$ is positive semidefinite.}
+  \prove{$X$ has a representation in $\re^n$.}}
+ \begin{proof}\pf\ $2I+A(X)$ has rank at most $n$; apply Lemma~\ref{lem:4-gramfactor},
+  assertion 2, with $r=n$, and Definition~\ref{def:represented}.~\qed\end{proof}
+ \step{s4gramone}{Assertion 1 holds.}
+ \begin{proof}\pf\ \stepref{s4gramfwd} and \stepref{s4gramback} give the first equivalence, and
+  \path{SimpleGraph.posSemidef_two_add_adjMatrix_iff} the second.~\qed\end{proof}
+ \step{s4gramsing}{\assume{$n\ge1$ and $(\Zx_u)$ is a representation of $X$ in a space $V$ of
+  dimension less than $n$.}\prove{$\det(2I+A(X))=0$.}}
+ \begin{proof}\pf\ The family $(\Zx_u)$ has $n$ members in a space of dimension less than $n$,
+  so it is not linearly independent by \path{LinearIndependent.fintype_card_le_finrank}. Its
+  Gram matrix $2I+A(X)$ is singular by
+  \path{Matrix.det_gram_ne_zero_iff_linearIndependent}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is \stepref{s4gramone}. For assertion 2, $2I+A(X)$ is positive
+  semidefinite by \stepref{s4gramfwd} and
+  singular by \stepref{s4gramsing}; apply
+  \path{SimpleGraph.leastEigenvalue_eq_neg_two_iff}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the lines of a representation)}\label{lem:4-lines}
+ \lean{SimpleGraph.IsRepresentation.isIndecomposable_of_connected}
+ \uses{def:represented,def:line-system,def:indecomposable,lem:sec3-connected-span}
+ \assume{$(\Zx_u)_{u\in V(X)}$ is a representation of a graph $X$ in a finite-dimensional real
+ inner product space $V$, and $\Phi=\{\pm\Zx_u:u\in V(X)\}$.}
+ \prove{\begin{pfenum}
+  \item $u\mapsto\Zx_u$ is injective, and $\Zx_u\ne-\Zx_w$ for all $u,w$.
+  \item $\Phi$ is a line system $S_\Zx$ in $V$, with $|V(X)|$ lines.
+  \item If $X$ is connected, then $S_\Zx$ is indecomposable.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will compare inner products with the squared norm 2.
+ \step{s4linesinj}{Assertion 1 holds.}
+ \begin{proof}\pf\ For $u\ne w$, $(\Zx_u,\Zx_w)\in\{0,1\}$ by Definition~\ref{def:represented},
+  while $(\Zx_u,\Zx_u)=2$ and $(\Zx_u,-\Zx_u)=-2$; so $\Zx_w\ne\Zx_u$ and $\Zx_w\ne-\Zx_u$. For
+  $u=w$, $\Zx_u=-\Zx_u$ would give $\Zx_u=0$, against $(\Zx_u,\Zx_u)=2$.~\qed\end{proof}
+ \step{s4linessys}{Assertion 2 holds.}
+ \begin{proof}\pf\ $\Phi=-\Phi$, every member has squared norm 2, and the inner products of
+  members are $\pm$ those of the $\Zx_u$, which lie in $\{0,1,2\}$; this is
+  Definition~\ref{def:line-system}. The lines are the pairs $\{\Zx_u,-\Zx_u\}$, which are
+  distinct by \stepref{s4linesinj}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Take $B=\{\Zx_u\}$ in Lemma~\ref{lem:sec3-connected-span}: $B$ spans the span
+  of $\Phi$, and distinct members of $B$ have nonzero inner product exactly when their vertices
+  are adjacent, so the graph of that lemma is a copy of $X$, which is connected.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(transport of representations)}\label{lem:4-transport}
+ \lean{SimpleGraph.IsRepresentedIn.of_isometricInclusion}
+ \uses{def:represented,def:line-iso}
+ \assume{$S$ and $T$ are line systems, $f:\Phi(S)\to\Phi(T)$ preserves inner products (for
+ instance an isomorphism, or the inclusion of $\Phi(S)$ in $\Phi(T)$ when $\Phi(S)\sbs\Phi(T)$),
+ and $X$ is represented in $S$ by $(\Zx_u)$.}
+ \prove{$X$ is represented in $T$ by $(f(\Zx_u))$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The Gram matrix does not change.
+ \qedstep
+ \begin{proof}\pf\ $(f(\Zx_u),f(\Zx_w))=(\Zx_u,\Zx_w)$ for all $u,w$ by \asm{0}, and
+  $f(\Zx_u)\in\Phi(T)$; apply Definition~\ref{def:represented}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(subfamilies of a representation)}\label{lem:4-sub}
+ \lean{SimpleGraph.IsRepresentation.induce}
+ \uses{def:represented}
+ \assume{$(\Zx_u)_{u\in V(X)}$ is a representation of a graph $X$ in $V$, and $U\sbs V(X)$.}
+ \prove{$(\Zx_u)_{u\in U}$ is a representation in $V$ of the subgraph $X[U]$ induced on $U$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The Gram matrix of the subfamily is a principal submatrix.
+ \qedstep
+ \begin{proof}\pf\ Two vertices of $U$ are adjacent in $X[U]$ exactly when they are adjacent in
+  $X$, so $(\Zx_u,\Zx_w)$ for $u,w\in U$ is the $uw$-entry of $2I+A(X[U])$; apply
+  Definition~\ref{def:represented}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(a root system containing the lines)}\label{lem:4-rootsystem}
+ \lean{SimpleGraph.IsRepresentation.exists_isRepresentedIn_rootType}
+ \uses{def:represented,lem:4-lines,lem:4-transport,lem:sec3-extension,lem:sec3-transport,lem:sec3-spans,def:2.2,lem:2.3,thm:3.5,thm:3.6,def:3.1,def:3.3}
+ \assume{$X$ is a connected graph with a representation $(\Zx_u)$ in a finite-dimensional real
+ inner product space $V$, and the span of the $\Zx_u$ has dimension $k$.}
+ \prove{\begin{pfenum}
+  \item $X$ is represented in the model of one of $\typ A_k$, $\typ D_k$ ($k\ge4$), $\typ E_6$,
+   $\typ E_7$ and $\typ E_8$, and the rank of that model is $k$.
+  \item $X$ is represented in $\typ A_\ell$ for some $\ell\ge1$, in $\typ D_\ell$ for some
+   $\ell\ge4$, or in $\typ E_8$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ This is the paper's ``Such a set of lines is contained in a root system. If the
+ graph is connected, then the root system is indecomposable.'' \repair\ The paper does not say
+ why a set that is not maximal lies in an indecomposable star-closed set of the same dimension;
+ we will use the fill of Gap 13 (errata), which is Lemma~\ref{lem:sec3-extension}. We will then
+ place $\typ E_6$ and $\typ E_7$ inside $\typ E_8$. The first of the two sentences holds without
+ connectedness: the vectors of squared norm 2 in the integral span of the $\Zx_u$ form a
+ star-closed line system in which $X$ is represented. We use this system for Remark 4.14; in
+ Lean it is \path{SimpleGraph.IsRepresentation.latticeRoots}, with the lemmas
+ \path{isStarClosed_latticeRoots} and \path{isRepresentedIn_latticeRoots} in the same
+ namespace. The claim of the introduction of [CGSS], that the lines lie in one of the root
+ systems, needs connectedness (errata, Implicit hypothesis 1).
+ \pflet{$S=S_\Zx$ be the line system of Lemma~\ref{lem:4-lines} and $W$ the span of $\Phi(S)$,
+ which has dimension $k$.}
+ \step{s4rsnonempty}{$S$ is nonempty and indecomposable.}
+ \begin{proof}\pf\ A connected graph has a vertex, and Lemma~\ref{lem:4-lines}, assertion 3,
+  applies by \asm{0}.~\qed\end{proof}
+ \step{s4rsmax}{There is an indecomposable line system $T$ in $W$, maximal in $W$ and spanning
+  $W$, with $\Phi(S)\sbs\Phi(T)$.}
+ \begin{proof}
+  \step{s4rsmaxyes}{\case{$S$ is maximal in $W$.}\prove{$T=S$ will do.}}
+  \begin{proof}\pf\ $S$ is indecomposable by \stepref{s4rsnonempty}, maximal by \asm{2}, and
+   spans $W$ by the definition of $W$.~\qed\end{proof}
+  \step{s4rsmaxno}{\case{$S$ is not maximal in $W$.}\prove{Such a $T$ exists.}}
+  \begin{proof}\pf\ Apply Lemma~\ref{lem:sec3-extension} to $S$, with
+   \stepref{s4rsnonempty} and \asm{2}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The two cases are exhaustive.~\qed\end{proof}
+ \end{proof}
+ \step{s4rstype}{$T$ is isomorphic to the model of $\typ A_\ell$ ($\ell\ge1$), $\typ D_\ell$
+  ($\ell\ge4$), $\typ E_6$, $\typ E_7$ or $\typ E_8$, of rank $k$.}
+ \begin{proof}\pf\ Apply Theorem~\ref{thm:3.6} to $T$ of \stepref{s4rsmax}; its list is part of
+  this one. The isomorphism preserves rank by Lemma~\ref{lem:sec3-transport}, and $T$ has rank
+  $k$ since it spans $W$.~\qed\end{proof}
+ \step{s4rsinT}{$X$ is represented in $T$ by $(\Zx_u)$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-transport}, with the inclusion $\Phi(S)\sbs\Phi(T)$ of
+  \stepref{s4rsmax}.~\qed\end{proof}
+ \step{s4rsone}{Assertion 1 holds.}
+ \begin{proof}\pf\ Apply Lemma~\ref{lem:4-transport} to \stepref{s4rsinT} and the isomorphism
+  of \stepref{s4rstype}. The model of $\typ A_\ell$ or $\typ D_\ell$ has rank $\ell$ by
+  Lemma~\ref{lem:sec3-spans}, so $\ell=k$.~\qed\end{proof}
+ \step{s4rsE}{$\Phi(\typ E_6)\sbs\Phi(\typ E_8)$ and $\Phi(\typ E_7)\sbs\Phi(\typ E_8)$.}
+ \begin{proof}\pf\ Definition~\ref{def:3.3}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is \stepref{s4rsone}. For assertion 2, in the cases $\typ E_6$
+  and $\typ E_7$ apply Lemma~\ref{lem:4-transport} once more to the inclusions of
+  \stepref{s4rsE}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the line graph)}\label{lem:4-linegraph}
+ \lean{SimpleGraph.lineGraph_isRepresentation}
+ \uses{def:represented}
+ \assume{$Y$ is a graph with vertex set $\{1,\dots,n\}$.}
+ \prove{The vectors $\Ze_i+\Ze_j$ of $\re^n$, for the edges $\{i,j\}$ of $Y$, form a
+ representation of $L(Y)$ in $\re^n$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The inner product counts common ends.
+ \step{s4lgip}{For edges $e,f$ of $Y$, $(\sum_{i\in e}\Ze_i,\sum_{j\in f}\Ze_j)=|e\cap f|$.}
+ \begin{proof}\pf\ Expand; $(\Ze_i,\Ze_j)$ is 1 if $i=j$ and 0
+  otherwise.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ $|e\cap e|=2$; for $e\ne f$, $|e\cap f|$ is 1 when $e$ and $f$ share an end,
+  that is, when they are adjacent in $L(Y)$, and 0 otherwise. Apply
+  \stepref{s4lgip}.~\qed\end{proof}
+\end{proof}
+
+
+\begin{cgss}{Theorem}{4.1}\label{thm:4.1}
+ \lean{SimpleGraph.isRepresentedIn_An_iff}
+ \uses{def:represented,def:3.1,lem:4-linegraph}
+ \assume{$X$ is a graph and $n\ge1$.}
+ \prove{$X$ is represented in $\typ A_n$ if and only if $X\cong L(Y)$ for a bipartite graph $Y$
+  on the vertex set $\{1,\dots,n+1\}$.}
+ \new\ The paper's ``any such graph can be represented by a subset of $\typ A_n$'' needs $Y$ to
+ have at most $n+1$ vertices; we will state it with that bound, as the Lean statement does.
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will read off $Y$ from the supports of the vectors, and show that each coordinate
+ has one sign.
+ \step{s41fwd}{\assume{$X$ is represented in $\typ A_n$ by $(\Zx_u)$.}
+  \prove{$X\cong L(Y)$ for a bipartite graph $Y$ on $\{1,\dots,n+1\}$.}}
+ \begin{proof}
+  \step{s41pq}{\pick\ $p(u)\ne q(u)$ in $\{1,\dots,n+1\}$ with
+   $\Zx_u=\Ze_{p(u)}-\Ze_{q(u)}$ for each vertex $u$.}
+  \begin{proof}\pf\ $\Zx_u\in\Phi(\typ A_n)$ by \asm{1}; apply
+   Definition~\ref{def:3.1}.~\qed\end{proof}
+  \step{s41sign}{For all vertices $u,w$, $p(u)\ne q(w)$.}
+  \begin{proof}\pf\ If $p(u)=q(w)=i$, then $u\ne w$, and
+   $(\Zx_u,\Zx_w)=(\Ze_i-\Ze_{q(u)},\Ze_{p(w)}-\Ze_i)=-1-[q(u)=p(w)]<0$, since $p(w)\ne i$ and
+   $q(u)\ne i$; this contradicts Definition~\ref{def:represented}.~\qed\end{proof}
+  \step{s41ip}{For $u\ne w$, $(\Zx_u,\Zx_w)=[p(u)=p(w)]+[q(u)=q(w)]$.}
+  \begin{proof}\pf\ Expand $(\Ze_{p(u)}-\Ze_{q(u)},\Ze_{p(w)}-\Ze_{q(w)})$; the two cross terms
+   vanish by \stepref{s41sign}.~\qed\end{proof}
+  \step{s41inj}{The supports $\{p(u),q(u)\}$ of distinct vertices are distinct.}
+  \begin{proof}\pf\ If $u\ne w$ have the same support, then $p(u)=p(w)$ and $q(u)=q(w)$ by
+   \stepref{s41sign}, and $(\Zx_u,\Zx_w)=2$ by \stepref{s41ip}, against
+   Definition~\ref{def:represented}.~\qed\end{proof}
+  \pflet{$Y$ be the graph on $\{1,\dots,n+1\}$ with edges $\{p(u),q(u)\}$, and
+   $P=\{p(u):u\in V(X)\}$.}
+  \step{s41bip}{$Y$ is bipartite, with parts $P$ and its complement.}
+  \begin{proof}\pf\ Each edge $\{p(u),q(u)\}$ has one end $p(u)$ in $P$ and the other end
+   $q(u)$ outside $P$, by \stepref{s41sign}.~\qed\end{proof}
+  \step{s41iso}{$u\mapsto\{p(u),q(u)\}$ is an isomorphism from $X$ to $L(Y)$.}
+  \begin{proof}\pf\ It is a bijection onto the edges of $Y$ by \stepref{s41inj}. For $u\ne w$,
+   the edges share an end exactly when $p(u)=p(w)$ or $q(u)=q(w)$, by \stepref{s41sign}, that is,
+   when $(\Zx_u,\Zx_w)=1$ by \stepref{s41ip}, which is adjacency of $u$ and
+   $w$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ \stepref{s41bip} and \stepref{s41iso}.~\qed\end{proof}
+ \end{proof}
+ \step{s41back}{\assume{$Y$ is bipartite on $\{1,\dots,n+1\}$, with parts $P$ and $Q$, and
+  $X\cong L(Y)$.}\prove{$X$ is represented in $\typ A_n$.}}
+ \begin{proof}
+  \pflet{$\Zx_e=\Ze_p-\Ze_q$ for the edge $e=\{p,q\}$ of $Y$ with $p\in P$ and $q\in Q$.}
+  \step{s41backip}{For edges $e\ne f$, $(\Zx_e,\Zx_f)$ is 1 when $e$ and $f$ share an end, and
+   0 otherwise; and $(\Zx_e,\Zx_e)=2$.}
+  \begin{proof}\pf\ Write $e=\{p,q\}$ and $f=\{p',q'\}$ with $p,p'\in P$. Then $p\ne q'$ and
+   $q\ne p'$, since $P\cap Q=\varnothing$, and $(\Zx_e,\Zx_f)=[p=p']+[q=q']$, which is 2 for
+   $e=f$ and at most 1 for $e\ne f$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $\Zx_e\in\Phi(\typ A_n)$ by Definition~\ref{def:3.1}, and $(\Zx_e)$
+   represents $L(Y)$ by \stepref{s41backip}; compose with the isomorphism of
+   \asm{1}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s41fwd} and \stepref{s41back}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Remark}{(after Theorem 4.1)}\label{rem:4-after41}
+ \lean{LineSystem.An.card_nonneg_subset_le}\lean{LineSystem.An.nonneg_subset_maximal_iff}
+ \lean{LineSystem.An.exists_nonneg_subset_card_eq}
+ \lean{LineSystem.An.isRepresentation_lineGraph_completeBipartite_sigmaP}
+ \uses{def:represented,def:3.1,lem:4-sub}
+ \assume{$n\ge1$ and $N=n+1$. A set $\Sigma\sbs\Phi(\typ A_n)$ has \emph{nonnegative inner
+ products} if $(\Zx,\Zy)\ge0$ for all $\Zx,\Zy\in\Sigma$, and is \emph{maximal} if no subset of
+ $\Phi(\typ A_n)$ that properly contains it has nonnegative inner products. For
+ $P\sbs\{1,\dots,N\}$ let $\Sigma_P=\{\Ze_p-\Ze_q:p\in P,\ q\notin P\}$.}
+ \prove{\begin{pfenum}
+  \item A set $\Sigma$ with nonnegative inner products is maximal if and only if
+   $\Sigma=\Sigma_P$ for some $P$ with $1\le|P|\le n$.
+  \item For such $P$, with $m=|P|$, the vectors $\Ze_p-\Ze_q$, indexed by the edges $\{p,q\}$ of
+   the complete bipartite graph $Y_P$ with parts $P$ and $\{1,\dots,N\}\setminus P$, represent
+   $L(Y_P)\cong L(K_{m,N-m})$.
+  \item Every $\Sigma$ with nonnegative inner products has $|\Sigma|\le\lfloor\frac14N^2\rfloor$,
+   and $|\Sigma_P|=\lfloor\frac14N^2\rfloor$ for $|P|=\lfloor\frac12N\rfloor$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ The paper states the remark without proof. We will show, as in the proof of
+ Theorem 4.1, that each coordinate occurs with one sign in $\Sigma$, and then count.
+ \pflet{$\Zx=\Ze_{p(\Zx)}-\Ze_{q(\Zx)}$ for $\Zx\in\Phi(\typ A_n)$, by
+  Definition~\ref{def:3.1}.}
+ \step{s4raip}{\assume{$P\sbs\{1,\dots,N\}$, $p,p'\in P$ and $q,q'\notin P$.}
+  \prove{$(\Ze_p-\Ze_q,\Ze_{p'}-\Ze_{q'})=[p=p']+[q=q']$; in particular $\Sigma_P$ has
+  nonnegative inner products.}}
+ \begin{proof}\pf\ Expand; the cross terms vanish since $p\ne q'$ and $q\ne
+  p'$.~\qed\end{proof}
+ \step{s4rasign}{\assume{$\Sigma$ has nonnegative inner products.}\prove{$\Sigma\sbs\Sigma_P$
+  for $P=\{p(\Zx):\Zx\in\Sigma\}$.}}
+ \begin{proof}\pf\ We need $q(\Zx)\notin P$ for $\Zx\in\Sigma$. If $q(\Zx)=p(\Zy)=i$ with
+  $\Zy\in\Sigma$, then $p(\Zx)\ne i$ and $q(\Zy)\ne i$, so
+  $(\Zx,\Zy)=(\Ze_{p(\Zx)}-\Ze_i,\Ze_i-\Ze_{q(\Zy)})=-1-[p(\Zx)=q(\Zy)]<0$, against
+  \asm{1}.~\qed\end{proof}
+ \step{s4ramax}{\assume{$\Sigma$ is maximal with nonnegative inner products.}
+  \prove{$\Sigma=\Sigma_P$ for some $P$ with $1\le|P|\le n$.}}
+ \begin{proof}
+  \step{s4ramaxne}{$\Sigma$ is nonempty.}
+  \begin{proof}\pf\ $\{\Ze_1-\Ze_2\}$ has nonnegative inner products, as $N\ge2$, and
+   properly contains $\varnothing$; apply \asm{1}.~\qed\end{proof}
+  \step{s4ramaxeq}{$\Sigma=\Sigma_P$ for $P=\{p(\Zx):\Zx\in\Sigma\}$.}
+  \begin{proof}\pf\ $\Sigma\sbs\Sigma_P$ by \stepref{s4rasign}, and $\Sigma_P$ has nonnegative
+   inner products by \stepref{s4raip}; apply \asm{1}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ By \stepref{s4ramaxne}, $P$ of \stepref{s4ramaxeq} is nonempty, and its
+   complement contains $q(\Zx)$ for $\Zx\in\Sigma=\Sigma_P$; so $1\le|P|\le
+   N-1=n$.~\qed\end{proof}
+ \end{proof}
+ \step{s4raback}{\assume{$1\le|P|\le n$.}\prove{$\Sigma_P$ is maximal with nonnegative inner
+  products.}}
+ \begin{proof}\pf\ $\Sigma_P$ has nonnegative inner products by \stepref{s4raip}. A root
+  $\Zz=\Ze_a-\Ze_b\notin\Sigma_P$ has $b\in P$ or $a\notin P$; pick $p\in P$ and $q\notin P$, by
+  \asm{1}. If $b\in P$, then $(\Zz,\Ze_b-\Ze_q)=-1-[a=q]<0$; if $a\notin P$, then
+  $(\Zz,\Ze_p-\Ze_a)=-1-[b=p]<0$. Thus no larger set has nonnegative inner
+  products.~\qed\end{proof}
+ \step{s4rarep}{Assertion 2 holds.}
+ \begin{proof}\pf\ For edges $e=\{p,q\}$ and $f=\{p',q'\}$ of $Y_P$ with $p,p'\in P$,
+  \stepref{s4raip} gives the inner product $[p=p']+[q=q']=|e\cap f|$, which is 2 for $e=f$, and
+  for $e\ne f$ is 1 when $e$ and $f$ share an end and 0 otherwise; apply
+  Definition~\ref{def:represented}. $Y_P\cong K_{m,N-m}$.~\qed\end{proof}
+ \step{s4racard}{$|\Sigma_P|=|P|(N-|P|)$.}
+ \begin{proof}\pf\ $(p,q)\mapsto\Ze_p-\Ze_q$ is injective on $P\times(\{1,\dots,N\}\setminus
+  P)$.~\qed\end{proof}
+ \step{s4rabound}{\assume{$\Sigma$ has nonnegative inner products.}
+  \prove{$|\Sigma|\le\lfloor\frac14N^2\rfloor$.}}
+ \begin{proof}
+  \pflet{$P$ be as in \stepref{s4rasign}, and $m=|P|$.}
+  \step{s4rabsub}{$|\Sigma|\le m(N-m)$.}
+  \begin{proof}\pf\ $\Sigma\sbs\Sigma_P$ by \asm{1} and \stepref{s4rasign}, and
+   $|\Sigma_P|=m(N-m)$ by \stepref{s4racard}.~\qed\end{proof}
+  \step{s4rabsq}{$m(N-m)\le\lfloor\frac14N^2\rfloor$.}
+  \begin{proof}\pf\ $4m(N-m)=N^2-(N-2m)^2\le N^2$, and $m(N-m)$ is an
+   integer.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ \stepref{s4rabsub} and \stepref{s4rabsq}.~\qed\end{proof}
+ \end{proof}
+ \step{s4raeq}{\assume{$m=\lfloor\frac12N\rfloor$.}\prove{$m(N-m)=\lfloor\frac14N^2\rfloor$.}}
+ \begin{proof}\pf\ For $N=2k$ both sides are $k^2$; for $N=2k+1$ both are
+  $k^2+k$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is \stepref{s4ramax} and \stepref{s4raback}, and assertion 2 is
+  \stepref{s4rarep}. Assertion 3 is \stepref{s4rabound}, with \stepref{s4racard} and
+  \stepref{s4raeq} for $|P|=\lfloor\frac12N\rfloor$, which lies between 1 and $n$ as
+  $N\ge2$.~\qed\end{proof}
+\end{proof}
+The paper states assertions 1 to 3 in the form ``The maximal subsets of $\typ A_n$ with
+nonnegative inner products represent the graphs $L(K_{m,n+1-m})$, and have maximum cardinality
+$\lfloor\frac14(n+1)^2\rfloor$, attained for $m=\lfloor\frac12(n+1)\rfloor$.'' A set
+$\Sigma$ with nonnegative inner products lies in $\Sigma_P$ for $P=\{p(\Zx):\Zx\in\Sigma\}$, by
+the second step of the proof. Thus, by assertion 2 and Lemma~\ref{lem:4-sub}, the graph that
+$\Sigma$ represents is $L(Y)$, where $Y$ is the subgraph of $Y_P$ whose edges are the
+$\{p,q\}$ with $\Ze_p-\Ze_q\in\Sigma$, and assertion 3 bounds its number of vertices.
+
+\subsection{Theorems 4.2 to 4.9}
+
+\begin{namedresult}{Definition}{(cocktail party graphs)}\label{def:CP}
+ \lean{SimpleGraph.cocktailParty}
+ \uses{}
+ \assume{$m\ge0$ is an integer.}
+ \pflet{The \emph{cocktail party graph} $CP(m)$ has vertex set $\{1,\dots,m\}\times\{0,1\}$, and
+ $(i,s)$ is adjacent to $(j,t)$ exactly when $i\ne j$.}
+ Thus $CP(m)$ is $K_{2m}$ with a perfect matching deleted, and it is $(2m-2)$-regular on $2m$
+ vertices; $CP(0)$ has no vertices.
+\end{namedresult}
+
+\begin{namedresult}{Definition}{(generalized line graphs)}\label{def:glg}
+ \lean{SimpleGraph.generalizedLineGraph}\lean{SimpleGraph.IsGeneralizedLineGraph}
+ \uses{def:CP}
+ \assume{$Y$ is a graph with vertex set $\{1,\dots,m\}$ and $a_1,\dots,a_m\ge0$ are integers.}
+ \pflet{The \emph{generalized line graph} $L(Y;a_1,\dots,a_m)$ has as vertices the edges of $Y$
+ and the triples $(i,\alpha,s)$ with $1\le i\le m$, $1\le\alpha\le a_i$ and $s\in\{0,1\}$. Two
+ edges are adjacent when they are adjacent in $L(Y)$; $(i,\alpha,s)$ and $(j,\beta,t)$ are
+ adjacent when $i=j$ and $\alpha\ne\beta$; and $(i,\alpha,s)$ is adjacent to the edge $e$ when
+ $i\in e$. A graph is a \emph{generalized line graph} if it is isomorphic to some
+ $L(Y;a_1,\dots,a_m)$.}
+ For each $i$, the triples $(i,\alpha,s)$ span a copy of $CP(a_i)$, and $L(Y;0,\dots,0)\cong
+ L(Y)$.
+\end{namedresult}
+
+\begin{namedresult}{Lemma}{(the representation of a generalized line graph)}\label{lem:4-glgrep}
+ \lean{SimpleGraph.generalizedLineGraph_isRepresentedIn_Dn}
+ \uses{def:glg,def:represented,def:3.1,lem:4-linegraph}
+ \assume{$Y$ and $a_1,\dots,a_m$ are as in Definition~\ref{def:glg}, $n=\sum_{i=1}^m(1+a_i)$,
+ and the orthonormal basis of $\re^n$ is written $\Ze_{i,\alpha}$, for $1\le i\le m$ and
+ $0\le\alpha\le a_i$.}
+ \prove{The vectors $\Zx_e=\Ze_{i,0}+\Ze_{j,0}$ for the edges $e=\{i,j\}$ of $Y$, and
+ $\Zx_{(i,\alpha,s)}=\Ze_{i,0}+(-1)^s\Ze_{i,\alpha}$, lie in $\Phi(\typ D_n)$ and represent
+ $L(Y;a_1,\dots,a_m)$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ We read the paper's ``$1\le\alpha\le\alpha_i$'' as $1\le\alpha\le a_i$
+ (errata, Error 13, item 5). We will compute the three kinds of inner products.
+ \step{s4glgee}{For edges $e,f$, $(\Zx_e,\Zx_f)=|e\cap f|$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-linegraph}, in the coordinates $\Ze_{i,0}$, gives 2 for
+  $e=f$, 1 when $e\ne f$ share an end, and 0 otherwise; this is $|e\cap f|$.~\qed\end{proof}
+ \step{s4glgce}{$(\Zx_{(i,\alpha,s)},\Zx_e)$ is 1 if $i\in e$ and 0 otherwise.}
+ \begin{proof}\pf\ $\Ze_{i,\alpha}$ with $\alpha\ge1$ does not occur in $\Zx_e$, and
+  $(\Ze_{i,0},\Zx_e)=[i\in e]$.~\qed\end{proof}
+ \step{s4glgcc}{$(\Zx_{(i,\alpha,s)},\Zx_{(j,\beta,t)})$ is 2 if the triples are equal, 0 if
+  $i=j$ and $\alpha=\beta$ and $s\ne t$, 1 if $i=j$ and $\alpha\ne\beta$, and 0 if $i\ne j$.}
+ \begin{proof}\pf\ The inner product is
+  $[i=j]\bigl(1+(-1)^{s+t}[\alpha=\beta]\bigr)$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Each vector is a sum or difference of two distinct basis vectors, so lies in
+  $\Phi(\typ D_n)$ by Definition~\ref{def:3.1}. By \stepref{s4glgee}, \stepref{s4glgce} and
+  \stepref{s4glgcc}, the Gram matrix is $2I$ plus the adjacency matrix of
+  Definition~\ref{def:glg}.~\qed\end{proof}
+\end{proof}
+
+
+\begin{namedresult}{Lemma}{(the normal form in $\typ D_n$)}\label{lem:4-Dnform}
+ \lean{SimpleGraph.IsRepresentation.exists_normal_form_Dn}
+ \uses{def:represented,def:3.1,def:glg,lem:4-glgrep,lem:4-transport}
+ \assume{$n\ge1$, and $(\Zx_u)_{u\in V(X)}$ represents a graph $X$ in $\typ D_n$.}
+ \prove{There are a set $C\sbs\{1,\dots,n\}$, integers $a_c\ge0$ for $c\in C$, distinct
+ coordinates $p_{c,\alpha}$ for $c\in C$ and $1\le\alpha\le a_c$, which are the members of
+ $\{1,\dots,n\}\setminus C$, and signs $\epsilon_1,\dots,\epsilon_n\in\{1,-1\}$ such that, with
+ $D$ the diagonal isometry $\Ze_i\mapsto\epsilon_i\Ze_i$ and $\Zy_u=D\Zx_u$:
+ \begin{pfenum}
+  \item $(\Zy_u)$ represents $X$ in $\typ D_n$;
+  \item for each $c\in C$, $1\le\alpha\le a_c$ and $s\in\{0,1\}$ exactly one vertex $u$ has
+   $\Zy_u=\Ze_c+(-1)^s\Ze_{p_{c,\alpha}}$, and every vertex $u$ not of this form has
+   $\Zy_u=\Ze_i+\Ze_j$ with $i\ne j$ in $C$, distinct such vertices having distinct supports;
+  \item $X\cong L(Y;(a_c)_{c\in C})$, where $Y$ is the graph on $C$ whose edges are the supports
+   of the vertices of assertion 2 not of this form.
+ \end{pfenum}
+ In particular $|C|+\sum_{c\in C}a_c=n$.}
+ \new\ This is the proof of assertion 1 of Theorem 4.2 below, with the coordinates kept; the
+ remark after that theorem counts them.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will follow the paper: we will find the pairs $\Ze_c\pm\Ze_p$, then choose the
+ signs of the other coordinates. For $n<4$, $\typ D_n$ is the coordinate model
+ $\{\pm\Ze_i\pm\Ze_j:i\ne j\}$, as in the remark of Definition~\ref{def:3.1}.
+ \repair\ The paper leaves both steps as assertions, among them that the set of pairs is
+ unique and maximal (errata, Gap 19); we will prove what we need.
+ \step{s42form}{Each $\Zx_u$ is $\sigma\Ze_i+\tau\Ze_j$ with $i\ne j$ and
+  $\sigma,\tau\in\{1,-1\}$; its support has two members.}
+ \begin{proof}\pf\ \asm{0} and Definition~\ref{def:3.1}.~\qed\end{proof}
+ \step{s42same}{\assume{$u\ne w$ and $\supp(\Zx_u)=\supp(\Zx_w)=\{i,j\}$.}
+  \prove{$(\Zx_u,\Zx_w)=0$, and $\Zx_u,\Zx_w$ agree in exactly one coordinate.}}
+ \begin{proof}\pf\ The inner product is $\sigma\sigma'+\tau\tau'\in\{-2,0,2\}$ by
+  \stepref{s42form}, and lies in $\{0,1\}$ by \asm{0} and Definition~\ref{def:represented}; so it is 0, and
+  exactly one of $\sigma\sigma'$, $\tau\tau'$ is 1.~\qed\end{proof}
+ \pflet{A \emph{pair} is a set $\{u,w\}$ as in \stepref{s42same}. Its \emph{centre} is the
+  coordinate in which $\Zx_u$ and $\Zx_w$ agree and its \emph{petal} the other one; let $\Pi$
+  be the set of petals of all pairs.}
+ \step{s42petal}{\assume{$p\in\Pi$ is the petal of the pair $\{u,w\}$, with centre $c$.}
+  \prove{$u$ and $w$ are the only vertices $z$ with $p\in\supp(\Zx_z)$.}}
+ \begin{proof}
+  \step{s42petalsupp}{\assume{$p\in\supp(\Zx_z)$.}\prove{$\supp(\Zx_z)=\{c,p\}$.}}
+  \begin{proof}\pf\ Otherwise $\Zx_z=\rho\Ze_p+\ldots$ has no $\Ze_c$ term, so
+   $(\Zx_z,\Zx_u)=\rho\tau$ and $(\Zx_z,\Zx_w)=-\rho\tau$, where $\pm\tau$ are the coefficients
+   of $\Ze_p$ in $\Zx_u,\Zx_w$; one of them is $-1$, against \asm{0} and
+   Definition~\ref{def:represented}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ If $z\ne u,w$, then $z$, $u$ and $w$ have pairwise the support $\{c,p\}$ by
+   \stepref{s42petalsupp}, so pairwise agree in exactly one of two coordinates by
+   \stepref{s42same}. Their three sign vectors in $\{1,-1\}^2$ would then be pairwise adjacent in
+   the graph on $\{1,-1\}^2$ joining vectors that differ in exactly one coordinate; that graph
+   is $C_4$, which has no triangle.~\qed\end{proof}
+ \end{proof}
+ \step{s42centre}{No centre lies in $\Pi$, and every petal is the petal of exactly one
+  pair.}
+ \begin{proof}\pf\ The pair of a petal is the set of vertices whose support contains it, by
+  \stepref{s42petal}. If the centre $c$ of the pair $\{u,w\}$ were the petal of a pair, that
+  pair would be $\{u,w\}$ by the same step, whose petal is not $c$.~\qed\end{proof}
+ \pflet{$C=\{1,\dots,n\}\setminus\Pi$.}
+ \step{s42onesign}{\assume{$i\in C$.}\prove{All $\Zx_u$ with $i\in\supp(\Zx_u)$ have the same
+  coefficient $\epsilon_i$ at $\Ze_i$.}}
+ \begin{proof}\pf\ Suppose $\Zx_u$ and $\Zx_w$ have coefficients $1$ and $-1$ at $\Ze_i$. If
+  their supports are equal, $\{u,w\}$ is a pair that disagrees at $i$, so $i\in\Pi$ by the
+  definition of petals; otherwise $(\Zx_u,\Zx_w)=-1$. The first contradicts \asm{1}, and the second \asm{0}
+  and Definition~\ref{def:represented}.~\qed\end{proof}
+ \pflet{$\epsilon_i=1$ for the $i\in C$ in no support, and $\epsilon_p=1$ for $p\in\Pi$; let
+  $D$ be the diagonal isometry $\Ze_i\mapsto\epsilon_i\Ze_i$, and $\Zy_u=D\Zx_u$.}
+ \step{s42flip}{$(\Zy_u)$ represents $X$ in $\typ D_n$; every $\Zy_u$ is $\Ze_c\pm\Ze_p$ for a
+  pair with centre $c$ and petal $p$, or $\Ze_i+\Ze_j$ with $i,j\in C$.}
+ \begin{proof}\pf\ $D$ is an isometry that preserves $\Phi(\typ D_n)$, so
+  Lemma~\ref{lem:4-transport} applies. A vertex in a pair has support $\{c,p\}$, and
+  $c\in C$ by \stepref{s42centre}, so its $\Ze_c$ coefficient becomes 1 by
+  \stepref{s42onesign}. Every other support lies in $C$ by \stepref{s42petal}, and both
+  coefficients become 1 by \stepref{s42onesign}.~\qed\end{proof}
+ \pflet{$a_c$ be the number of pairs with centre $c$, for $c\in C$; number the petals of centre
+  $c$ as $p_{c,1},\dots,p_{c,a_c}$; and let $Y$ be the graph on $C$ whose edges are the supports
+  of the vertices in no pair.}
+ \step{s42petals}{The $p_{c,\alpha}$ are distinct, and they are the members of
+  $\{1,\dots,n\}\setminus C$.}
+ \begin{proof}\pf\ Each petal has one pair by \stepref{s42centre}, and so one centre, which lies
+  in $C$ by the same step; and $\{1,\dots,n\}\setminus C=\Pi$.~\qed\end{proof}
+ \step{s42two}{Assertion 2 holds.}
+ \begin{proof}\pf\ The vertices of the pair with petal $p_{c,\alpha}$ have
+  $\Zy_u=\Ze_c\pm\Ze_{p_{c,\alpha}}$ by \stepref{s42flip}, one with each sign by
+  \stepref{s42same}, and no other vertex has $p_{c,\alpha}$ in its support by
+  \stepref{s42petal}. The vertices in no pair have $\Zy_u=\Ze_i+\Ze_j$ with $i,j\in C$ by
+  \stepref{s42flip}, and distinct ones have distinct supports, since equal supports make a
+  pair.~\qed\end{proof}
+ \step{s42bij}{The map $\psi$ sending a vertex in no pair to its support, and the vertex $u$
+  with $\Zy_u=\Ze_c+(-1)^s\Ze_{p_{c,\alpha}}$ to $(c,\alpha,s)$, is a bijection from $V(X)$
+  to the vertex set of $L(Y;(a_c)_{c\in C})$.}
+ \begin{proof}\pf\ By \stepref{s42two}, every triple $(c,\alpha,s)$ is the image of exactly one
+  vertex, and the other vertices map injectively onto the edges of $Y$, by the definition of
+  $Y$.~\qed\end{proof}
+ \step{s42three}{Assertion 3 holds.}
+ \begin{proof}\pf\ Renumber $C$ as $\{1,\dots,m\}$. The vectors $\Zy_u$ are those of
+  Lemma~\ref{lem:4-glgrep} for $\psi(u)$, with $\Ze_{c,0}=\Ze_c$ and
+  $\Ze_{c,\alpha}=\Ze_{p_{c,\alpha}}$, by \stepref{s42two} and \stepref{s42petals}. Both
+  families have Gram matrix $2I$ plus the adjacency matrix, of $X$ by \stepref{s42flip} and of
+  $L(Y;a)$ by that lemma; so $\psi$ of \stepref{s42bij} preserves adjacency.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is part of \stepref{s42flip}, and assertions 2 and 3 are
+  \stepref{s42two} and \stepref{s42three}. The last sentence counts $\{1,\dots,n\}$ by
+  \stepref{s42petals}.~\qed\end{proof}
+\end{proof}
+
+
+\begin{cgss}{Theorem}{4.2}\label{thm:4.2}
+ \lean{SimpleGraph.isRepresentedIn_Dn_iff}
+ \uses{def:represented,def:3.1,def:glg,lem:4-glgrep,lem:4-Dnform}
+ \assume{$X$ is a graph and $n\ge1$.}
+ \prove{\begin{pfenum}
+  \item If $X$ is represented in $\typ D_n$, then $X$ is a generalized line graph.
+  \item $L(Y;a_1,\dots,a_m)$ is represented in $\typ D_n$ for $n=\sum_i(1+a_i)$.
+ \end{pfenum}}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ Assertion 2 is Lemma~\ref{lem:4-glgrep}. For assertion 1 we will follow the paper:
+ we will find the pairs $\Ze_c\pm\Ze_p$, then choose the signs of the other coordinates; this is
+ Lemma~\ref{lem:4-Dnform}, which also fills Gap 19 (errata).
+ \repair\ The paper's ``whose lines from a subset'' is ``form'' (errata, Error 13, item 4).
+ \step{s42glg}{Assertion 2 holds.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-glgrep}.~\qed\end{proof}
+ \step{s42one}{\assume{$(\Zx_u)$ represents $X$ in $\typ D_n$.}
+  \prove{$X$ is a generalized line graph.}}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-Dnform}, assertion 3, with \asm{1}, and $n\ge1$ by
+  \asm{0}; then Definition~\ref{def:glg}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s42one} and \stepref{s42glg}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Remark}{(after Theorem 4.2)}\label{rem:4-after42}
+ \lean{LineSystem.Dn.card_nonneg_subset_le}
+ \lean{LineSystem.Dn.exists_isRepresentation_generalizedLineGraph_top_of_maximal}
+ \lean{LineSystem.Dn.exists_nonneg_subset_card_eq}
+ \uses{def:represented,def:3.1,def:glg,lem:4-Dnform,lem:4-linegraph,rem:4-after41}
+ \assume{$n\ge1$, and $\Sigma\sbs\Phi(\typ D_n)$ has nonnegative inner products, in the sense of
+ \hyperref[rem:4-after41]{the remark after Theorem 4.1}, with $\typ D_n$ for $\typ A_n$.}
+ \prove{\begin{pfenum}
+  \item If $\Sigma$ is maximal, then there are $m\ge1$ and $a_1,\dots,a_m\ge0$ with
+   $\sum_{i=1}^m(1+a_i)=n$ such that the vectors of $\Sigma$, suitably indexed, represent
+   $L(K_m;a_1,\dots,a_m)$.
+  \item If $n\ge4$, then $|\Sigma|\le\frac12n(n-1)$; the set $\{\Ze_i+\Ze_j:i<j\}$ has
+   nonnegative inner products and $\frac12n(n-1)$ members, and represents $L(K_n)$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ The paper states the remark without proof. We will apply
+ Lemma~\ref{lem:4-Dnform}, which is the proof of Theorem 4.2 with the coordinates
+ kept, and count. \new\ The bound fails for $n=2$ and $n=3$, where the paper does not define
+ $\typ D_n$: the sets $\{\Ze_1\pm\Ze_2\}$ and $\{\Ze_1\pm\Ze_2,\Ze_1\pm\Ze_3\}$ are larger than
+ $\frac12n(n-1)$.
+ \step{s4rdrep}{The family $(\Zx)_{\Zx\in\Sigma}$ represents in $\typ D_n$ the graph $X$ on
+  $\Sigma$ in which $\Zx\sim\Zy$ when $(\Zx,\Zy)=1$.}
+ \begin{proof}\pf\ For $\Zx\ne\Zy$ in $\Sigma$, $(\Zx,\Zy)$ is an integer at least 0 by
+  \asm{0} and Definition~\ref{def:3.1}, and $(\Zx,\Zy)<2$ since
+  $(\Zx-\Zy,\Zx-\Zy)=4-2(\Zx,\Zy)>0$; so it is 0 or 1. Apply
+  Definition~\ref{def:represented}.~\qed\end{proof}
+ \step{s4rdnf}{\pick\ $C$, $(a_c)$, $(p_{c,\alpha})$, $D$, $(\Zy_\Zx)$ and $Y$ as in
+  Lemma~\ref{lem:4-Dnform} for the representation of \stepref{s4rdrep}, and let $m=|C|$. Then
+  $m+\sum_ca_c=n$ and $m\ge1$.}
+ \begin{proof}\pf\ The equation is the last sentence of the lemma. If $m=0$, then
+  $C=\varnothing$, so the equation gives $n=0$, against \asm{0}.~\qed\end{proof}
+ \step{s4rdcount}{$|\Sigma|=|E(Y)|+2\sum_ca_c\le\frac12m(m-1)+2(n-m)$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-Dnform}, assertion 2, gives two members of $\Sigma$ for each
+  $p_{c,\alpha}$ and one for each edge of $Y$, a graph on the $m$ vertices of $C$; and $\sum_c
+  a_c=n-m$ by \stepref{s4rdnf}.~\qed\end{proof}
+ \step{s4rdmax}{\assume{$\Sigma$ is maximal.}\prove{$Y$ is complete.}}
+ \begin{proof}
+  \step{s4rdadd}{\assume{$i\ne j$ lie in $C$.}\prove{$\Zz=D(\Ze_i+\Ze_j)$ lies in
+   $\Phi(\typ D_n)$, and $(\Zz,\Zx)\ge0$ for every $\Zx\in\Sigma$.}}
+  \begin{proof}
+   \step{s4rdaddroot}{$\Zz=\epsilon_i\Ze_i+\epsilon_j\Ze_j$, and $\Zz\in\Phi(\typ D_n)$.}
+   \begin{proof}\pf\ $D$ is the diagonal isometry $\Ze_k\mapsto\epsilon_k\Ze_k$, and $i\ne j$ by
+    \asm{2}; apply Definition~\ref{def:3.1}.~\qed\end{proof}
+   \step{s4rdaddip}{\assume{$\Zx\in\Sigma$.}\prove{$(\Zz,\Zx)=(\Ze_i+\Ze_j,\Zy_\Zx)$.}}
+   \begin{proof}\pf\ $D$ is an isometry with $D^2=I$, so
+    $(D(\Ze_i+\Ze_j),\Zx)=(\Ze_i+\Ze_j,D\Zx)$, and $D\Zx=\Zy_\Zx$.~\qed\end{proof}
+   \step{s4rdaddnn}{\assume{$\Zx\in\Sigma$.}\prove{$(\Ze_i+\Ze_j,\Zy_\Zx)\ge0$.}}
+   \begin{proof}\pf\ By Lemma~\ref{lem:4-Dnform}, assertion 2, $\Zy_\Zx$ is
+    $\Ze_c\pm\Ze_{p_{c,\alpha}}$ with $p_{c,\alpha}\notin C$, which gives $[c\in\{i,j\}]$ by
+    \asm{2}, or $\Ze_k+\Ze_l$, which gives $|\{i,j\}\cap\{k,l\}|$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ \stepref{s4rdaddroot}, \stepref{s4rdaddip} and
+    \stepref{s4rdaddnn}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ For $i\ne j$ in $C$, $\Zz\in\Sigma$ by \stepref{s4rdadd} and \asm{1}. Its
+   image $\Zy_\Zz=\Ze_i+\Ze_j$ has no petal $p_{c,\alpha}$ in its support, so it is of the second
+   kind of Lemma~\ref{lem:4-Dnform}, assertion 2, and $\{i,j\}$ is an edge of
+   $Y$.~\qed\end{proof}
+ \end{proof}
+ \step{s4rdone}{Assertion 1 holds.}
+ \begin{proof}\pf\ Renumber $C$ as $\{1,\dots,m\}$. By Lemma~\ref{lem:4-Dnform}, assertion 3,
+  and \stepref{s4rdmax}, $X\cong L(K_m;a_1,\dots,a_m)$, and $\sum_i(1+a_i)=n$ by
+  \stepref{s4rdnf}; index $\Sigma$ by this isomorphism.~\qed\end{proof}
+ \step{s4rdineq}{\assume{$n\ge4$ and $1\le m\le n$.}
+  \prove{$\frac12m(m-1)+2(n-m)\le\frac12n(n-1)$.}}
+ \begin{proof}\pf\ The difference of the two sides is $\frac12(n-m)(n+m-5)$, and $n+m\ge5$ by
+  \asm{1}.~\qed\end{proof}
+ \step{s4rdK}{$\{\Ze_i+\Ze_j:i<j\}$ has $\frac12n(n-1)$ members and nonnegative inner products,
+  and represents $L(K_n)$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-linegraph} for $Y=K_n$, whose Gram matrix $2I+A$ has no
+  negative entry; the vectors lie in $\Phi(\typ D_n)$ by
+  Definition~\ref{def:3.1}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is \stepref{s4rdone}. For assertion 2, \stepref{s4rdcount} and
+  \stepref{s4rdineq}, with $1\le m\le n$ by \stepref{s4rdnf}, give the bound, and
+  \stepref{s4rdK} the example.~\qed\end{proof}
+\end{proof}
+The paper states the remark as ``A maximal subset of $\typ D_n$ with nonnegative inner products
+represents $L(K_m;\mathbf a)$ for some $m$ and $\mathbf a$; the maximum cardinality is
+$\frac12n(n-1)$, attained by $L(K_n)$.'' Assertion 1 holds for every $n\ge1$. For $n=4$ the
+maximum 6 is attained also by sets with $(m;a_1)=(1;3)$; these represent $L(K_1;3)=CP(3)$,
+which is isomorphic to $L(K_4)$, so what differs is the set and its parameters, not the graph.
+For $n\ge5$ the maximum is attained only by sets with $m=n$, which represent $L(K_n)$, since
+$\frac12(n-m)(n+m-5)>0$ for $1\le m<n$.
+
+
+\begin{namedresult}{Lemma}{(the symmetric square)}\label{lem:4-symsq}
+ \lean{EuclideanSpace.inner_symSq}
+ \uses{}
+ \assume{$\ell\ge1$, and for $\Zv\in\re^\ell$ the vector $\sigma(\Zv)\in\re^{\ell(\ell+1)/2}$
+ has the coordinates $\Zv(i)^2$ for $1\le i\le\ell$ and $\sqrt2\,\Zv(i)\Zv(j)$ for\\ $1\le i<j\le\ell$.}
+ \prove{$(\sigma(\Zv),\sigma(\Zw))=(\Zv,\Zw)^2$ for all $\Zv,\Zw\in\re^\ell$.}
+ \new\ The paper uses the projections onto the lines, in the space of symmetric maps with the
+ trace inner product; the coordinates of that space give $\sigma$, and $\re^{36}$ is easier in
+ Lean.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will expand the square.
+ \qedstep
+ \begin{proof}\pf\ $(\Zv,\Zw)^2=\bigl(\sum_i\Zv(i)\Zw(i)\bigr)^2=\sum_i\Zv(i)^2\Zw(i)^2+2\sum_{i<j}\Zv(i)\Zv(j)\Zw(i)\Zw(j)$, which
+  is $(\sigma(\Zv),\sigma(\Zw))$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(valencies from the sets $N_\Zr$)}\label{lem:4-valency}
+ \lean{SimpleGraph.IsRepresentedIn.degree_le_of_card_N_le}
+ \uses{def:2.1,def:represented,lem:4-lines,def:line-system,facts:sec4}
+ \assume{\begin{pfenum}
+  \item $S$ is a star-closed line system, $b\ge0$, and $|N_\Zr|\le2b$ for every
+   $\Zr\in\Phi(S)$, where $N_\Zr=\{\Zx\in\Phi(S):(\Zx,\Zr)=1\}$.
+  \item $X$ is represented in $S$ by $(\Zx_u)$, and $u$ is a vertex of $X$.
+ \end{pfenum}}
+ \prove{$u$ has at most $b$ neighbours.}
+ \repair\ The paper cites ``Lemma 3.7'' for such bounds (errata, Error 6), and Theorem 3.7 gives
+ only the number $|N_\Zr|$; the pairing below is the fill of Gap 14 (errata), with LN6 of
+ \path{cgss/prerequisites.md}.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will pair the vectors with inner product 1 with $\Zr=\Zx_u$.
+ \pflet{$\Zr=\Zx_u$.}
+ \step{s4valpair}{\assume{$\Zx\in N_\Zr$.}\prove{$\Zr-\Zx\in N_\Zr$, $\Zr-\Zx\ne\Zx$ and
+  $(\Zx,\Zr-\Zx)=-1$.}}
+ \begin{proof}\pf\ Since $(\Zx,-\Zr)=-1$ and $S$ is star-closed by \asm[1]{0}, the vector
+  $\Zx-\Zr$ and its negative lie in $\Phi(S)$. Further $(\Zr-\Zx,\Zr)=2-1=1$ and
+  $(\Zx,\Zr-\Zx)=1-2=-1$, which also gives $\Zr-\Zx\ne\Zx$.~\qed\end{proof}
+ \step{s4valnbr}{$w\mapsto\Zx_w$ maps the neighbours of $u$ injectively into $N_\Zr$, and its
+  image meets each pair $\{\Zx,\Zr-\Zx\}$ at most once.}
+ \begin{proof}\pf\ $(\Zx_w,\Zr)=1$ for a neighbour $w$ by Definition~\ref{def:represented}, and
+  the map is injective by Lemma~\ref{lem:4-lines}, assertion 1. Two neighbours have inner product
+  0 or 1, not the $-1$ of \stepref{s4valpair}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s4valpair}, $\Zx\mapsto\Zr-\Zx$ is an involution of $N_\Zr$
+  without fixed points, so $N_\Zr$ is the union of at most $b$ disjoint pairs by
+  \asm[1]{0}; apply \stepref{s4valnbr}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C20}\label{comp:C20}
+ \lean{LineSystem.An.card_N}\lean{LineSystem.Dn.card_N}\lean{LineSystem.E₆.card_N}
+ \lean{LineSystem.E₇.card_N}\lean{LineSystem.E₈.card_N}
+ \uses{def:3.1,def:3.2,def:3.3,thm:3.5,lem:4-valency}
+ \assume{$\Zr$ is a vector of the model of $\typ A_\ell$, $\typ D_\ell$, $\typ E_6$,
+ $\typ E_7$ or $\typ E_8$, and $X$ is represented in that model.}
+ \prove{$|N_\Zr|$ is $2(\ell-1)$, $4(\ell-2)$, 20, 32 or 56 respectively, and every vertex of
+ $X$ has at most $\ell-1$, $2(\ell-2)$, 10, 16 or 28 neighbours respectively.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The counts are LN6 of \path{cgss/prerequisites.md}. We will cite their Lean
+ proofs, which are parametric in $\ell$ for $\typ A_\ell$ and $\typ D_\ell$ and use
+ \texttt{decide} for the three exceptional models.
+ \step{s4c20count}{The counts of $|N_\Zr|$ hold.}
+ \begin{proof}\pf\ \path{LineSystem.An.card_N}, \path{LineSystem.Dn.card_N}, and
+  \leancite{LineSystem.E₆.card_N}{\texttt{LineSystem.E\ensuremath{{}_6}.card\_N}} and its
+  analogues for $\typ E_7$ and $\typ E_8$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The models are star-closed by Theorem~\ref{thm:3.5}; apply
+  Lemma~\ref{lem:4-valency} with half of each count.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C7}\label{comp:C7}
+ \lean{Computations.C7.isRepresentedIn_E₈}
+ \uses{def:3.1,def:3.2,def:represented}
+ \assume{In $\re^9$, let $\Zc=\frac13\sum_{l=1}^9\Ze_l$, $\Zy_h=\Ze_h-\Ze_9$ for $1\le h\le8$,
+ and $\Zz_{ij}=\Zc-\Ze_i-\Ze_j-\Ze_9$ for $1\le i<j\le8$.}
+ \prove{These 36 vectors lie in model (i) of $\typ E_8$ and represent a graph $X_{36}$ on 36
+ vertices in which $\Zy_1$ has 28 neighbours.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will compute the inner products; the Lean proof is by \texttt{decide} on the
+ integer vectors $3\Zy_h$ and $3\Zz_{ij}$.
+ \step{s4c7mem}{The vectors lie in model (i).}
+ \begin{proof}\pf\ $\Zy_h\in\Phi(\typ A_8)$, and $\Zz_{ij}$ is
+  $\frac13\sum_l\Ze_l-\sum_{l\in T}\Ze_l$ with $T=\{i,j,9\}$; apply
+  Definition~\ref{def:3.2}, (i).~\qed\end{proof}
+ \step{s4c7ip}{$(\Zy_h,\Zy_k)=1$ and $(\Zz_{ij},\Zz_{kl})=|\{i,j\}\cap\{k,l\}|$ for distinct
+  vectors, and $(\Zy_h,\Zz_{ij})$ is 0 if $h\in\{i,j\}$ and 1 otherwise.}
+ \begin{proof}\pf\ $(\Zy_h,\Zc)=0$ and $(\Zc,\Zc)=1$, and $(\Zc,\Ze_l)=\frac13$. Then
+  $(\Zy_h,\Zy_k)=1+[h=k]$, $(\Zy_h,\Zz_{ij})=1-[h\in\{i,j\}]$ and
+  $(\Zz_{ij},\Zz_{kl})=1-2+|\{i,j,9\}\cap\{k,l,9\}|$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Each vector has squared norm 2 by \stepref{s4c7ip}, and the other inner
+  products lie in $\{0,1\}$; so they represent a graph by Definition~\ref{def:represented}. The
+  neighbours of $\Zy_1$ are the 7 vectors $\Zy_k$ and the $\binom72=21$ vectors $\Zz_{ij}$ with
+  $1\notin\{i,j\}$.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Theorem}{4.3}\label{thm:4.3}
+ \lean{SimpleGraph.IsRepresentedIn.card_le_36}\lean{SimpleGraph.IsRepresentedIn.degree_le_28}
+ \lean{SimpleGraph.exists_isRepresentedIn_E₈_card_36}
+ \uses{def:represented,lem:4-symsq,comp:C20,lem:4-transport,comp:C7,thm:3.5,facts:sec4}
+ \assume{$X$ is represented in $\typ E_8$ by $(\Zx_u)$.}
+ \prove{\begin{pfenum}
+  \item $X$ has at most 36 vertices.
+  \item Every vertex of $X$ has at most 28 neighbours.
+  \item There is a graph represented in $\typ E_8$ with 36 vertices and a vertex with 28
+   neighbours.
+ \end{pfenum}}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will follow the paper: the Gram matrix of the symmetric squares is
+ nonsingular. \repair\ The bound on the valency needs the pairing of Gap 14 (errata).
+ \step{s43pd}{$4I+A(X)$ is positive definite.}
+ \begin{proof}\pf\ $2I+A(X)$ is the Gram matrix of $(\Zx_u)$, so positive semidefinite by
+  \path{Matrix.posSemidef_gram}; for $\Zz\ne0$,
+  $\Zz^T(4I+A(X))\Zz=2|\Zz|^2+\Zz^T(2I+A(X))\Zz>0$.~\qed\end{proof}
+ \step{s43gram}{The Gram matrix of $(\sigma(\Zx_u))$ in $\re^{36}$ is $4I+A(X)$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-symsq} with $\ell=8$: the entries are $(\Zx_u,\Zx_w)^2$,
+  which are 4, 1 and 0 by Definition~\ref{def:represented}.~\qed\end{proof}
+ \step{s43one}{Assertion 1 holds.}
+ \begin{proof}\pf\ The family $(\sigma(\Zx_u))$ is linearly independent by \stepref{s43pd},
+  \stepref{s43gram} and \path{Matrix.posDef_gram_iff_linearIndependent}; apply
+  \path{LinearIndependent.fintype_card_le_finrank} and
+  \path{finrank_euclideanSpace_fin}.~\qed\end{proof}
+ \step{s43two}{Assertion 2 holds.}
+ \begin{proof}\pf\ Computation~\ref{comp:C20}, for $\typ E_8$.~\qed\end{proof}
+ \step{s43three}{Assertion 3 holds.}
+ \begin{proof}\pf\ The graph $X_{36}$ of Computation~\ref{comp:C7} is represented in model (i);
+  models (i) and (ii) are isomorphic by Theorem~\ref{thm:3.5}, so it is represented in model
+  (ii) by Lemma~\ref{lem:4-transport}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s43one}, \stepref{s43two} and \stepref{s43three}.~\qed\end{proof}
+\end{proof}
+
+
+\begin{namedresult}{Lemma}{(trace and rank)}\label{lem:4-tracerank}
+ \lean{Matrix.IsHermitian.trace_sq_le_rank_mul_sum_entry_sq}
+ \uses{facts:sec4}
+ \assume{$N$ is a real symmetric matrix indexed by a finite set $V$.}
+ \prove{$(\tr N)^2\le\rk N\cdot\sum_{u,w\in V}N(u,w)^2$.}
+ \new\ This is the inequality behind [LS73] Theorem 3.6; we will name it, since Lemma EQ1 and the
+ remark after Theorem 4.4 both use it.
+ \begingroup\raggedright\new\ In Lean the entrywise form stated here is
+ \path{Matrix.IsHermitian.trace_sq_le_rank_mul_sum_entry_sq}, in
+ \path{LineGraphs/Representation/Theorem44.lean}, which Theorem 4.4 and the remark after it use.
+ The eigenvalue form $(\tr N)^2\le\rk N\cdot\sum_{u\in V}\lambda_u^2$ of the steps below is
+ \path{Matrix.IsHermitian.trace_sq_le_rank_mul_sum_sq}, in
+ \path{LineGraphs/Spectral/Applications.lean}; the name of the entrywise form differs, since
+ that one was taken first.\par\endgroup
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will apply the Cauchy--Schwarz inequality to the nonzero eigenvalues.
+ \pflet{$\lambda_u$, for $u\in V$, be the eigenvalues \path{Matrix.IsHermitian.eigenvalues} of
+ $N$, and $Z=\{u\in V:\lambda_u\ne0\}$.}
+ \step{s4trtr}{$\tr N=\sum_{u\in Z}\lambda_u$ and $\rk N=|Z|$.}
+ \begin{proof}\pf\ \path{Matrix.IsHermitian.trace_eq_sum_eigenvalues}, with the zero terms
+  dropped, and \path{Matrix.IsHermitian.rank_eq_card_non_zero_eigs}.~\qed\end{proof}
+ \step{s4trsq}{$\sum_{u,w}N(u,w)^2=\sum_{u\in Z}\lambda_u^2$.}
+ \begin{proof}\pf\ By \path{Matrix.IsHermitian.spectral_theorem}, $N=UDU^T$ with $U$ orthogonal
+  and $D$ diagonal with the entries $\lambda_u$. As $N$ is symmetric,
+  $\sum_{u,w}N(u,w)^2=\tr(NN^T)=\tr(UD^2U^T)=\tr(D^2U^TU)=\sum_u\lambda_u^2$, where the third
+  equality is \path{Matrix.trace_mul_comm}; drop the zero terms.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \path{Finset.sum_mul_sq_le_sq_mul_sq} for the functions $\lambda$ and 1 on
+  $Z$, $\bigl(\sum_{u\in Z}\lambda_u\bigr)^2\le|Z|\sum_{u\in Z}\lambda_u^2$; apply
+  \stepref{s4trtr} and \stepref{s4trsq}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the relative bound, EQ1)}\label{lem:4-EQ1}
+ \lean{InnerProductSpace.card_le_relativeBound}
+ \uses{lem:4-gramfactor,lem:4-tracerank}
+ \assume{The unit vectors $\Zv_1,\dots,\Zv_n$ of a real inner product space span a subspace of
+ dimension $k$, where $1\le k\le7$, and $(\Zv_i,\Zv_j)=\pm\frac13$ for $i\ne j$.}
+ \prove{$n\le k\cdot\frac89/(1-\frac k9)$, and in particular $n\le28$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ This is [LS73] Theorem 3.6, which [CGSS] cites as [15]; we will prove it from the
+ trace of the Gram matrix.
+ \pflet{$M$ be the Gram matrix of the $\Zv_i$.}
+ \step{s4eq1tr}{$\tr M=n$, $\tr M^2=n+\frac19n(n-1)$ and $\rk M=k$.}
+ \begin{proof}\pf\ The diagonal entries of $M$ are 1 and the others $\pm\frac13$, and
+  $\tr M^2=\sum_{i,j}(\Zv_i,\Zv_j)^2$; the rank is Lemma~\ref{lem:4-gramfactor},
+  assertion 1.~\qed\end{proof}
+ \step{s4eq1cs}{$n^2\le k\bigl(n+\frac19n(n-1)\bigr)$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-tracerank} for $M$, where
+  $\sum_{i,j}M(i,j)^2=\tr M^2$ as $M$ is symmetric; apply \stepref{s4eq1tr}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Divide \stepref{s4eq1cs} by $n$: $n(1-\frac k9)\le\frac89k$, with
+  $1-\frac k9>0$. The bound $\frac89k/(1-\frac k9)=8k/(9-k)$ increases with $k$, and is 28 for
+  $k=7$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(lines spanning eight dimensions, EQ2)}\label{lem:4-EQ2}
+ \lean{InnerProductSpace.card_le_fourteen_of_finrank_eq_eight}
+ \uses{def:represented,lem:4-rootsystem,lem:sec3-spans,comp:C20}
+ \assume{$U$ is a real inner product space of dimension 8, spanned by unit vectors
+ $\Zv_1,\dots,\Zv_n$ with $(\Zv_i,\Zv_j)=\pm\frac13$ for $i\ne j$.}
+ \prove{$n\le14$.}
+ \repair\ This is the cone construction of \path{cgss/prerequisites.md} (EQ2), which fills
+ the unstated part of [LS73] (errata, Gap 7).
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will put the lines on a cone around a root $\Zr$ in $U\oplus\re\Ze$ and count
+ the pairs of $N_\Zr$.
+ \pflet{$\Zr=\sqrt2\,\Ze$ and $\Zu_i=\sqrt{3/2}\,\Zv_i+\Ze/\sqrt2$ in $U\oplus\re\Ze$, where $\Ze$
+ is a unit vector orthogonal to $U$.}
+ \step{s4eq2ip}{$(\Zr,\Zr)=(\Zu_i,\Zu_i)=2$, $(\Zu_i,\Zr)=1$, and
+  $(\Zu_i,\Zu_j)=\frac32(\Zv_i,\Zv_j)+\frac12\in\{0,1\}$ for $i\ne j$.}
+ \begin{proof}\pf\ Expand, with $(\Zv_i,\Ze)=0$.~\qed\end{proof}
+ \pflet{$X'$ be the graph on $\{0,1,\dots,n\}$ in which 0 is adjacent to every $i$, and $i\ne j$
+ are adjacent when $(\Zu_i,\Zu_j)=1$.}
+ \step{s4eq2rep}{$\Zr,\Zu_1,\dots,\Zu_n$ represent the connected graph $X'$, and span a space of
+  dimension 9.}
+ \begin{proof}\pf\ Definition~\ref{def:represented} and \stepref{s4eq2ip}; 0 is adjacent to
+  every other vertex. The span contains $\Ze=\Zr/\sqrt2$ and each
+  $\Zv_i=(\Zu_i-\Ze/\sqrt2)/\sqrt{3/2}$, so it is $U\oplus\re\Ze$.~\qed\end{proof}
+ \step{s4eq2type}{$X'$ is represented in $\typ A_9$ or in $\typ D_9$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-rootsystem}, assertion 1, with $k=9$; the models of
+  $\typ E_6$, $\typ E_7$, $\typ E_8$ have ranks 6, 7, 8 by
+  Lemma~\ref{lem:sec3-spans}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The vertex 0 has $n$ neighbours, at most $9-1=8$ in $\typ A_9$ and at most
+  $2(9-2)=14$ in $\typ D_9$, by Computation~\ref{comp:C20} and \stepref{s4eq2type}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C8}\label{comp:C8}
+ \lean{Computations.C8.quadratic_bound}
+ \uses{}
+ \assume{$n\le28$ and $d\le n-1$ are nonnegative integers with $n<2d+4$ and
+ $0\le(d-2n+16)+14(2n-2d-4)/(2d+4-n)$.}
+ \prove{$d\le16$, or $n=28$ and $d=17$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will clear the positive denominator; the Lean proof is \texttt{decide} over the
+ finitely many pairs.
+ \qedstep
+ \begin{proof}\pf\ Multiply by $2d+4-n>0$:
+  $(d-2n+16)(2d+4-n)+14(2n-2d-4)\ge0$. Among the pairs $(n,d)$ with $n\le28$, $d\le n-1$ and
+  $n<2d+4$, this holds only for $d\le16$ and for $(28,17)$; this is a finite check of the 406
+  pairs with $d<n\le28$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the matrices of a regular graph)}\label{lem:4-regmat}
+ \lean{SimpleGraph.IsRegularOfDegree.posSemidef_centered}
+ \lean{SimpleGraph.IsRegularOfDegree.rank_centered}
+ \lean{SimpleGraph.IsRegularOfDegree.posSemidef_equiangular}
+ \lean{SimpleGraph.IsRegularOfDegree.rank_equiangular}
+ \uses{facts:sec4}
+ \assume{\begin{pfenum}
+  \item $X$ is $d$-regular on $n\ge1$ vertices, $Q=2I+A(X)$ is positive semidefinite, and $\Zj$
+   is the all-ones vector.
+  \item $t=(d+2)/(2n)$, $M=\frac12Q-tJ$ and $E=\frac23Q-\frac13J$.
+ \end{pfenum}}
+ \prove{\begin{pfenum}
+  \item $Q\Zj=(d+2)\Zj$, and $J\Zz=0$ and $(Q\Zz,\Zj)=0$ for every $\Zz\perp\Zj$.
+  \item $M\Zj=0$ and $M\Zz=\frac12Q\Zz$ for $\Zz\perp\Zj$; $M$ is positive semidefinite, and
+   $\rk M=\rk Q-1$.
+  \item If $n<2d+4$, then $E\Zj=\frac13(2d+4-n)\Zj$ and $E\Zz=\frac23Q\Zz$ for $\Zz\perp\Zj$; $E$
+   is positive semidefinite, and $\rk E=\rk Q$.
+ \end{pfenum}}
+ \new\ The paper reads these facts off the eigenvalues of $A$; we will compare ranges instead, and
+ state the facts once, for Theorem 4.4 and for the remark after it.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will split $\re^n$ as $\re\Zj\oplus\Zj^\perp$.
+ \pflet{$W=Q(\Zj^\perp)$ be the image of $\Zj^\perp$ under $Q$.}
+ \step{s4rmj}{$A\Zj=d\Zj$, $Q\Zj=(d+2)\Zj$ and $J\Zj=n\Zj$.}
+ \begin{proof}\pf\ \path{SimpleGraph.adjMatrix_mulVec_const_apply_of_regular} with \asm[1]{0};
+  then $Q\Zj=2\Zj+A\Zj$, and the rows of $J$ sum to $n$.~\qed\end{proof}
+ \step{s4rmperp}{\assume{$\Zz\perp\Zj$.}\prove{$J\Zz=0$ and $(Q\Zz,\Zj)=0$.}}
+ \begin{proof}\pf\ Every entry of $J\Zz$ is $(\Zz,\Zj)=0$. Further $Q$ is symmetric, so
+  $(Q\Zz,\Zj)=(\Zz,Q\Zj)=(d+2)(\Zz,\Zj)=0$ by \stepref{s4rmj}.~\qed\end{proof}
+ \step{s4rmsplit}{Every $\Zy\in\re^n$ is $c\Zj+\Zz$ with $c=(\Zy,\Zj)/n$ and $\Zz\perp\Zj$.}
+ \begin{proof}\pf\ $(\Zy-c\Zj,\Zj)=(\Zy,\Zj)-cn=0$, as $(\Zj,\Zj)=n\ge1$ by
+  \asm[1]{0}.~\qed\end{proof}
+ \step{s4rmrange}{The range of $Q$ is $\re\Zj+W$.}
+ \begin{proof}\pf\ By \stepref{s4rmsplit} and \stepref{s4rmj}, $Q(c\Zj+\Zz)=c(d+2)\Zj+Q\Zz$ for
+  $\Zz\perp\Zj$, and $d+2\ne0$.~\qed\end{proof}
+ \step{s4rmcap}{$\re\Zj\cap W=0$.}
+ \begin{proof}\pf\ If $c\Zj\in W$, then $cn=(c\Zj,\Zj)=0$ by \stepref{s4rmperp}, and $n\ge1$ by
+  \asm[1]{0}; so $c=0$.~\qed\end{proof}
+ \step{s4rmrk}{$\rk Q=1+\dim W$.}
+ \begin{proof}\pf\ By the definition \path{Matrix.rank}, $\rk Q$ is the dimension of the range
+  of $Q$, which is $\re\Zj+W$ by \stepref{s4rmrange}. Apply
+  \path{Submodule.finrank_sup_add_finrank_inf_eq} with \stepref{s4rmcap}, and
+  \path{finrank_span_singleton}, as $\Zj\ne0$.~\qed\end{proof}
+ \step{s4rmtwo}{Assertion 2 holds.}
+ \begin{proof}
+  \step{s4rmMact}{$M\Zj=0$, and $M\Zz=\frac12Q\Zz$ for $\Zz\perp\Zj$.}
+  \begin{proof}\pf\ $M\Zj=\frac12(d+2)\Zj-tn\Zj=0$ by \stepref{s4rmj}, since
+   $tn=\frac12(d+2)$ by \asm[2]{0}; and $J\Zz=0$ by \stepref{s4rmperp}.~\qed\end{proof}
+  \step{s4rmMpsd}{$M$ is positive semidefinite.}
+  \begin{proof}\pf\ $M$ is symmetric, as $Q$ and $J$ are. For $\Zy=c\Zj+\Zz$ as in
+   \stepref{s4rmsplit}, $(\Zy,M\Zy)=(c\Zj+\Zz,\frac12Q\Zz)=\frac12(\Zz,Q\Zz)\ge0$, by
+   \stepref{s4rmMact}, \stepref{s4rmperp} and \asm[1]{0}.~\qed\end{proof}
+  \step{s4rmMrk}{$\rk M=\rk Q-1$.}
+  \begin{proof}\pf\ By \stepref{s4rmsplit} and \stepref{s4rmMact}, $M(c\Zj+\Zz)=\frac12Q\Zz$, so
+   the range of $M$ is $W$; apply \stepref{s4rmrk} and the definition
+   \path{Matrix.rank}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ \stepref{s4rmMact}, \stepref{s4rmMpsd} and \stepref{s4rmMrk}.~\qed\end{proof}
+ \end{proof}
+ \step{s4rmthree}{\assume{$n<2d+4$.}\prove{The conclusion of assertion 3 holds.}}
+ \begin{proof}
+  \pflet{$b=\frac13(2d+4-n)$, which is positive by \asm{1}.}
+  \step{s4rmEact}{$E\Zj=b\Zj$, and $E\Zz=\frac23Q\Zz$ for $\Zz\perp\Zj$.}
+  \begin{proof}\pf\ $E\Zj=\frac23(d+2)\Zj-\frac13n\Zj$ by \stepref{s4rmj}, and $J\Zz=0$ by
+   \stepref{s4rmperp}.~\qed\end{proof}
+  \step{s4rmEpsd}{$E$ is positive semidefinite.}
+  \begin{proof}\pf\ $E$ is symmetric. For $\Zy=c\Zj+\Zz$ as in \stepref{s4rmsplit},
+   $(\Zy,E\Zy)=(c\Zj+\Zz,cb\Zj+\frac23Q\Zz)=c^2bn+\frac23(\Zz,Q\Zz)\ge0$, by \stepref{s4rmEact}
+   and \stepref{s4rmperp}, with $(\Zz,\Zj)=0$, $b>0$ and \asm[1]{0}.~\qed\end{proof}
+  \step{s4rmErk}{$\rk E=\rk Q$.}
+  \begin{proof}\pf\ By \stepref{s4rmsplit} and \stepref{s4rmEact}, $E(c\Zj+\Zz)=cb\Zj+\frac23Q\Zz$
+   with $b\ne0$, so the range of $E$ is $\re\Zj+W$, which is the range of $Q$ by
+   \stepref{s4rmrange}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ \stepref{s4rmEact}, \stepref{s4rmEpsd} and \stepref{s4rmErk}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is \stepref{s4rmj} and \stepref{s4rmperp}; assertions 2 and 3 are
+  \stepref{s4rmtwo} and \stepref{s4rmthree}.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Theorem}{4.4}\label{thm:4.4}
+ \lean{SimpleGraph.IsRepresentedIn.card_le_28_of_regular}
+ \lean{SimpleGraph.IsRepresentedIn.degree_le_16_of_regular}
+ \uses{def:represented,lem:4-gramfactor,lem:4-regmat,lem:4-sub,lem:4-symsq,lem:4-EQ1,lem:4-EQ2,lem:4-tracerank,lem:4-rootsystem,lem:sec3-spans,comp:C8,comp:C20,facts:sec4}
+ \assume{\begin{pfenum}
+  \item $X$ is $d$-regular on $n\ge1$ vertices.
+  \item $X$ is represented in $\typ E_8$ by $(\Zx_u)$.
+ \end{pfenum}}
+ \prove{$n\le28$ and $d\le16$.}
+ \begingroup\raggedright\new\ In Lean the theorem is proved as
+ \path{SimpleGraph.IsRepresentedIn.card_le_28_of_regular_of_classification} and
+ \path{SimpleGraph.IsRepresentedIn.degree_le_16_of_regular_of_classification}, in
+ \path{LineGraphs/Representation/Theorem44.lean}, with the classification of the maximal
+ indecomposable line systems of the nine-dimensional space of Lemma~\ref{lem:4-EQ2} as an
+ explicit hypothesis. The settled names above, without the hypothesis, are proved in
+ \path{LineGraphs/Representation/Theorem44Unconditional.lean}, by
+ discharging it with Theorem~3.6 (\path{LineSystem.IsMaximal.exists_iso_rootType}).\par\endgroup
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will follow the paper, with these repairs. The equiangular facts come from
+ Lemmas EQ1 and EQ2 in place of [15] (errata, Error 8 and Gap 7, decision 1 of
+ \path{cgss/prerequisites.md}). \repair\ The case $n=28$, $d=12$ needs its own treatment (errata,
+ Error 15), and the final valency bound needs the pairing of Gap 14 (errata). The printed Gram
+ matrix is that of the vectors $\sigma(\Zq_u)$, not of projections (errata, Error 13, item 6), and
+ ``each eigenvalue $\alpha\ne d$'' concerns the action on $\Zj^\perp$ (item 7); we will use that
+ action through quadratic forms, without counting eigenvalues.
+ \pflet{$Q=2I+A(X)$, $\Zj$ the all-ones vector, $t=(d+2)/(2n)$, $M=\frac12Q-tJ$ and
+ $E=\frac23Q-\frac13J$, as in Lemma~\ref{lem:4-regmat}.}
+ \step{s44spec}{$Q$ is positive semidefinite of rank at most 8.}
+ \begin{proof}\pf\ $Q$ is the Gram matrix of $n$ vectors of
+  $\re^8$ by \asm[2]{0}, so it is positive semidefinite by \path{Matrix.posSemidef_gram}, and of rank
+  at most 8 by Lemma~\ref{lem:4-gramfactor}, assertion 1, since a subspace of $\re^8$ has
+  dimension at most 8 (\path{Submodule.finrank_le}).~\qed\end{proof}
+ \step{s44small}{\case{$n\le17$.}\prove{$n\le28$ and $d\le16$.}}
+ \begin{proof}\pf\ $d\le n-1\le16$ by \asm[1]{0} and \asm{1}.~\qed\end{proof}
+ \step{s44q}{$M$ is the Gram matrix of vectors $\Zq_u\in\re^7$, with
+  $(\Zq_u,\Zq_u)=1-t$, $(\Zq_u,\Zq_w)=\frac12-t$ for adjacent $u,w$, and $-t$ otherwise.}
+ \begin{proof}\pf\ By Lemma~\ref{lem:4-regmat}, assertion 2, with \asm[1]{0} and
+  \stepref{s44spec}, $M$ is positive semidefinite of rank $\rk Q-1\le7$. Apply
+  Lemma~\ref{lem:4-gramfactor}, assertion 2, with $r=7$; the entries are those of
+  $\frac12Q-tJ$.~\qed\end{proof}
+ \step{s44P}{$P=(1-t)^2I+(\frac12-t)^2A+t^2(J-I-A)$ is positive semidefinite, and
+  $P\Zz=(1-2t)\Zz+(\frac14-t)A\Zz$ for $\Zz\perp\Zj$.}
+ \begin{proof}\pf\ By Lemma~\ref{lem:4-symsq} with $\ell=7$ and \stepref{s44q}, $P$ is the Gram
+  matrix of the $\sigma(\Zq_u)\in\re^{28}$; apply \path{Matrix.posSemidef_gram}. For
+  $\Zz\perp\Zj$, $J\Zz=0$ by Lemma~\ref{lem:4-regmat}, assertion 1, and $(1-t)^2-t^2=1-2t$,
+  $(\frac12-t)^2-t^2=\frac14-t$.~\qed\end{proof}
+ \step{s44big}{\case{$n\ge18$ and $n\ge2d+4$.}\prove{$n\le28$ and $d\le12$.}}
+ \begin{proof}
+  \step{s44bigpd}{$P$ is positive definite.}
+  \begin{proof}\pf\ For $\Zz\perp\Zj$, $(\Zz,A\Zz)=(\Zz,Q\Zz)-2|\Zz|^2\ge-2|\Zz|^2$ by
+   \stepref{s44spec}, and $\frac14-t\ge0$ by \asm{1}; so by \stepref{s44P},
+   $(\Zz,P\Zz)\ge(1-2t-2(\frac14-t))|\Zz|^2=\frac12|\Zz|^2$. Further $P\Zj=p\Zj$ with
+   $p=(1-t)^2+(\frac12-t)^2d+t^2(n-1-d)>0$, as $1-t\ge\frac34$ since $t\le\frac14$. $P$ is
+   symmetric, being a combination of $I$, $A$ and $J$; so $(P\Zz,\Zj)=(\Zz,P\Zj)=0$ for
+   $\Zz\perp\Zj$, and $P$ maps $\Zj^\perp$ into itself. So
+   $(\Zy,P\Zy)=pc^2n+(\Zz,P\Zz)>0$ for $\Zy=c\Zj+\Zz\ne0$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The $n$ vectors $\sigma(\Zq_u)$ are linearly independent in $\re^{28}$ by
+   \stepref{s44bigpd} and \path{Matrix.posDef_gram_iff_linearIndependent}, so $n\le28$ by
+   \path{LinearIndependent.fintype_card_le_finrank}; and $d\le(n-4)/2\le12$ by
+   \asm{1}.~\qed\end{proof}
+ \end{proof}
+ \step{s44rest}{\case{$n\ge18$ and $n<2d+4$.}\prove{$n\le28$ and $d\le16$.}}
+ \begin{proof}
+  \pflet{$B=2(2n-2d-4)/(2d+4-n)$, and $\Zb_k=(\sqrt2\,\Zq_u(k))_{u\in V(X)}\in\re^{V(X)}$ for
+   $1\le k\le7$, with the $\Zq_u$ of \stepref{s44q}.}
+  \step{s44bound}{$(\Zz,Q\Zz)\le(B+2)|\Zz|^2$ for every $\Zz\perp\Zj$.}
+  \begin{proof}\pf\ By \stepref{s44P}, $0\le(\Zz,P\Zz)=(1-2t)|\Zz|^2+(\frac14-t)(\Zz,A\Zz)$,
+   where $\frac14-t=(n-2d-4)/(4n)<0$ by \asm{1}. Divide by it: $(\Zz,A\Zz)\le
+   (1-2t)/(t-\frac14)\cdot|\Zz|^2=B|\Zz|^2$, since $1-2t=(n-d-2)/n$; add
+   $2|\Zz|^2$.~\qed\end{proof}
+  \step{s44cols}{$2M=\sum_{k=1}^7\Zb_k\Zb_k^T$, and $\Zb_k\perp\Zj$ for every $k$.}
+  \begin{proof}\pf\ The $uw$-entry of $2M$ is $2(\Zq_u,\Zq_w)=\sum_k\Zb_k(u)\Zb_k(w)$ by
+   \stepref{s44q}; and $\sum_k(\Zb_k,\Zj)^2=(\Zj,2M\Zj)=0$ by Lemma~\ref{lem:4-regmat},
+   assertion 2.~\qed\end{proof}
+  \step{s44ck}{$|\Zb_k|^2\le B+2$ for every $k$.}
+  \begin{proof}
+   \step{s44ckM}{$(\Zb_k,2M\Zb_k)=\sum_l(\Zb_l,\Zb_k)^2\ge|\Zb_k|^4$.}
+   \begin{proof}\pf\ \stepref{s44cols}; drop the terms $l\ne k$.~\qed\end{proof}
+   \step{s44ckQ}{$(\Zb_k,2M\Zb_k)=(\Zb_k,Q\Zb_k)\le(B+2)|\Zb_k|^2$.}
+   \begin{proof}\pf\ $2M\Zb_k=Q\Zb_k$ by Lemma~\ref{lem:4-regmat}, assertion 2, as $\Zb_k\perp\Zj$ by
+    \stepref{s44cols}; then \stepref{s44bound}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ If $\Zb_k=0$ there is nothing to prove. Otherwise divide
+    $|\Zb_k|^4\le(B+2)|\Zb_k|^2$, from \stepref{s44ckM} and \stepref{s44ckQ}, by
+    $|\Zb_k|^2>0$.~\qed\end{proof}
+  \end{proof}
+  \step{s44trace}{$0\le(d-2n+16)+7B$.}
+  \begin{proof}\pf\ The diagonal entries of $2M$ are $2(1-t)$ by \stepref{s44q}, so
+   $\sum_k|\Zb_k|^2=\tr(2M)=2n-d-2$ by \stepref{s44cols}; this is at most $7(B+2)$ by
+   \stepref{s44ck}. \new\ The Lean proof of this step and of
+   \stepref{s44bound}, in \path{LineGraphs/Representation/Theorem44.lean}, is shorter: it
+   bounds the nonzero eigenvalues of $M$, at most 7 of them, through the positive semidefinite
+   $P$ of \stepref{s44P}, in place of the columns $\Zb_k$.~\qed\end{proof}
+  \step{s44equi}{$E$ is the Gram matrix of $n$ unit vectors $\Zw_u$ in
+   $\re^8$ with $(\Zw_u,\Zw_w)=\pm\frac13$ for $u\ne w$.}
+  \begin{proof}\pf\ By Lemma~\ref{lem:4-regmat}, assertion 3, with \asm[1]{0},
+   \stepref{s44spec} and \asm{1}, $E$ is positive semidefinite of rank $\rk Q\le8$. Apply
+   Lemma~\ref{lem:4-gramfactor}, assertion 2, with $r=8$; the entries of $E$ are 1 on the
+   diagonal and $\frac23-\frac13$ or $-\frac13$ elsewhere.~\qed\end{proof}
+  \step{s44n}{$n\le28$.}
+  \begin{proof}\pf\ The span of the $\Zw_u$ of \stepref{s44equi} has dimension $k=\rk E\le8$
+   by Lemma~\ref{lem:4-gramfactor}, assertion 1. If $k=8$, then $n\le14$ by Lemma~\ref{lem:4-EQ2}; otherwise $k\le7$ and $n\le28$ by
+   Lemma~\ref{lem:4-EQ1}.~\qed\end{proof}
+  \step{s44C8}{$d\le16$, or $n=28$ and $d=17$.}
+  \begin{proof}\pf\ Computation~\ref{comp:C8}, with \stepref{s44trace}, \stepref{s44n} and
+   \asm{1}.~\qed\end{proof}
+  \step{s44rankE}{\assume{$n=28$.}\prove{The $\Zw_u$ of \stepref{s44equi} span a space of
+   dimension at most 7.}}
+  \begin{proof}\pf\ \repair\ This is the split at $d=12$ of Error 15 (errata): here $28<2d+4$
+   by \asm{1} and \asm{2}, so $d>12$, and the case $d=12$ is in \stepref{s44big}. The span lies
+   in $\re^8$, so its dimension is at most 8 by \path{Submodule.finrank_le}; it is not 8, since
+   then Lemma~\ref{lem:4-EQ2} would give $n\le14$, against \asm{2}.~\qed\end{proof}
+  \step{s44rankQ}{\assume{$n=28$.}\prove{$\rk Q\le7$.}}
+  \begin{proof}\pf\ $\rk Q=\rk E$ by Lemma~\ref{lem:4-regmat}, assertion 3, with \asm[1]{0},
+   \stepref{s44spec} and \asm{1}; and $\rk E$ is the dimension of the span of the $\Zw_u$, by
+   Lemma~\ref{lem:4-gramfactor}, assertion 1, and \stepref{s44equi}. Apply \stepref{s44rankE}
+   with \asm{2}.~\qed\end{proof}
+  \step{s44d}{\assume{$n=28$.}\prove{$d\le16$.}}
+  \begin{proof}
+   \new\ The Lean proof, \path{SimpleGraph.not_regular_28_17_of_rank_le_seven}, closes the case
+   $(n,d)=(28,17)$ left by \stepref{s44C8} without the components: there $t=\frac{19}{56}$, and
+   $M$ has the entries $\frac{37}{56}$ on the diagonal, $\frac9{56}$ at the 17 neighbours and
+   $-\frac{19}{56}$ at the other 10 vertices of each row, so $\tr M=\frac{37}2$ and
+   $\sum_{u,w}M(u,w)^2=\frac{227}4$. As $\rk M=\rk Q-1\le6$ by Lemma~\ref{lem:4-regmat},
+   assertion 2, and \stepref{s44rankQ}, Lemma~\ref{lem:4-tracerank} would give
+   $(\frac{37}2)^2=342.25\le6\cdot\frac{227}4=340.5$, which is false. This is the argument of the
+   remark after the theorem, and it needs neither Lemma~\ref{lem:4-rootsystem} nor
+   Computation~\ref{comp:C20} here; we keep the route of the paper below.
+   \pflet{$u$ be a vertex of $X$, $X_u$ the connected component of $X$ that contains $u$, and
+    $k$ the dimension of the span of the $\Zx_w$ with $w\in V(X_u)$.}
+   \step{s44dsub}{$X_u$ is connected, the $\Zx_w$ with $w\in V(X_u)$ represent it in $\re^8$, and
+    $u$ has $d$ neighbours in $X_u$.}
+   \begin{proof}\pf\ A component is connected and is the subgraph induced on its vertices, so
+    Lemma~\ref{lem:4-sub} applies to \asm[2]{0}. The component contains every neighbour of $u$,
+    and $u$ has $d$ neighbours by \asm[1]{0}.~\qed\end{proof}
+   \step{s44ddim}{$k\le7$.}
+   \begin{proof}\pf\ The span of the $\Zx_w$ with $w\in V(X_u)$ lies in the span of all the
+    $\Zx_w$ by \path{Submodule.span_mono}, and the latter has dimension $\rk Q$ by
+    Lemma~\ref{lem:4-gramfactor}, assertion 1; so $k\le\rk Q$ by \path{Submodule.finrank_mono},
+    and $\rk Q\le7$ by \stepref{s44rankQ} with \asm{2}.~\qed\end{proof}
+   \step{s44dtype}{$X_u$ is represented in the model of $\typ A_k$, of $\typ D_k$ with $k\ge4$,
+    of $\typ E_6$ or of $\typ E_7$.}
+   \begin{proof}\pf\ Lemma~\ref{lem:4-rootsystem}, assertion 1, applies by \stepref{s44dsub};
+    the model of $\typ E_8$ is excluded, since it has rank $8>k$ by Lemma~\ref{lem:sec3-spans}
+    and \stepref{s44ddim}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ By Computation~\ref{comp:C20} and \stepref{s44dtype}, $u$ has at most
+    $k-1$, $2(k-2)$, 10 or 16 neighbours in $X_u$; these are at most 16 by \stepref{s44ddim}.
+    Apply \stepref{s44dsub}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ $n\le28$ by \stepref{s44n}. If $d>16$, then $n=28$ by \stepref{s44C8}, and
+   \stepref{s44d} gives $d\le16$; so $d\le16$.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The cases \stepref{s44small}, \stepref{s44big} and \stepref{s44rest} are
+  exhaustive.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C24}\label{comp:C24}
+ \lean{Computations.C24.trace_sq_gt}
+ \uses{}
+ \assume{$X$ is a 16-regular graph on 28 vertices, and $N=2I+A(X)-\frac9{14}J$.}
+ \prove{$\tr N=38$, $\sum_{u,w}N(u,w)^2=236$, and $38^2>6\cdot236$.}
+ \new\ Section 12 of \path{cgss/prerequisites.md} states C24 as $(2m-16)^2>(27-m)(192-4m)$
+ for $21\le m\le27$, where $m$ is the
+ multiplicity of the eigenvalue $-2$. We will count entries in its place, which needs no
+ multiplicities. With Lemma (trace and rank), C24 gives only
+ $\rk N\ge7$. The remark after Theorem 4.4 gets $\rk(2I+A)=8$ from this, from assertion 2 of
+ Lemma (the matrices of a regular graph), which gives $\rk(2I+A)=\rk N+1$, and from the bound
+ $\rk(2I+A)\le8$ of a representation in $\typ E_8$.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will count the entries of each kind; the Lean proof counts them with the degrees
+ and closes with \texttt{norm\_num}.
+ \step{s4c24row}{Each row of $N$ has the entry $\frac{19}{14}$ on the diagonal, 16 entries
+  $\frac5{14}$ and 11 entries $-\frac9{14}$.}
+ \begin{proof}\pf\ The entries of $2I+A(X)$ in a row are 2 on the diagonal, 1 at the 16
+  neighbours by \asm{0}, and 0 at the other 11 vertices; subtract $\frac9{14}$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s4c24row}, $\tr N=28\cdot\frac{19}{14}=38$ and
+  $\sum_{u,w}N(u,w)^2=\frac{28}{196}(361+16\cdot25+11\cdot81)=\frac{1652}7=236$; and
+  $38^2=1444>1416=6\cdot236$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Remark}{(after Theorem 4.4)}\label{rem:4-after44}
+ \lean{SimpleGraph.not_regular_28_16_isRepresentedIn_E₈}
+ \lean{SimpleGraph.regular_28_12_and_27_16_isRepresentedIn_E₈}
+ \uses{def:represented,lem:4-gramfactor,lem:4-regmat,lem:4-tracerank,lem:4-EQ2,comp:C24,lem:4-linegraph,def:glg,comp:C10,def:3.2,thm:4.4,ex:4.5,ex:4.6,facts:sec4}
+ \assume{$X$ is a graph.}
+ \prove{\begin{pfenum}
+  \item If $X$ is 16-regular on 28 vertices, then $X$ is not represented in $\typ E_8$.
+  \item The bound $n\le28$ of Theorem~\ref{thm:4.4} is attained by $L(K_8)$ and by the Chang
+   graphs I, II and III, which are 12-regular on 28 vertices, and the bound $d\le16$ by the
+   Schl\"afli graph, which is 16-regular on 27 vertices; all five are represented in
+   $\typ E_8$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ The paper gives no proof of assertion 1; we will follow EQ3 of
+ \path{cgss/prerequisites.md}, the repair of Gap 7 (errata). The rank of $2I+A$ is 8, so the 28
+ equiangular lines of the proof of Theorem 4.4 span 8 dimensions, which Lemma EQ2 forbids.
+ \new\ We will bound the rank by Lemma~\ref{lem:4-tracerank} and Computation~\ref{comp:C24}, in
+ place of the count of eigenvalues in EQ3. Assertion 2 cites the examples below.
+ \new\ The Lean proof, \leancite{SimpleGraph.not_regular_28_16_isRepresentedIn_E₈_of_classification}{\texttt{SimpleGraph.\allowbreak not\_\allowbreak regular\_\allowbreak 28\_\allowbreak 16\_\allowbreak isRepresentedIn\_\allowbreak E\ensuremath{{}_8}\_\allowbreak of\_\allowbreak classification}},
+ runs in the other order: EQ2 first, which gives $\rk Q\le7$
+ (\path{SimpleGraph.IsRepresentedIn.rank_le_seven_of_regular_of_classification}, the argument of
+ the proof of Theorem~\ref{thm:4.4} for $n=28$), so that $\rk N\le6$; then C24 and
+ Lemma~\ref{lem:4-tracerank} give $38^2\le6\cdot236$, which is false. It carries the same
+ classification hypothesis as Theorem~\ref{thm:4.4}; the settled name, without it, is
+ proved in \path{LineGraphs/Representation/Theorem44Unconditional.lean} in the same way.
+ \step{s4r44one}{\assume{\begin{pfenum}
+   \item $X$ is 16-regular on 28 vertices.
+   \item $X$ is represented in $\typ E_8$ by $(\Zx_u)$.
+  \end{pfenum}}\prove{FALSE.}}
+ \begin{proof}
+  \pflet{$Q=2I+A(X)$, $M=\frac12Q-\frac9{28}J$ and $E=\frac23Q-\frac13J$, the matrices of
+   Lemma~\ref{lem:4-regmat} for $d=16$ and $n=28$, where $t=\frac{18}{56}=\frac9{28}$.}
+  \step{s4r44psd}{$Q$ is positive semidefinite of rank at most 8.}
+  \begin{proof}\pf\ $Q$ is the Gram matrix of the $\Zx_u\in\re^8$ by \asm[2]{1}, so it is
+   positive semidefinite by \path{Matrix.posSemidef_gram}, and of rank at most 8 by
+   Lemma~\ref{lem:4-gramfactor}, assertion 1, and \path{Submodule.finrank_le}.~\qed\end{proof}
+  \step{s4r44M}{$\rk M\ge7$.}
+  \begin{proof}\pf\ $2M$ is the matrix $N$ of Computation~\ref{comp:C24}, by \asm[1]{1}. By
+   Lemma~\ref{lem:4-tracerank} and that computation, $38^2\le\rk(2M)\cdot236$ and
+   $38^2>6\cdot236$; so $\rk M=\rk(2M)\ge7$.~\qed\end{proof}
+  \step{s4r44rk}{$\rk Q=8$.}
+  \begin{proof}\pf\ $\rk Q=\rk M+1\ge8$ by Lemma~\ref{lem:4-regmat}, assertion 2, with
+   \asm[1]{1}, \stepref{s4r44psd} and \stepref{s4r44M}; and $\rk Q\le8$ by
+   \stepref{s4r44psd}.~\qed\end{proof}
+  \step{s4r44E}{$E$ is positive semidefinite of rank 8.}
+  \begin{proof}\pf\ As $28<2\cdot16+4$, Lemma~\ref{lem:4-regmat}, assertion 3, applies with
+   \asm[1]{1} and \stepref{s4r44psd}; it makes $E$ positive semidefinite with $\rk E=\rk Q$, and
+   $\rk Q=8$ by \stepref{s4r44rk}.~\qed\end{proof}
+  \step{s4r44w}{$E$ is the Gram matrix of 28 unit vectors $\Zw_u$ of $\re^8$ with
+   $(\Zw_u,\Zw_w)=\pm\frac13$ for $u\ne w$.}
+  \begin{proof}\pf\ Lemma~\ref{lem:4-gramfactor}, assertion 2 with $r=8$, applies by
+   \stepref{s4r44E}; the entries of $E$ are 1 on the diagonal and $\frac23-\frac13$ or
+   $-\frac13$ elsewhere.~\qed\end{proof}
+  \step{s4r44span}{The $\Zw_u$ of \stepref{s4r44w} span a space of dimension 8.}
+  \begin{proof}\pf\ Its dimension is $\rk E$ by Lemma~\ref{lem:4-gramfactor}, assertion 1, and
+   \stepref{s4r44w}; and $\rk E=8$ by \stepref{s4r44E}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Lemma~\ref{lem:4-EQ2}, for the span of \stepref{s4r44span} and the $\Zw_u$
+   of \stepref{s4r44w}, gives $28\le14$.~\qed\end{proof}
+ \end{proof}
+ \step{s4r44two}{Assertion 2 holds.}
+ \begin{proof}
+  \step{s4r44K8}{$L(K_8)$ is 12-regular on 28 vertices and is represented in $\typ E_8$.}
+  \begin{proof}\pf\ $K_8$ has $\binom82=28$ edges, and each has degree $7+7-2=12$ in
+   $L(K_8)\cong L(K_8;0,\dots,0)$, by Computation~\ref{comp:C10} and Definition~\ref{def:glg}.
+   Lemma~\ref{lem:4-linegraph} gives the representation by the $\Ze_i+\Ze_j$, which lie in
+   $\Phi(\typ D_8)\sbs\Phi(\typ E_8)$ by Definition~\ref{def:3.2}, (ii).~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Example~\ref{ex:4.5} gives the Chang graphs, with parameters
+   $(28,12,6,4)$, and Example~\ref{ex:4.6} the Schl\"afli graph, with parameters $(27,16,10,8)$,
+   each represented in $\typ E_8$; add \stepref{s4r44K8}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s4r44one} and \stepref{s4r44two}.~\qed\end{proof}
+\end{proof}
+
+The paper introduces the graphs of Examples 4.5 to 4.9 as strongly regular graphs ``which are
+not line graphs''. We will prove this in the proof of Remark 4.14, as Corollary (the seven
+graphs are not line graphs), since the argument uses the properties of the seven graphs that we
+establish there.
+We will use model (ii) of Definition 3.2 and the vector
+$\Zc=\frac12\sum_{k=1}^8\Ze_k$ of $\Phi(\typ E_8)$. For a graph $X$ and $Y\sbs V(X)$, the
+\emph{switched graph} $X^Y$ keeps the pairs inside $Y$ and inside $V(X)\setminus Y$, and
+complements the pairs between them (SW1 of \path{cgss/prerequisites.md}).
+
+\begin{namedresult}{Lemma}{(switching by vectors, SW4)}\label{lem:4-switch}
+ \lean{SimpleGraph.IsRepresentation.switch}
+ \uses{def:2.1,def:represented,def:line-system}
+ \assume{\begin{pfenum}
+  \item $X$ is represented in a star-closed line system $S$ by $(\Zx_u)$.
+  \item $\Zh\in\Phi(S)$, $(\Zh,\Zx_u)=1$ for every $u$, and $Y\sbs V(X)$.
+ \end{pfenum}}
+ \prove{The family with $\Zh-\Zx_u$ for $u\in Y$ and $\Zx_u$ for $u\notin Y$ represents $X^Y$
+ in $S$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will compute the new inner products.
+ \step{s4swmem}{$\Zh-\Zx_u\in\Phi(S)$.}
+ \begin{proof}\pf\ $(\Zx_u,-\Zh)=-1$ by \asm[2]{0}, so $\Zx_u-\Zh$ and its negative lie in
+  $\Phi(S)$, which is star-closed by \asm[1]{0}.~\qed\end{proof}
+ \step{s4swip}{For $u,w\in Y$, $(\Zh-\Zx_u,\Zh-\Zx_w)=(\Zx_u,\Zx_w)$; and for $u\in Y$, $w\notin
+  Y$, $(\Zh-\Zx_u,\Zx_w)=1-(\Zx_u,\Zx_w)$.}
+ \begin{proof}\pf\ Expand, with $(\Zh,\Zh)=2$ and $(\Zh,\Zx_u)=(\Zh,\Zx_w)=1$ by
+  \asm[2]{0}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s4swip}, the Gram matrix keeps the entries inside $Y$ and outside
+  $Y$, and replaces $0,1$ by $1,0$ between them; that is $2I+A(X^Y)$. The vectors lie in $\Phi(S)$
+  by \stepref{s4swmem}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C9}\label{comp:C9}
+ \lean{SimpleGraph.changI_isSRGWith}\lean{SimpleGraph.changII_isSRGWith}
+ \lean{SimpleGraph.changIII_isSRGWith}\lean{SimpleGraph.schlafli_isSRGWith}
+ \lean{SimpleGraph.shrikhande_isSRGWith}\lean{SimpleGraph.clebsch_isSRGWith}
+ \lean{SimpleGraph.petersen_isSRGWith}
+ \lean{SimpleGraph.clebsch.foldedFiveCubeComplIso}\lean{SimpleGraph.schlafli.gq24ComplIso}
+ \lean{SimpleGraph.petersen.kneserIso}
+ \lean{SimpleGraph.clebsch_isSwitchingEquivalent_shrikhande}
+ \lean{SimpleGraph.clebsch_isSwitchingEquivalent_lineGraph_completeBipartite}
+ \uses{def:represented,def:414-folded,def:414-gq24}
+ \assume{The graphs of Examples 4.5 to 4.9 are given by the integer vectors $2\Zx_u$ of their
+ representations. The folded 5-cube $\square_5$ is the graph on the subsets of
+ $\{1,\dots,5\}$ of even size, adjacent when their symmetric difference has 4 elements, and the
+ double-six graph $Q_{27}$ is the graph on the symbols $a_i$, $b_i$ and $c_{ij}=c_{ji}$
+ ($i\ne j$ in $\{1,\dots,6\}$) with $a_i\sim b_j$ for $i\ne j$, $a_i\sim c_{jl}$ and
+ $b_i\sim c_{jl}$ for $i\in\{j,l\}$, and $c_{ij}\sim c_{lm}$ for disjoint $\{i,j\}$, $\{l,m\}$;
+ these are \hyperref[def:414-folded]{the folded 5-cube} and \hyperref[def:414-gq24]{the
+ double-six graph} of the proof of Remark 4.14.}
+ \prove{The Chang graphs are strongly regular with parameters $(28,12,6,4)$, the Schl\"afli
+ graph $(27,16,10,8)$, the Shrikhande graph $(16,6,2,2)$, the Clebsch graph $(16,10,6,6)$ and
+ the Petersen graph of Example 4.9 $(10,3,0,1)$; the last is isomorphic to the Kneser graph of
+ the 2-subsets of a 5-set; the Clebsch graph is switching equivalent to $L(K_{4,4})$ and to the
+ Shrikhande graph. The Clebsch graph is isomorphic to $\comp{\square_5}$, and the Schl\"afli
+ graph to $\comp{Q_{27}}$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ These are finite checks on at most 28 vertices; the Lean proofs are by
+ \texttt{decide} on the adjacency matrices $A(u,w)=\frac14(2\Zx_u,2\Zx_w)$, with explicit
+ isomorphisms and switching sets as certificates. The two isomorphisms of the last sentence
+ are the certificates of \path{cgss/proofs/clebsch/clebsch.tex}, Section 6, found by SageMath; in Lean
+ they are definitions, checked by \texttt{decide}.
+ \qedstep
+ \begin{proof}\pf\ For each graph, \texttt{decide} checks the degree of every vertex and the
+  number of common neighbours of every pair; for the Petersen graph it checks a given
+  bijection, for the Clebsch graph given switching sets and bijections, and for the Clebsch and
+  Schl\"afli graphs given bijections onto $\comp{\square_5}$ and $\comp{Q_{27}}$.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Example}{4.5}\label{ex:4.5}
+ \lean{SimpleGraph.changI_isRepresentedIn_E₈}\lean{SimpleGraph.changII_isRepresentedIn_E₈}
+ \lean{SimpleGraph.changIII_isRepresentedIn_E₈}
+ \uses{lem:4-linegraph,lem:4-switch,comp:C9,def:3.2,thm:3.5}
+ \assume{$T(8)=L(K_8)$ is represented by the vectors $\Ze_i+\Ze_j$, and the switching sets are
+ $Y_{\rm I}=\{\Ze_i+\Ze_{4+i}:1\le i\le4\}$, $Y_{\rm II}=\{\Ze_i+\Ze_{i+1}:1\le i\le8\}$ (indices
+ modulo 8) and $Y_{\rm III}=\{\Ze_1+\Ze_2,\Ze_2+\Ze_3,\Ze_3+\Ze_1\}\cup\{\Ze_4+\Ze_5,\Ze_5+\Ze_6,
+ \Ze_6+\Ze_7,\Ze_7+\Ze_8,\Ze_8+\Ze_4\}$.}
+ \prove{Replacing $\Ze_i+\Ze_j$ by $\Zc-\Ze_i-\Ze_j$ on $Y_{\rm I}$, $Y_{\rm II}$ or $Y_{\rm III}$
+ gives vectors of $\Phi(\typ E_8)$ representing the Chang graphs I, II and III, which are
+ strongly regular with parameters $(28,12,6,4)$.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will switch with $\Zh=\Zc$.
+ \step{s45base}{$T(8)$ is represented in $\typ E_8$ by the $\Ze_i+\Ze_j$, and
+  $(\Zc,\Ze_i+\Ze_j)=1$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-linegraph}; the vectors lie in $\Phi(\typ D_8)\sbs
+  \Phi(\typ E_8)$ by Definition~\ref{def:3.2}, (ii).~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ $\typ E_8$ is star-closed by Theorem~\ref{thm:3.5}; apply
+  Lemma~\ref{lem:4-switch} to \stepref{s45base}, and Computation~\ref{comp:C9} for the
+  parameters.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Example}{4.6}\label{ex:4.6}
+ \lean{SimpleGraph.schlafli_isRepresentedIn_E₈}
+ \uses{def:represented,def:3.2,comp:C9}
+ \assume{$\Zx_{ij}=\Ze_i+\Ze_j$ for $1\le i<j\le6$, and $\Zy_i=\Zc-\Ze_i-\Ze_7$ and
+ $\Zz_i=\Zc-\Ze_i-\Ze_8$ for $1\le i\le6$.}
+ \prove{These 27 vectors lie in $\Phi(\typ E_8)$ and represent the Schl\"afli graph, which is
+ strongly regular with parameters $(27,16,10,8)$.}
+ \repair\ The paper prints $\frac13\sum\Ze_k$ in the second family, which gives squared norm
+ $14/9$; we use $\Zc$ (errata, Error 2).
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will check membership and the inner products.
+ \step{s46mem}{The vectors lie in $\Phi(\typ E_8)$.}
+ \begin{proof}\pf\ $\Zx_{ij}\in\Phi(\typ D_8)$; $\Zy_i$ and $\Zz_i$ have entries $\pm\frac12$ with
+  exactly two negative ones, so they lie in model (ii) of Definition~\ref{def:3.2}.~\qed\end{proof}
+ \step{s46cc}{For 2-subsets $A,B$ of $\{1,\dots,8\}$,
+  $(\Zc-\sum_{a\in A}\Ze_a,\Zc-\sum_{b\in B}\Ze_b)=|A\cap B|$ and
+  $(\Ze_i+\Ze_j,\Zc-\sum_{b\in B}\Ze_b)=1-|\{i,j\}\cap B|$.}
+ \begin{proof}\pf\ Expand, with $(\Zc,\Zc)=2$ and $(\Zc,\Ze_k)=\frac12$.~\qed\end{proof}
+ \step{s46ip}{Distinct vectors have inner products in $\{0,1\}$.}
+ \begin{proof}\pf\ $(\Zx_{ij},\Zx_{kl})=|\{i,j\}\cap\{k,l\}|$; by \stepref{s46cc},
+  $(\Zy_i,\Zy_k)=(\Zz_i,\Zz_k)=1$ for $i\ne k$, $(\Zy_i,\Zz_k)=[i=k]$, and
+  $(\Zx_{ij},\Zy_k)=(\Zx_{ij},\Zz_k)=1-[k\in\{i,j\}]$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s46mem} and \stepref{s46ip} the vectors represent a graph
+  (Definition~\ref{def:represented}); Computation~\ref{comp:C9} gives its
+  parameters.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Example}{4.7}\label{ex:4.7}
+ \lean{SimpleGraph.shrikhande_isRepresentedIn_E₈}
+ \lean{SimpleGraph.shrikhande.changIIndex}\lean{SimpleGraph.shrikhande.changIIndex_checked}
+ \lean{SimpleGraph.shrikhande.changIEmbedding}
+ \lean{SimpleGraph.shrikhande.nonempty_iso_induce_changI}
+ \uses{lem:4-linegraph,lem:4-switch,lem:4-sub,comp:C9,def:3.2,thm:3.5,ex:4.5}
+ \assume{$L(K_{4,4})$ is represented by the vectors $\Ze_i+\Ze_j$ with $1\le i\le4<j\le8$, and
+ $Y=\{\Ze_i+\Ze_{4+i}:1\le i\le4\}$.}
+ \prove{Replacing $\Ze_i+\Ze_j$ by $\Zc-\Ze_i-\Ze_j$ on $Y$ gives vectors of $\Phi(\typ E_8)$
+ representing the Shrikhande graph, strongly regular with parameters $(16,6,2,2)$; it is an
+ induced subgraph of the Chang graph I.}
+ In Lean the last assertion is \path{SimpleGraph.shrikhande.nonempty_iso_induce_changI}: the
+ Shrikhande graph is isomorphic to the subgraph of the Chang graph I induced on the sixteen
+ vertices given by \path{SimpleGraph.shrikhande.changIIndex}, an induced embedding that the
+ kernel checks (\texttt{decide +kernel}).
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will switch with $\Zh=\Zc$, as in Example 4.5.
+ \step{s47rep}{The switched vectors lie in $\Phi(\typ E_8)$ and represent the Shrikhande graph.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-linegraph} for $K_{4,4}$ gives a representation in
+  $\Phi(\typ D_8)\sbs\Phi(\typ E_8)$ (Definition~\ref{def:3.2}) with $(\Zc,\Ze_i+\Ze_j)=1$; $\typ
+  E_8$ is star-closed by Theorem~\ref{thm:3.5}; apply Lemma~\ref{lem:4-switch}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Computation~\ref{comp:C9} gives the parameters. The switched vectors are among
+  those of the Chang graph I in Example~\ref{ex:4.5}, since $Y=Y_{\rm I}$, and a subfamily of a
+  representation represents the induced subgraph (Lemma~\ref{lem:4-sub}).~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Example}{4.8}\label{ex:4.8}
+ \lean{SimpleGraph.clebsch_isRepresentedIn_E₈}
+ \lean{SimpleGraph.clebsch.schlafliIndex}\lean{SimpleGraph.clebsch.schlafliIndex_checked}
+ \lean{SimpleGraph.clebsch.schlafliEmbedding}
+ \lean{SimpleGraph.clebsch.nonempty_iso_induce_schlafli}
+ \uses{def:represented,lem:4-sub,def:3.2,comp:C9,ex:4.6}
+ \assume{The vectors are $\Ze_i+\Ze_5$, $\Ze_i+\Ze_6$, $\Zc-\Ze_i-\Ze_7$ and $\Zc-\Ze_i-\Ze_8$,
+ for $1\le i\le4$.}
+ \prove{These 16 vectors are the vectors of Example 4.6 with inner product 1 with $\Ze_5+\Ze_6$;
+ they represent the Clebsch graph, strongly regular with parameters $(16,10,6,6)$ and switching
+ equivalent to $L(K_{4,4})$ and to the Shrikhande graph.}
+ In Lean the first two assertions together are
+ \path{SimpleGraph.clebsch.nonempty_iso_induce_schlafli}: the Clebsch graph is isomorphic to the
+ subgraph of the Schl\"afli graph induced on the neighbours of the vertex whose vector is
+ $\Ze_5+\Ze_6$, which are the vertices whose vectors have inner product 1 with it. The kernel
+ checks that \path{SimpleGraph.clebsch.schlafliIndex} is an induced embedding onto these
+ neighbours.
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will read off the neighbours of $\Ze_5+\Ze_6$ in Example 4.6.
+ \step{s48nbr}{The vectors of Example~\ref{ex:4.6} with inner product 1 with $\Ze_5+\Ze_6$ are
+  the 16 listed.}
+ \begin{proof}\pf\ Expand: $(\Ze_5+\Ze_6,\Ze_k+\Ze_l)=|\{5,6\}\cap\{k,l\}|$, which is 1 exactly for $\{k,l\}=\{i,5\}$ or
+  $\{i,6\}$ with $i\le4$; and $(\Ze_5+\Ze_6,\Zc-\Ze_k-\Ze_7)=1-|\{5,6\}\cap\{k\}|$, which is 1
+  exactly for $k\le4$, and the same for $\Ze_8$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ A subfamily of the representation of Example~\ref{ex:4.6} represents the
+  induced subgraph (Lemma~\ref{lem:4-sub}); Computation~\ref{comp:C9} gives the
+  parameters and the switching equivalences.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Example}{4.9}\label{ex:4.9}
+ \lean{SimpleGraph.petersen_isRepresentedIn_E₈}
+ \uses{lem:4-linegraph,lem:4-switch,comp:C9,def:3.2,thm:3.5}
+ \assume{$L(K_{3,3})$ together with an isolated vertex is represented by $\Ze_4+\Ze_8$ and the
+ $\Ze_i+\Ze_j$ with $1\le i\le3$ and $5\le j\le7$, and $Y=\{\Ze_i+\Ze_{4+i}:1\le i\le3\}$.}
+ \prove{Replacing $\Ze_i+\Ze_j$ by $\Zc-\Ze_i-\Ze_j$ on $Y$ gives vectors of $\Phi(\typ E_8)$
+ representing the Petersen graph, strongly regular with parameters $(10,3,0,1)$.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will switch with $\Zh=\Zc$, as in Example 4.5.
+ \step{s49base}{The ten vectors represent $L(K_{3,3})$ with an isolated vertex, in
+  $\Phi(\typ E_8)$, and each has inner product 1 with $\Zc$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-linegraph} for the graph with the edges $\{i,j\}$ and
+  $\{4,8\}$, whose line graph is $L(K_{3,3})$ with an isolated vertex; the vectors lie in
+  $\Phi(\typ D_8)\sbs\Phi(\typ E_8)$ by Definition~\ref{def:3.2}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ $\typ E_8$ is star-closed by Theorem~\ref{thm:3.5}; apply
+  Lemma~\ref{lem:4-switch} to \stepref{s49base}, and Computation~\ref{comp:C9} for the
+  parameters and the isomorphism with the Petersen graph.~\qed\end{proof}
+\end{proof}
+
+\subsection{Theorems 4.10 and 4.11, and Remark 4.12}
+
+\begin{cgss}{Theorem}{4.10}\label{thm:4.10}
+ \lean{SimpleGraph.hoffman}
+ \uses{lem:4-gram,lem:4-rootsystem,lem:4-transport,thm:4.2,def:3.1,def:glg,def:represented}
+ \assume{$X$ is a connected graph, and $2I+A(X)$ is positive semidefinite.}
+ \prove{$X$ is a generalized line graph, or $X$ is represented in $\typ E_8$.}
+ \repair\ The paper does not assume that $X$ is connected, and the theorem is false without it:
+ two disjoint Petersen graphs are neither (errata, Implicit hypothesis 1). We assume only that
+ the least eigenvalue is at least $-2$; the paper assumes that it is $-2$.
+\end{cgss}
+\begin{proof}
+ \pfsketch\ ``This follows from the Theorems 3.6 and 4.2, and the inclusion $\typ
+ A_n\subseteq\typ D_{n+1}$.''
+ \step{s410rep}{$X$ is represented in $\typ A_\ell$ ($\ell\ge1$), in $\typ D_\ell$
+  ($\ell\ge4$), or in $\typ E_8$.}
+ \begin{proof}\pf\ $X$ has a representation in $\re^{|V(X)|}$ by Lemma~\ref{lem:4-gram} and
+  \asm{0}; apply Lemma~\ref{lem:4-rootsystem}, assertion 2.~\qed\end{proof}
+ \step{s410A}{\case{$X$ is represented in $\typ A_\ell$.}\prove{$X$ is a generalized line
+  graph.}}
+ \begin{proof}\pf\ $\Phi(\typ A_\ell)\sbs\Phi(\typ D_{\ell+1})$ by Definition~\ref{def:3.1} and
+  its remark on the coordinate model for small $\ell$, so
+  $X$ is represented in $\typ D_{\ell+1}$ by Lemma~\ref{lem:4-transport}; apply
+  Theorem~\ref{thm:4.2}, assertion 1.~\qed\end{proof}
+ \step{s410D}{\case{$X$ is represented in $\typ D_\ell$.}\prove{$X$ is a generalized line
+  graph.}}
+ \begin{proof}\pf\ Theorem~\ref{thm:4.2}, assertion 1.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The cases of \stepref{s410rep} are exhaustive, and in the third $X$ is
+  represented in $\typ E_8$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C10}\label{comp:C10}
+ \lean{SimpleGraph.generalizedLineGraph_degree_edge}
+ \lean{SimpleGraph.generalizedLineGraph_degree_petal}
+ \uses{def:glg}
+ \assume{$Y$ is a graph on $\{1,\dots,m\}$, $\deg(i)$ is the degree of $i$ in $Y$, and
+ $a_1,\dots,a_m\ge0$ are integers.}
+ \prove{In $L(Y;a_1,\dots,a_m)$ the edge $\{i,j\}$ has degree $2(a_i+a_j)+\deg(i)+\deg(j)-2$, and the
+  vertex $(i,\alpha,s)$ has degree $2(a_i-1)+\deg(i)$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will count the neighbours of each kind; the Lean proof is parametric.
+ \step{s4c10edge}{The edge $\{i,j\}$ has $\deg(i)+\deg(j)-2$ neighbours among the edges and
+  $2a_i+2a_j$ among the triples.}
+ \begin{proof}\pf\ The edges other than $\{i,j\}$ on $i$ or on $j$ number $(\deg(i)-1)+(\deg(j)-1)$,
+  since no other edge is on both. The triples adjacent to it are the $(i,\alpha,s)$ and the
+  $(j,\beta,t)$, by Definition~\ref{def:glg}.~\qed\end{proof}
+ \step{s4c10petal}{$(i,\alpha,s)$ has $\deg(i)$ neighbours among the edges and $2(a_i-1)$ among
+  the triples.}
+ \begin{proof}\pf\ Its neighbours are the edges on $i$ and the $(i,\beta,t)$ with
+  $\beta\ne\alpha$, by Definition~\ref{def:glg}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Add the two counts in \stepref{s4c10edge} and in
+  \stepref{s4c10petal}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(regular connected generalized line graphs)}\label{lem:4-regglg}
+ \lean{SimpleGraph.IsGeneralizedLineGraph.lineGraph_or_cocktailParty}
+ \uses{def:glg,def:CP,comp:C10}
+ \assume{$X\cong L(Y;a_1,\dots,a_m)$ is connected and regular, with $Y$ on $\{1,\dots,m\}$
+ and $\deg(i)$ the degree of $i$ in $Y$.}
+ \prove{$X\cong L(Y')$ for some graph $Y'$, or $X\cong CP(a)$ for some $a$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ This is the paper's first paragraph of the proof of Theorem 4.11. \repair\ The paper
+ says that $Y$ is connected, which need not hold (errata, Gap 18), since vertices $i$ of $Y$
+ with $\deg(i)=0$ and $a_i=0$ do not appear in $X$; we will split on the vertices with $a_i>0$
+ instead.
+ \step{s4rgzero}{\case{$a_i=0$ for every $i$.}\prove{$X\cong L(Y)$.}}
+ \begin{proof}\pf\ $L(Y;0,\dots,0)\cong L(Y)$ by Definition~\ref{def:glg}.~\qed\end{proof}
+ \step{s4rgiso}{\case{$a_i>0$ and $\deg(i)=0$ for some $i$.}\prove{$X\cong CP(a_i)$.}}
+ \begin{proof}\pf\ No edge of $Y$ contains $i$, so by Definition~\ref{def:glg} the $2a_i\ge2$
+  triples $(i,\alpha,s)$ have all their neighbours among themselves. Since $X$ is connected,
+  they are all its vertices, and they span a copy of $CP(a_i)$.~\qed\end{proof}
+ \step{s4rgedge}{\case{$a_i>0$ and $\deg(i)>0$ for some $i$.}\prove{This case does not occur.}}
+ \begin{proof}\pf\ Pick an edge $\{i,j\}$. By regularity and C10 (Computation~\ref{comp:C10}),
+  $2(a_i+a_j)+\deg(i)+\deg(j)-2=2(a_i-1)+\deg(i)$, so $2a_j+\deg(j)=0$; but $\deg(j)\ge1$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Either every $a_i$ is 0, or some $a_i>0$, and then $\deg(i)=0$ or $\deg(i)>0$; so the
+  three cases are exhaustive.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Theorem}{4.11}\label{thm:4.11}
+ \lean{SimpleGraph.hoffman_rayChaudhuri}
+ \uses{thm:4.10,lem:4-regglg,def:glg,def:CP,def:represented}
+ \assume{$X$ is a connected regular graph, and $2I+A(X)$ is positive semidefinite.}
+ \prove{$X\cong L(Y)$ for some graph $Y$, or $X\cong CP(m)$ for some $m$, or $X$ is represented
+ in $\typ E_8$.}
+ \new\ As in Theorem 4.10, we assume only that the least eigenvalue is at least $-2$.
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will apply Theorem 4.10, and then the lemma on regular generalized line graphs.
+ \step{s411hoff}{$X$ is a generalized line graph, or $X$ is represented in $\typ E_8$.}
+ \begin{proof}\pf\ Theorem~\ref{thm:4.10}, with \asm{0}.~\qed\end{proof}
+ \step{s411glg}{\case{$X\cong L(Y;a_1,\dots,a_m)$.}\prove{$X\cong L(Y')$ for some $Y'$ or
+  $X\cong CP(a)$ for some $a$.}}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-regglg}, with \asm{0} and \asm{1}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The cases of \stepref{s411hoff} are exhaustive, by
+  Definition~\ref{def:glg}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Definition}{(claws)}\label{def:claw}
+ \lean{SimpleGraph.IsClaw}\lean{SimpleGraph.IsFourClaw}
+ \lean{SimpleGraph.ClawFree}\lean{SimpleGraph.FourClawFree}
+ \uses{}
+ \assume{$X$ is a graph and $k\ge1$.}
+ \pflet{A \emph{$k$-claw} of $X$ with \emph{centre} $u$ is a set of $k$ pairwise non-adjacent
+ neighbours of $u$; with $u$, they induce a copy of $K_{1,k}$. The graph $X$ is \emph{claw-free}
+ if it has no 3-claw, and \emph{four-claw-free} if it has no 4-claw.}
+ In Lean, \texttt{X.IsClaw u T} and \texttt{X.IsFourClaw u T} will say that the finite set $T$ is
+ a 3-claw, or a 4-claw, of $X$ with centre $u$. Following \path{cgss/notation.md}, the
+ predicates \texttt{ClawFree} and \texttt{FourClawFree} will say instead that there is no induced
+ copy of the star graph \path{SimpleGraph.starGraph} on 4 or 5 vertices; the lemma below proves
+ that the two readings agree. A 4-claw contains a 3-claw with the same centre.
+\end{namedresult}
+
+\begin{namedresult}{Lemma}{(claws and stars)}\label{lem:4-clawstar}
+ \lean{SimpleGraph.clawFree_iff_forall_not_isClaw}
+ \lean{SimpleGraph.fourClawFree_iff_forall_not_isFourClaw}
+ \lean{SimpleGraph.Iso.clawFree_iff}\lean{SimpleGraph.Iso.fourClawFree_iff}
+ \uses{def:claw}
+ \assume{$X$ is a graph, $k\ge1$, and $K_{1,k}$ is the star graph \path{SimpleGraph.starGraph}
+ on $\{0,\dots,k\}$ with centre 0.}
+ \prove{\begin{pfenum}
+  \item $X$ has an induced copy of $K_{1,k}$ (\path{SimpleGraph.IsIndContained}) if and only if
+   $X$ has a $k$-claw.
+  \item If $X\cong X'$, then $X$ has an induced copy of $K_{1,k}$ if and only if $X'$ has one.
+ \end{pfenum}}
+ \new\ The Lean predicates of Definition~\ref{def:claw} forbid an induced star, while our
+ arguments count claws; the Lean names are the cases $k=3$ and $k=4$.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will send the centre of the star to the centre of the claw.
+ \step{s4csfwd}{\assume{$f$ embeds $K_{1,k}$ into $X$ as an induced subgraph.}
+  \prove{$\{f(1),\dots,f(k)\}$ is a $k$-claw of $X$ with centre $f(0)$.}}
+ \begin{proof}\pf\ By \path{SimpleGraph.starGraph_adj}, each $l$ with $1\le l\le k$ is adjacent
+  to 0 in $K_{1,k}$, and no two of them are adjacent. As $f$ is injective and preserves
+  adjacency and non-adjacency by \asm{1}, the $f(l)$ are $k$ distinct neighbours of $f(0)$, and
+  no two of them are adjacent.~\qed\end{proof}
+ \step{s4csbwd}{\assume{$T=\{t_1,\dots,t_k\}$ is a $k$-claw of $X$ with centre $u$.}
+  \prove{The map $f$ with $f(0)=u$ and $f(l)=t_l$ for $1\le l\le k$ embeds $K_{1,k}$ into $X$ as
+  an induced subgraph.}}
+ \begin{proof}\pf\ $u\notin T$, since $u$ is adjacent to every member of $T$ by \asm{1} and not to
+  itself; so $f$ is injective. By \asm{1} and Definition~\ref{def:claw}, $f(0)$ is adjacent to
+  every $f(l)$ with $l\ge1$, and no two $f(l)$ with $l\ge1$ are adjacent; these are the
+  adjacencies of $K_{1,k}$, by \path{SimpleGraph.starGraph_adj}.~\qed\end{proof}
+ \step{s4csiso}{\assume{$e$ is an isomorphism from $X$ to $X'$.}\prove{Assertion 2 holds.}}
+ \begin{proof}\pf\ Compose an embedding of $K_{1,k}$ with $e$ or with its inverse, by
+  \path{SimpleGraph.Iso.isIndContained}, \path{SimpleGraph.Iso.isIndContained'} and
+  \path{SimpleGraph.IsIndContained.trans}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is \stepref{s4csfwd} and \stepref{s4csbwd}; assertion 2 is
+  \stepref{s4csiso}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(claws in a generalized line graph)}\label{lem:4-claws}
+ \lean{SimpleGraph.generalizedLineGraph_not_isClaw_petal}
+ \lean{SimpleGraph.generalizedLineGraph_isClaw_edge_iff}
+ \lean{SimpleGraph.generalizedLineGraph_isFourClaw_edge_iff}
+ \uses{def:glg,def:claw}
+ \assume{$Y$ is a graph on $\{1,\dots,m\}$, $\deg(i)$ is the degree of $i$ in $Y$,
+ $a_1,\dots,a_m\ge0$ are integers, and $X=L(Y;a_1,\dots,a_m)$.}
+ In the Lean names, as in those of Computation C10, a \emph{petal} of $X$ is a vertex
+ $(i,\alpha,s)$ of the cocktail party graph attached at $i$; it is not the petal of the proof of
+ Theorem 4.2, which is a coordinate.
+ \prove{\begin{pfenum}
+  \item No vertex $(i,\alpha,s)$ of $X$ is the centre of a 3-claw.
+  \item The edge $\{i,j\}$ of $Y$ is the centre of a 3-claw of $X$ if and only if $a_i\ge1$ and
+   $a_j+\deg(j)\ge2$, or $a_j\ge1$ and $a_i+\deg(i)\ge2$.
+  \item The edge $\{i,j\}$ of $Y$ is the centre of a 4-claw of $X$ if and only if $a_i\ge1$ and
+   $a_j\ge1$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will split the neighbours of an edge into those at its two ends.
+ \pflet{For an edge $e=\{i,j\}$ of $Y$, $N_i(e)$ is the set of the edges $f\ne e$ of $Y$ with
+ $i\in f$ together with the triples $(i,\alpha,s)$, and $N_j(e)$ is defined in the same way.}
+ \step{s4clnbr}{The neighbours of $e=\{i,j\}$ in $X$ are the members of $N_i(e)\cup N_j(e)$,
+  and $|N_j(e)|=\deg(j)-1+2a_j$.}
+ \begin{proof}\pf\ By Definition~\ref{def:glg}, $e$ is adjacent to the edges that share an end
+  with it and to the triples $(l,\alpha,s)$ with $l\in e$. The edges $f\ne e$ on $j$ number
+  $\deg(j)-1$, and the triples $(j,\alpha,s)$ number $2a_j$.~\qed\end{proof}
+ \step{s4clside}{\assume{$T\sbs N_i(e)$ is a set of pairwise non-adjacent vertices with
+  $|T|\ge2$.}\prove{$T=\{(i,\alpha,0),(i,\alpha,1)\}$ for some $\alpha$; in particular
+  $a_i\ge1$.}}
+ \begin{proof}\pf\ By Definition~\ref{def:glg}, two edges on $i$ are adjacent, a triple
+  $(i,\alpha,s)$ is adjacent to every edge on $i$, and $(i,\alpha,s)$ and $(i,\beta,r)$ are
+  adjacent when $\alpha\ne\beta$. So $T$ consists of triples with one value of $\alpha$, and
+  there are two of these.~\qed\end{proof}
+ \step{s4clcross}{A triple $(i,\alpha,s)$ is adjacent to no member of $N_j(e)$.}
+ \begin{proof}\pf\ An edge $f\ne e$ on $j$ does not contain $i$, since $e$ is the only edge on
+  both $i$ and $j$; and a triple $(j,\beta,r)$ has $j\ne i$. Apply
+  Definition~\ref{def:glg}.~\qed\end{proof}
+ \step{s4clone}{Assertion 1 holds.}
+ \begin{proof}\pf\ By Definition~\ref{def:glg}, the neighbours of $(i,\alpha,s)$ are the edges on
+  $i$, each adjacent to all the others, and the triples $(i,\beta,r)$ with $\beta\ne\alpha$. So a
+  3-claw would consist of three triples $(i,\beta,r)$ with one value of $\beta$, and there are
+  only two of these.~\qed\end{proof}
+ \step{s4cltwo}{Assertion 2 holds.}
+ \begin{proof}
+  \step{s4cltwoif}{\assume{$a_i\ge1$ and $a_j+\deg(j)\ge2$.}\prove{$e=\{i,j\}$ is the centre of a
+   3-claw.}}
+  \begin{proof}\pf\ Since $\deg(j)\ge1$, \asm{2} gives $\deg(j)-1+2a_j\ge1$, so $N_j(e)$ has a
+   member $z$ by \stepref{s4clnbr}. The vertices $(i,1,0)$, $(i,1,1)$ and $z$ are neighbours of
+   $e$ by \stepref{s4clnbr}; the first two are not adjacent by Definition~\ref{def:glg}, and
+   neither is adjacent to $z$ by \stepref{s4clcross}.~\qed\end{proof}
+  \step{s4cltwoonly}{\assume{$T$ is a 3-claw with centre $e=\{i,j\}$.}\prove{$a_i\ge1$ and
+   $a_j+\deg(j)\ge2$, or $a_j\ge1$ and $a_i+\deg(i)\ge2$.}}
+  \begin{proof}\pf\ $T\sbs N_i(e)\cup N_j(e)$ by \stepref{s4clnbr}, so one of the two meets $T$
+   in at least two members; by the symmetry of $i$ and $j$, say $N_i(e)$. By
+   \stepref{s4clside}, $a_i\ge1$ and $|T\cap N_i(e)|=2$, so $N_j(e)$ meets $T$. Thus
+   $\deg(j)-1+2a_j\ge1$ by \stepref{s4clnbr}, which gives $a_j+\deg(j)\ge2$, as
+   $\deg(j)\ge1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ \stepref{s4cltwoif}, with $i$ and $j$ exchanged for the second alternative,
+   and \stepref{s4cltwoonly}.~\qed\end{proof}
+ \end{proof}
+ \step{s4clthree}{Assertion 3 holds.}
+ \begin{proof}
+  \step{s4clthreeif}{\assume{$a_i\ge1$ and $a_j\ge1$.}\prove{$e=\{i,j\}$ is the centre of a
+   4-claw.}}
+  \begin{proof}\pf\ The triples $(i,1,0)$, $(i,1,1)$, $(j,1,0)$ and $(j,1,1)$ are neighbours of $e$
+   by \stepref{s4clnbr}. The two at $i$ are not adjacent, nor are the two at $j$, by
+   Definition~\ref{def:glg}; and those at $i$ are not adjacent to those at $j$ by
+   \stepref{s4clcross}.~\qed\end{proof}
+  \step{s4clthreeonly}{\assume{$T$ is a 4-claw with centre $e=\{i,j\}$.}\prove{$a_i\ge1$ and
+   $a_j\ge1$.}}
+  \begin{proof}\pf\ $T\sbs N_i(e)\cup N_j(e)$ by \stepref{s4clnbr}, and each of $T\cap N_i(e)$ and
+   $T\cap N_j(e)$ has at most two members by \stepref{s4clside}. So each has exactly two, and
+   \stepref{s4clside} gives $a_i\ge1$ and $a_j\ge1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ \stepref{s4clthreeif} and \stepref{s4clthreeonly}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s4clone}, \stepref{s4cltwo} and \stepref{s4clthree}.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Remark}{4.12}\label{rem:4.12}
+ \lean{SimpleGraph.IsGeneralizedLineGraph.clawFree_iff}
+ \lean{SimpleGraph.generalizedLineGraph_fourClawFree_iff}
+ \lean{SimpleGraph.lineGraph_clawFree}\lean{SimpleGraph.cocktailParty_clawFree}
+ \lean{SimpleGraph.generalizedLineGraph_clawFree_iff}
+ \lean{SimpleGraph.hoffman_of_clawFree}
+ \uses{def:claw,lem:4-clawstar,lem:4-claws,def:glg,def:CP,thm:4.3,thm:4.10}
+ \assume{$X$ is a graph.}
+ \prove{\begin{pfenum}
+  \item Line graphs and cocktail party graphs are claw-free.
+  \item Let $Y$ be a graph on $\{1,\dots,m\}$, with $\deg(i)$ the degree of $i$ in $Y$, and let
+   $a_1,\dots,a_m\ge0$ be integers. Then $L(Y;a_1,\dots,a_m)$ is claw-free if and only if $a_j=0$
+   and $\deg(j)=1$ for every vertex $i$ of $Y$ with $a_i\ge1$ and every neighbour $j$ of $i$.
+  \item If $X$ is a connected generalized line graph, then $X$ is claw-free if and only if
+   $X\cong L(Y')$ for some graph $Y'$ or $X\cong L(K_{1,s};t,0,\dots,0)$ for some $s,t\ge0$,
+   where the vertex 1 of $K_{1,s}$ is its centre. The graph $L(K_{1,s};t,0,\dots,0)$ is
+   $K_{s+2t}$ with $t$ pairwise disjoint edges deleted.
+  \item If $X$ is connected and claw-free, $2I+A(X)$ is positive semidefinite, and $X$ has more
+   than 36 vertices or a vertex with more than 28 neighbours, then $X\cong L(Y')$ for some graph
+   $Y'$ or $X\cong L(K_{1,s};t,0,\dots,0)$ for some $s,t\ge0$.
+  \item For $Y$ and $a_1,\dots,a_m$ as in assertion 2, $L(Y;a_1,\dots,a_m)$ is four-claw-free if
+   and only if $a_i=0$ or $a_j=0$ for every edge $\{i,j\}$ of $Y$.
+ \end{pfenum}}
+ \new\ The paper's $L(K_{1,n};a,0,\dots,0)$ is our $L(K_{1,s};t,0,\dots,0)$, since $n$ and $a$
+ are spoken for (\path{cgss/notation.md}), and its ``sufficiently large'' is made precise by
+ Theorem 4.3. The remark on Ray-Chaudhuri's theorem is history, and needs no proof.
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The paper says ``it is easy to see''; these are the full arguments that
+ Gap 9 (errata) asks for. We will read everything off the lemma on claws.
+ \step{s412two}{Assertion 2 holds.}
+ \begin{proof}\pf\ Claw-freeness is the absence of 3-claws, by Definition~\ref{def:claw} and, for
+  the Lean predicate, Lemma~\ref{lem:4-clawstar}, assertion 1. By Lemma~\ref{lem:4-claws},
+  assertion 1, only edges of $Y$ can be centres of 3-claws, and by its assertion 2 the edge $\{i,j\}$ is not one exactly when $a_i\ge1$ implies
+  $a_j+\deg(j)\le1$, and the same with $i$ and $j$ exchanged. As $\deg(j)\ge1$,
+  $a_j+\deg(j)\le1$ means that $a_j=0$ and $\deg(j)=1$.~\qed\end{proof}
+ \step{s412one}{Assertion 1 holds.}
+ \begin{proof}\pf\ Claw-freeness is preserved by isomorphisms, by
+  Lemma~\ref{lem:4-clawstar}, assertion 2. A line graph $L(Y')$, with the
+  vertices of $Y'$ numbered, is isomorphic to $L(Y';0,\dots,0)$ by Definition~\ref{def:glg}, and
+  the condition of \stepref{s412two} holds for it trivially. By Definitions~\ref{def:CP}
+  and~\ref{def:glg}, $CP(t)$ is isomorphic to $L(Y_1;t)$ for the graph $Y_1$ with one vertex and
+  no edges, and the condition holds trivially again.~\qed\end{proof}
+ \step{s412three}{\assume{$X$ is connected, and $X\cong L(Y;a_1,\dots,a_m)$ for $Y$ and
+  $a_1,\dots,a_m$ as in assertion 2.}\prove{$X$ is claw-free if and only if $X\cong L(Y')$ for some graph $Y'$
+  or $X\cong L(K_{1,s};t,0,\dots,0)$ for some $s,t\ge0$.}}
+ \begin{proof}
+  \step{s412ifK}{$L(K_{1,s};t,0,\dots,0)$ is claw-free.}
+  \begin{proof}\pf\ The only vertex of $K_{1,s}$ with a nonzero number attached is its centre 1,
+   and every neighbour of 1 has number 0 and degree 1; apply \stepref{s412two}.~\qed\end{proof}
+  \step{s412only}{\assume{$X$ is claw-free, and $a_i\ge1$ for some $i$.}\prove{$X\cong
+   L(K_{1,s};t,0,\dots,0)$ with $s=\deg(i)$ and $t=a_i$.}}
+  \begin{proof}
+   \pflet{$U$ be the set of the triples $(i,\alpha,r)$ and of the edges of $Y$ on $i$.}
+   \step{s412leaf}{Every neighbour $j$ of $i$ in $Y$ has $a_j=0$ and $\deg(j)=1$.}
+   \begin{proof}\pf\ $X$ is claw-free by \asm{2} and $X\cong L(Y;a_1,\dots,a_m)$ by \asm{1}, so
+    $L(Y;a_1,\dots,a_m)$ is claw-free by Lemma~\ref{lem:4-clawstar}, assertion 2. Apply
+    \stepref{s412two}, with \asm{2}.~\qed\end{proof}
+   \step{s412closed}{Every neighbour in $L(Y;a_1,\dots,a_m)$ of a member of $U$ lies in $U$.}
+   \begin{proof}\pf\ By Definition~\ref{def:glg}, the neighbours of a triple $(i,\alpha,r)$ are
+    edges on $i$ and triples at $i$. The neighbours of an edge $\{i,j\}$ are the edges on $i$ or
+    on $j$ and the triples at $i$ or at $j$; by \stepref{s412leaf}, the only edge on $j$ is
+    $\{i,j\}$, and there are no triples at $j$.~\qed\end{proof}
+   \step{s412all}{$U$ is the whole vertex set of $L(Y;a_1,\dots,a_m)$.}
+   \begin{proof}\pf\ $U$ is nonempty, as $a_i\ge1$, and closed under adjacency by
+    \stepref{s412closed}; and $X$ is connected by \asm{1}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Number the neighbours of $i$ as $j_1,\dots,j_s$. By \stepref{s412all}, the
+    map sending $\{i,j_k\}$ to the edge $\{1,k+1\}$ of $K_{1,s}$, and $(i,\alpha,r)$ to
+    $(1,\alpha,r)$, is a bijection onto the vertices of $L(K_{1,s};t,0,\dots,0)$. It preserves
+    adjacency by Definition~\ref{def:glg}: in both graphs the edges are pairwise adjacent and
+    adjacent to every triple, and two triples are adjacent exactly when their second coordinates
+    differ.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ If $X\cong L(Y')$, then $X$ is claw-free by \stepref{s412one}; if $X\cong
+   L(K_{1,s};t,0,\dots,0)$, by \stepref{s412ifK}. Conversely, let $X$ be claw-free. If every
+   $a_i$ is 0, then $X\cong L(Y)$ by Definition~\ref{def:glg}; otherwise apply
+   \stepref{s412only}.~\qed\end{proof}
+ \end{proof}
+ \step{s412clique}{$L(K_{1,s};t,0,\dots,0)$ is $K_{s+2t}$ with $t$ pairwise disjoint edges
+  deleted.}
+ \begin{proof}\pf\ It has $s$ edges and $2t$ triples, and by Definition~\ref{def:glg} two of its
+  vertices are non-adjacent exactly when they are $(1,\alpha,0)$ and $(1,\alpha,1)$ for some
+  $\alpha$; these $t$ pairs are disjoint.~\qed\end{proof}
+ \step{s412four}{\assume{$X$ is connected and claw-free, $2I+A(X)$ is positive semidefinite, and
+  $X$ has more than 36 vertices or a vertex with more than 28 neighbours.}\prove{$X\cong L(Y')$
+  for some graph $Y'$, or $X\cong L(K_{1,s};t,0,\dots,0)$ for some $s,t\ge0$.}}
+ \begin{proof}\pf\ By Theorem~\ref{thm:4.10}, whose hypotheses hold by \asm{1}, $X$ is a
+  generalized line graph or is represented in $\typ E_8$; \asm{1} with Theorem~\ref{thm:4.3},
+  assertions 1 and 2, excludes the second. Thus $X\cong L(Y;a_1,\dots,a_m)$ for some $Y$ and
+  $a_1,\dots,a_m$ (Definition~\ref{def:glg}), and \stepref{s412three} applies, as $X$ is
+  connected and claw-free by \asm{1}.~\qed\end{proof}
+ \step{s412five}{Assertion 5 holds.}
+ \begin{proof}\pf\ Four-claw-freeness is the absence of 4-claws, by
+  Lemma~\ref{lem:4-clawstar}, assertion 1. A 4-claw contains a 3-claw with the same centre, so
+  no triple is the centre of a 4-claw, by Lemma~\ref{lem:4-claws}, assertion 1; apply its
+  assertion 3 to the edges.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertions 1, 2 and 5 are \stepref{s412one}, \stepref{s412two} and
+  \stepref{s412five}. Assertion 3 is \stepref{s412three} and \stepref{s412clique}, since a
+  generalized line graph is isomorphic to some $L(Y;a_1,\dots,a_m)$ (Definition~\ref{def:glg}).
+  Assertion 4 is \stepref{s412four}.~\qed\end{proof}
+\end{proof}
+
+\subsection{Theorem 4.13 and Remark 4.14}
+
+A graph $X$ is \emph{strongly regular} if it is regular, any two adjacent vertices have
+$a$ common neighbours and any two distinct non-adjacent vertices have $c$ common
+neighbours, for some $a$ and $c$; this is Mathlib's \path{SimpleGraph.IsSRGWith}, which
+allows complete graphs.
+
+\begin{namedresult}{Lemma}{(the line graph case, LG1)}\label{lem:4-LG1}
+ \lean{SimpleGraph.lineGraph_isSRGWith_cases}
+ \uses{def:glg,comp:C10,facts:sec4}
+ \assume{$Y$ is a connected graph with at least one edge, and $L(Y)$ is strongly regular.}
+ \prove{$Y$ is a cycle, or $Y\cong K_n$, $Y\cong K_{h,h}$ or $Y\cong K_{1,h}$ for some $n$ or $h$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ We will fill the two steps of the paper named in Gap 9 (errata): the values
+ 0 and 1 of the constant, and the bipartite case, after the proof of [BCN] Theorem 3.12.4. We
+ use the corrected count of Error 7 (errata).
+ \step{s4lgdeg}{$Y$ is regular, or $Y$ is bipartite and its degree is constant on each part.}
+ \begin{proof}
+  \step{s4lgdeg2}{\assume{$j$ and $k$ are neighbours of a vertex $i$ of $Y$.}\prove{$\deg
+   j=\deg k$.}}
+  \begin{proof}\pf\ The edges $\{i,j\}$ and $\{i,k\}$ have degrees $\deg i+\deg j-2$ and $\deg
+   i+\deg k-2$ in $L(Y)\cong L(Y;0,\dots,0)$, by Computation~\ref{comp:C10} and
+   Definition~\ref{def:glg}; these are equal, as $L(Y)$ is regular by \asm{0}.~\qed\end{proof}
+  \step{s4lgwalk}{\assume{$P$ is a walk of even length in $Y$ from $u$ to $w$.}\prove{$\deg
+   u=\deg w$.}}
+  \begin{proof}\pf\ Induction on the length of $P$: two vertices two apart on $P$ are equal, or
+   are neighbours of the vertex between them and have equal degrees by
+   \stepref{s4lgdeg2}.~\qed\end{proof}
+  \step{s4lgnb}{\case{$Y$ is not bipartite.}\prove{$Y$ is regular.}}
+  \begin{proof}\pf\ By \path{SimpleGraph.two_colorable_iff_forall_loop_even}, with
+   \path{SimpleGraph.IsBipartite}, $Y$ has a closed walk $C$ of odd length at some vertex $x$. Let
+   $u,w$ be vertices; as $Y$ is connected by \asm{0}, there are walks $P$ from $u$ to $w$ and
+   $R$ from $u$ to $x$. The walks $P$ and $R,C,R^{-1},P$ have lengths of opposite parity, so one
+   is even, and \stepref{s4lgwalk} gives $\deg u=\deg w$.~\qed\end{proof}
+  \step{s4lgbc}{\case{$Y$ is bipartite.}\prove{The degree of $Y$ is constant on each part of a
+   2-colouring of $Y$.}}
+  \begin{proof}\pf\ \path{SimpleGraph.IsBipartite} gives a colouring of $Y$ by
+   $\mathrm{Fin}\,2$; recolour it by $\mathrm{Fin}\,2\simeq\mathrm{Bool}$ with
+   \path{SimpleGraph.recolorOfEquiv} and \path{finTwoEquiv}, which keeps the colour classes, as
+   \path{SimpleGraph.Coloring.even_length_iff_congr} takes a colouring by $\mathrm{Bool}$. Two
+   vertices of the same colour are joined by a walk, as $Y$ is connected by \asm{0}, and it has
+   even length by that lemma; apply \stepref{s4lgwalk}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The two cases are exhaustive.~\qed\end{proof}
+ \end{proof}
+ \step{s4lgbip}{\case{$Y$ is bipartite with degrees $p\ne q$ on its parts.}\prove{$Y\cong
+  K_{1,h}$.}}
+ \begin{proof}\pf\ Two edges on a common vertex of degree $p$ have $p-2$ common neighbours in
+  $L(Y)$, since their other ends lie in one part and are not adjacent; likewise $q-2$. Both
+  kinds of pairs cannot occur, as $p\ne q$; so one degree, say $q$, is 1, and a connected graph
+  with such a part is a star.~\qed\end{proof}
+ \step{s4lgsmall}{\case{$Y$ is regular of valency $h\le2$.}\prove{$Y\cong K_{1,1}$ or $Y$ is a
+  cycle.}}
+ \begin{proof}\pf\ A connected 1-regular graph is $K_2$, and a connected 2-regular graph is a
+  cycle.~\qed\end{proof}
+ \step{s4lgbig}{\case{$Y$ is regular of valency $h\ge3$.}\prove{$Y\cong K_n$ or
+  $Y\cong K_{h,h}$.}}
+ \begin{proof}
+  \step{s4lgcommon}{Two edges $\{i,j\}$, $\{i,k\}$ have $h-1$ common neighbours in $L(Y)$ if
+   $j\sim k$ and $h-2$ otherwise.}
+  \begin{proof}\pf\ The common neighbours are the $h-2$ other edges on $i$, and $\{j,k\}$ when
+   it is an edge.~\qed\end{proof}
+  \step{s4lgKn}{\case{Some $j\sim k$ with a common neighbour $i$.}\prove{$Y\cong K_n$.}}
+  \begin{proof}\pf\ By \stepref{s4lgcommon} and the constant $a$, every path $j,i,k$
+   closes to a triangle; so neighbourhoods are cliques, and a connected such graph is
+   complete.~\qed\end{proof}
+  \step{s4lgtf}{\case{$Y$ is triangle-free.}\prove{$Y\cong K_{h,h}$.}}
+  \begin{proof}
+   \pflet{$c$ be the constant of $L(Y)$ for non-adjacent vertices: two disjoint edges are joined by exactly $c$
+    edges of $Y$.}
+   \step{s4lgdisj}{Every edge $\{i,j\}$ is disjoint from some edge, and $c\le2$.}
+   \begin{proof}\pf\ Pick $k\sim i$ with $k\ne j$, and $l\sim k$ with $l\ne i$, as $h\ge3$. Then
+    $l\ne j$, else $i,j,k$ is a triangle; so $\{k,l\}$ is disjoint from $\{i,j\}$. Of the edges joining
+    $\{i,j\}$ to a disjoint edge, at most one leaves $i$ and at most one leaves $j$, by
+    triangle-freeness.~\qed\end{proof}
+   \step{s4lgc0}{$c\ne0$.}
+   \begin{proof}\pf\ If $c=0$, two vertices of $L(Y)$ at distance 2 would have no common
+    neighbour; so the connected graph $L(Y)$ is complete, and $Y$ has no two disjoint edges,
+    against \stepref{s4lgdisj}.~\qed\end{proof}
+   \step{s4lgc1}{$c\ne1$.}
+   \begin{proof}\pf\ Fix an edge $\{i,j\}$. An edge $\{i,k\}$, $k\ne j$, and an edge
+    $\{k,l\}$, $l\ne i$, give a disjoint edge $\{k,l\}$ ($l\ne j$ by triangle-freeness); with the
+    same count at $j$, there are $2(h-1)^2$ such pairs. If $c=1$, each disjoint edge arises
+    once, so $|E(Y)|=1+2(h-1)+2(h-1)^2$, and $|V(Y)|=2|E(Y)|/h=4h-4+2/h$ is not an integer for
+    $h\ge3$.~\qed\end{proof}
+   \step{s4lgc2}{\assume{$c=2$ and $\{i,j\}$ is an edge.}\prove{$Y\cong K_{h,h}$, with parts
+    $N(j)$ and $N(i)$.}}
+   \begin{proof}\pf\ $N(i)$, $N(j)$ are disjoint cocliques, by triangle-freeness. For
+    $x\in N(j)\setminus\{i\}$ and $y\in N(i)\setminus\{j\}$, the disjoint edges $\{x,j\}$ and
+    $\{i,y\}$ are joined by $\{i,j\}$ and one more edge, which can only be $\{x,y\}$. A vertex
+    $k\notin N(i)\cup N(j)$ has a neighbour $l\notin\{i,j\}$, and the two edges joining
+    $\{k,l\}$ to $\{i,j\}$ put $k$ in $N(i)\cup N(j)$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ $c\in\{0,1,2\}$ by \stepref{s4lgdisj}; apply \stepref{s4lgc0},
+    \stepref{s4lgc1} and \stepref{s4lgc2}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Either some path of length 2 closes to a triangle, or $Y$ is
+   triangle-free.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s4lgdeg}, $Y$ is regular or bipartite with two distinct degrees;
+  the cases \stepref{s4lgbip}, \stepref{s4lgsmall} and \stepref{s4lgbig} are
+  exhaustive.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Theorem}{4.13}\label{thm:4.13}
+ \lean{SimpleGraph.seidel}
+ \uses{thm:4.11,lem:4-LG1,def:CP,def:represented,facts:sec4}
+ \assume{\begin{pfenum}
+  \item $X$ is a connected strongly regular graph, and $2I+A(X)$ is positive semidefinite.
+  \item $-2$ is an eigenvalue of $X$.
+ \end{pfenum}}
+ \prove{$X\cong L(K_n)$, $X\cong L(K_{n,n})$ or $X\cong CP(n)$ for some $n$, or $X$ is
+ represented in $\typ E_8$.}
+ \new\ The two hypotheses together are the paper's ``least eigenvalue $-2$'', read literally,
+ so this is the printed theorem. We state them apart because Theorems 4.10 and 4.11 read the
+ phrase as the lower bound of the first hypothesis alone, and Theorem 4.13 fails under that
+ reading: for $n>36$, $K_n$ is a counterexample (errata, Implicit hypothesis 2).
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will apply Theorem 4.11, and then the line graph case LG1.
+ \step{s413hrc}{$X\cong L(Y)$, or $X\cong CP(m)$, or $X$ is represented in $\typ E_8$.}
+ \begin{proof}\pf\ Theorem~\ref{thm:4.11}, with \asm[1]{0}.~\qed\end{proof}
+ \step{s413L}{\case{$X\cong L(Y)$.}\prove{$X\cong L(K_n)$ or $X\cong L(K_{n,n})$.}}
+ \begin{proof}
+  \step{s413Y}{We may take $Y$ connected, with an edge, and $Y$ is a cycle, $K_n$, $K_{h,h}$ or
+   $K_{1,h}$.}
+  \begin{proof}\pf\ Remove the isolated vertices of $Y$; since $X$ is connected with a vertex,
+   the rest is connected with an edge. Apply Lemma~\ref{lem:4-LG1}.~\qed\end{proof}
+  \step{s413Kn}{$X$ is neither a complete graph nor $C_5$, and $X$ is not a cycle $C_p$ with
+   $p\ge6$.}
+  \begin{proof}\pf\ $\det(2I+A)\ne0$ for $K_n$, since $2I+A=I+J$ is positive definite, and
+   $\det(2I+A(C_5))=4$; so neither has the eigenvalue $-2$ of \asm[2]{0}, which is a root of
+   $\det(\mu I-A)$. In $C_p$ with $p\ge6$, vertices at distance
+   2 and 3 have 1 and 0 common neighbours.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $L(K_{1,h})\cong K_h$ is excluded by \stepref{s413Kn}. If $Y=C_p$, then
+   $X\cong C_p$, and $p=4$ by \stepref{s413Kn}, since $C_3$ is complete; and
+   $C_4=L(K_{2,2})$. The rest is $L(K_n)$ or $L(K_{h,h})$, by \stepref{s413Y}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The cases of \stepref{s413hrc} are exhaustive, and the other two are in the
+  conclusion.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Remark}{(after the examples)}\label{rem:4-large}
+ \lean{SimpleGraph.hoffman_of_large}\lean{SimpleGraph.hoffman_rayChaudhuri_of_large}
+ \lean{SimpleGraph.seidel_of_large}
+ \uses{thm:4.3,thm:4.4,thm:4.10,thm:4.11,thm:4.13,def:glg,def:CP}
+ \assume{$X$ is a connected graph, and $2I+A(X)$ is positive semidefinite.}
+ \prove{\begin{pfenum}
+  \item If $X$ has more than 36 vertices, or a vertex with more than 28 neighbours, then $X$ is a
+   generalized line graph.
+  \item If $X$ is $d$-regular on $n$ vertices, with $n>28$ or $d>16$, then $X\cong L(Y)$ for some
+   graph $Y$ or $X\cong CP(m)$ for some $m$.
+  \item If $X$ is strongly regular of valency $k$ on $n$ vertices, with $n>28$ or $k>16$, and $-2$
+   is an eigenvalue of $X$, then $X\cong L(K_m)$, $X\cong L(K_{m,m})$ or $X\cong CP(m)$ for
+   some $m$.
+ \end{pfenum}}
+ \new\ The paper places this remark before Theorem 4.10 and speaks of ``any subsequent
+ theorem''; we will state it after Theorems 4.10, 4.11 and 4.13, with their hypotheses (errata,
+ Implicit hypotheses 1 and 2).
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will apply the three theorems, and exclude $\typ E_8$ by Theorems 4.3 and 4.4.
+ \step{s4lrone}{\assume{$X$ has more than 36 vertices, or a vertex with more than 28
+  neighbours.}\prove{$X$ is a generalized line graph.}}
+ \begin{proof}\pf\ By Theorem~\ref{thm:4.10} and \asm{0}, $X$ is a generalized line graph or is
+  represented in $\typ E_8$; Theorem~\ref{thm:4.3}, assertions 1 and 2, with \asm{1}, excludes
+  the second.~\qed\end{proof}
+ \step{s4lrtwo}{\assume{$X$ is $d$-regular on $n$ vertices, and $n>28$ or $d>16$.}\prove{$X\cong
+  L(Y)$ for some graph $Y$ or $X\cong CP(m)$ for some $m$.}}
+ \begin{proof}\pf\ By Theorem~\ref{thm:4.11}, with \asm{0} and \asm{1}, $X\cong L(Y)$, $X\cong
+  CP(m)$ or $X$ is represented in $\typ E_8$; Theorem~\ref{thm:4.4} excludes the third, by
+  \asm{1}, as $n\ge1$ for a connected graph, by \asm{0}.~\qed\end{proof}
+ \step{s4lrthree}{\assume{$X$ is strongly regular of valency $k$ on $n$ vertices, $n>28$ or
+  $k>16$, and $-2$ is an eigenvalue of $X$.}\prove{$X\cong L(K_m)$, $X\cong L(K_{m,m})$ or
+  $X\cong CP(m)$ for some $m$.}}
+ \begin{proof}\pf\ By Theorem~\ref{thm:4.13}, with \asm{0} and \asm{1}, $X$ is one of these or is
+  represented in $\typ E_8$; Theorem~\ref{thm:4.4} excludes the last, as $X$ is $k$-regular on
+  $n$ vertices by \asm{1}, and $n\ge1$ for a connected graph, by \asm{0}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s4lrone}, \stepref{s4lrtwo} and \stepref{s4lrthree}.~\qed\end{proof}
+\end{proof}
+
+\medskip\noindent\textbf{What remains of Section 4.}
+
+Remark 4.14 is stated below, and its proof is in Section~\ref{sec:rem414}.
+The remarks after Theorems 4.1 and 4.2, the last pieces of the section, are stated and proved
+after those theorems.
+
+\begin{cgss}{Remark}{4.14}\label{rem:4.14}
+ \lean{SimpleGraph.seidel_seven}
+ \uses{thm:4.11,def:CP,def:represented}
+ \assume{$X$ is a connected strongly regular graph with least eigenvalue $-2$, represented in
+ $\typ E_8$, and isomorphic to none of $L(K_m)$, $L(K_{m,m})$ and $CP(m)$.}
+ \prove{$X$ is isomorphic to one of the Chang graphs I, II and III, the Schl\"afli graph, the
+ Shrikhande graph, the Clebsch graph and the Petersen graph; and these seven graphs are
+ pairwise non-isomorphic and have these properties.}
+ \repair\ The paper gives no proof, and ``the seven graphs'' needs the Chang graphs to be
+ pairwise non-isomorphic (errata, Gap 12). We will give its proof, by the
+ route of \path{cgss/prerequisites.md} (Section 7.3), in Section~\ref{sec:rem414}.
+\end{cgss}
+
+\endgroup

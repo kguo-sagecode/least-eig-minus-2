@@ -1,0 +1,140 @@
+\documentclass[11pt]{amsart}
+\usepackage[margin=27mm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+
+% amsart loads amsthm, whose proof environment and \qed clash with pf2's.
+% We use pf2's proof environment throughout, as Lamport's format requires.
+\let\proof\relax
+\let\endproof\relax
+\let\qed\relax
+\usepackage{pf2}
+
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% The author's macros.
+%
+% some calligraphy
+%
+\newcommand\cA{{\mathcal A}}
+\newcommand\cB{{\mathcal B}}
+\newcommand\cC{{\mathcal C}}
+\newcommand\cD{{\mathcal D}}
+\newcommand\cE{{\mathcal E}}
+\newcommand\cF{{\mathcal F}}
+\newcommand\cG{{\mathcal G}}
+\newcommand\cH{{\mathcal H}}
+\newcommand\cI{{\mathcal I}}
+\newcommand\cJ{{\mathcal J}}
+\newcommand\cK{{\mathcal K}}
+\newcommand\cL{{\mathcal L}}
+\newcommand\cM{{\mathcal M}}
+\newcommand\cN{{\mathcal N}}
+\newcommand\cP{{\mathcal P}}
+\newcommand\cQ{{\mathcal Q}}
+\newcommand\cR{{\mathcal R}}
+\newcommand\cS{{\mathcal S}}
+\newcommand\cT{{\mathcal T}}
+\newcommand\cU{{\mathcal U}}
+\newcommand\cV{{\mathcal V}}
+
+%
+% fields and rings (and a semigroup)
+%
+\newcommand\cx{{\mathbb C}}% complexes
+\newcommand\fld{{\mathbb F}}
+\newcommand\flde{{\mathbb E}}
+\newcommand\ints{{\mathbb Z}}
+\newcommand\nn{{\mathbb N}}%non-negative integers
+\newcommand\re{{\mathbb R}}%reals
+\newcommand\rats{{\mathbb Q}}
+
+\newcommand\Zu{{\mathbf u}}
+\newcommand\Zv{{\mathbf v}}
+\newcommand\Zw{{\mathbf w}}
+\newcommand\Zy{{\mathbf y}}
+\newcommand\Zz{{\mathbf z}}
+\newcommand\Zx{{\mathbf x}}
+\newcommand\Zj{{\mathbf j}}
+
+
+%
+% the really useful stuff
+%
+%\newcommand\opk[1]{\mathop{\hbox{\rm #1}}\nolimits} %% old version
+\newcommand\opk[1]{\mathop{\mathrm{#1}}\nolimits}
+\newcommand\comp[1]{{\mkern2mu\overline{\mkern-2mu#1}}}
+\newcommand\diff{\mathbin{\mkern-1.5mu\setminus\mkern-1.5mu}}% for \setminus
+\newcommand\gbin[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}}
+\newcommand\inv{^{-1}}
+\newcommand\res{\mathbin{\mkern-2.0mu\restriction\mkern-2.0mu}}% ch2
+\newcommand\sbs{\subseteq}
+\newcommand\sps{\supseteq}
+\newcommand\seq[3]{#1_{#2},\ldots,#1_{#3}}
+\newcommand\supp{\opk{supp}}
+\newcommand\im{\opk{im}}
+\newcommand\row{\opk{row}}
+\newcommand\pmat[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\newcommand\cprod{\mathbin{\square}}
+%
+% matrix theory
+%
+\newcommand\ip[2]{\langle#1,#2\rangle}
+\newcommand\one{{\bf1}}
+\newcommand\rk{\opk{rk}}
+\newcommand\tr{\opk{tr}}
+\newcommand\col{\opk{col}}
+\newcommand\mat[3]{\mathrm{Mat}_{#1\times #2}(#3)}
+
+%
+% some group theory
+%
+\newcommand\aut[1]{{\rm Aut}(#1)}
+\newcommand\fx[1]{{\rm fix}(#1)}% ch2
+\newcommand\grp[1]{\langle #1\rangle}
+\newcommand\nrml{\vartriangleleft}
+\newcommand\nrmleq{\trianglelefteq}
+\newcommand\alt[1]{\opk{Alt}(#1)}
+\DeclareMathOperator{\Sym}{Sym}
+% End of the author's macros.
+\input{macros}
+
+\begin{document}
+
+\title{Line graphs, root systems, and elliptic geometry: structured proofs}
+\date{2 November 2026}
+
+\begin{abstract}
+  We give structured proofs, in the style of Lamport, of every numbered result of Cameron,
+  Goethals, Seidel and Shult, \emph{Line graphs, root systems, and elliptic geometry} [CGSS], and
+  of the results from other sources that the formalization in Lean needs. Each result carries
+  the paper's number, the name of its Lean declaration and the results it uses.
+\end{abstract}
+
+\maketitle
+\tableofcontents
+\clearpage
+
+\input{conventions}
+\input{sec2-lines}
+\input{sec3-rootsystems}
+\input{sec3-remark311}
+\input{sec3-thm312}
+\input{sec4-leasteigenvalue}
+\input{sec4-remark414}
+\input{sec5-spectral}
+\input{sec5-hallconnor}
+\input{sec6-hadamard}
+
+\begin{thebibliography}{CGSS}
+\bibitem[CGSS]{CGSS} P. J. Cameron, J. M. Goethals, J. J. Seidel and E. E. Shult, Line graphs,
+  root systems, and elliptic geometry, \emph{J. Algebra} \textbf{43} (1976), 305--327.
+\bibitem[BCN]{BCN} A. E. Brouwer, A. M. Cohen and A. Neumaier, \emph{Distance-Regular Graphs},
+  Springer, 1989.
+\bibitem[HC]{HC} M. Hall, Jr. and W. S. Connor, An embedding theorem for balanced incomplete
+  block designs, \emph{Canad. J. Math.} \textbf{6} (1954), 35--41.
+\bibitem[L95]{L95} L. Lamport, How to write a proof, \emph{Amer. Math. Monthly} \textbf{102}
+  (1995), 600--608.
+\end{thebibliography}
+
+\end{document}

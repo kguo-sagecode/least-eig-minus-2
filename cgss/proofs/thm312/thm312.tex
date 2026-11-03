@@ -1,0 +1,1047 @@
+\documentclass[11pt]{amsart}
+\usepackage[margin=27mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{array,booktabs,longtable}
+\usepackage[obeyspaces,spaces]{url}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+% The author's macros.
+%
+% some calligraphy
+%
+\newcommand\cA{{\mathcal A}}
+\newcommand\cB{{\mathcal B}}
+\newcommand\cC{{\mathcal C}}
+\newcommand\cD{{\mathcal D}}
+\newcommand\cE{{\mathcal E}}
+\newcommand\cF{{\mathcal F}}
+\newcommand\cG{{\mathcal G}}
+\newcommand\cH{{\mathcal H}}
+\newcommand\cI{{\mathcal I}}
+\newcommand\cJ{{\mathcal J}}
+\newcommand\cK{{\mathcal K}}
+\newcommand\cL{{\mathcal L}}
+\newcommand\cM{{\mathcal M}}
+\newcommand\cN{{\mathcal N}}
+\newcommand\cP{{\mathcal P}}
+\newcommand\cQ{{\mathcal Q}}
+\newcommand\cR{{\mathcal R}}
+\newcommand\cS{{\mathcal S}}
+\newcommand\cT{{\mathcal T}}
+\newcommand\cU{{\mathcal U}}
+\newcommand\cV{{\mathcal V}}
+
+%
+% fields and rings (and a semigroup)
+%
+\newcommand\cx{{\mathbb C}}% complexes
+\newcommand\fld{{\mathbb F}}
+\newcommand\flde{{\mathbb E}}
+\newcommand\ints{{\mathbb Z}}
+\newcommand\nn{{\mathbb N}}%non-negative integers
+\newcommand\re{{\mathbb R}}%reals
+\newcommand\rats{{\mathbb Q}}
+
+\newcommand\Zu{{\mathbf u}}
+\newcommand\Zv{{\mathbf v}}
+\newcommand\Zw{{\mathbf w}}
+\newcommand\Zy{{\mathbf y}}
+\newcommand\Zz{{\mathbf z}}
+\newcommand\Zx{{\mathbf x}}
+\newcommand\Zj{{\mathbf j}}
+
+
+%
+% the really useful stuff
+%
+%\newcommand\opk[1]{\mathop{\hbox{\rm #1}}\nolimits} %% old version
+\newcommand\opk[1]{\mathop{\mathrm{#1}}\nolimits}
+\newcommand\comp[1]{{\mkern2mu\overline{\mkern-2mu#1}}}
+\newcommand\diff{\mathbin{\mkern-1.5mu\setminus\mkern-1.5mu}}% for \setminus
+\newcommand\gbin[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}}
+\newcommand\inv{^{-1}}
+\newcommand\res{\mathbin{\mkern-2.0mu\restriction\mkern-2.0mu}}% ch2
+\newcommand\sbs{\subseteq}
+\newcommand\sps{\supseteq}
+\newcommand\seq[3]{#1_{#2},\ldots,#1_{#3}}
+\newcommand\supp{\opk{supp}}
+\newcommand\im{\opk{im}}
+\newcommand\row{\opk{row}}
+\newcommand\pmat[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\newcommand\cprod{\mathbin{\square}}
+%
+% matrix theory
+%
+\newcommand\ip[2]{\langle#1,#2\rangle}
+\newcommand\one{{\bf1}}
+\newcommand\rk{\opk{rk}}
+\newcommand\tr{\opk{tr}}
+\newcommand\col{\opk{col}}
+\newcommand\mat[3]{\mathrm{Mat}_{#1\times #2}(#3)}
+
+%
+% some group theory
+%
+\newcommand\aut[1]{{\rm Aut}(#1)}
+\newcommand\fx[1]{{\rm fix}(#1)}% ch2
+\newcommand\grp[1]{\langle #1\rangle}
+\newcommand\nrml{\vartriangleleft}
+\newcommand\nrmleq{\trianglelefteq}
+\newcommand\alt[1]{\opk{Alt}(#1)}
+\DeclareMathOperator{\Sym}{Sym}
+% End of the author's macros.
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\typ}[1]{\mathrm{#1}}
+\newcommand{\Zr}{{\mathbf r}}
+\newcommand{\Zs}{{\mathbf s}}
+\newcommand{\Zt}{{\mathbf t}}
+\newcommand{\Ze}{{\mathbf e}}
+\newcommand{\Zb}{{\mathbf b}}
+\DeclareRobustCommand{\ml}[1]{\ifmmode\text{\normalfont\small\ttfamily\detokenize{#1}}\else{\normalfont\small\nolinkurl{#1}}\fi}
+\emergencystretch=2em
+\title[An ordinary proof of Theorem 3.12]{An ordinary proof of Theorem 3.12 of Cameron, Goethals, Seidel and Shult}
+\date{28 September 2026}
+
+\begin{document}
+\raggedbottom
+\begin{abstract}
+We characterize the sets of lines at angles $90^\circ$, $60^\circ$ and
+$45^\circ$ which are contained in the lines of a finite reduced
+crystallographic Root System. A suitable partition assigns squared lengths
+2 and 4 to the initial vectors. In their integer span, we take all vectors
+of squared length 2 and those of squared length 4 which pair evenly with
+the span. We prove that this finite set satisfies all Root System axioms.
+Conversely, crystallographic integrality gives a partition by the parity
+of the integer logarithm of squared length. We include the empty
+and nonspanning cases, exact computational checks, and the statement shape
+of the Lean formalization.
+\end{abstract}
+\maketitle
+
+\section{Statement and conventions}\label{sec:statement}
+
+We will write $V$ for a finite-dimensional real inner product space and
+$(\Zx,\Zy)$ for its inner product. Set $q(\Zx)=(\Zx,\Zx)$.
+A \emph{line} is a one-dimensional linear subspace of $V$; in particular,
+every line passes through zero. For nonzero $\Zx\in\ell$ and
+$\Zy\in m$, set
+\begin{equation}\label{eq:cosine}
+ c(\ell,m)=\frac{(\Zx,\Zy)^2}{q(\Zx)q(\Zy)}.
+\end{equation}
+Replacing either representative by a nonzero multiple multiplies the
+numerator and denominator by the same square. Thus $c$ is well-defined.
+For distinct lines, the angles $90^\circ$, $60^\circ$ and $45^\circ$
+mean, respectively, $c=0$, $c=1/4$ and $c=1/2$.
+These are the unoriented line angles in $[0,90^\circ]$. We will use their squared
+cosines throughout, so the argument does not require trigonometry.
+Entries of matrices and vectors are function values, such as $M(i,j)$
+and $\Zx(i)$; subscripts index families of vectors.
+
+\begin{definition}\label{def:rootset}
+\textup{\cite[Definition 3.9, with the corrections below]{CGSS}.}
+A \emph{Root System} in $V$ is a finite set
+$\Phi\sbs V\diff\{0\}$ which spans $V$ over $\re$ and satisfies:
+\begin{enumerate}
+\item for every $\Zr,\Zs\in\Phi$,
+      $2(\Zr,\Zs)/q(\Zr)\in\ints$;
+\item if $\Zr\in\Phi$, $t\in\re$ and $t\Zr\in\Phi$, then
+      $t\in\{1,-1\}$; and
+\item for every $\Zr,\Zs\in\Phi$,
+\[
+ \tau_{\Zr}(\Zs):=\Zs-\frac{2(\Zr,\Zs)}{q(\Zr)}\Zr\in\Phi.
+\]
+\end{enumerate}
+We will denote its set of lines by
+$\cL(\Phi)=\{\re\Zr:\Zr\in\Phi\}$.
+\end{definition}
+
+This is the finite, reduced, crystallographic convention, with all three
+qualifiers required. The nonzero condition makes every denominator
+positive. In the printed condition (b), we read $S$ as $\Sigma$.
+The same definition is used in \cite[Theorems A--C]{R311}.
+We allow $\Phi=\varnothing$ when $V=0$. Reflection in a root sends
+that root to its negative, so every root line has both signs; reducedness
+then says that these are its only two roots.
+
+\begin{theorem}[Theorem 3.12 of \cite{CGSS}, made precise]\label{thm:main}
+Let $V$ be a finite-dimensional real inner product space, and let $S$ be
+a set of one-dimensional linear subspaces of $V$. Suppose that for every
+pair of distinct lines $\ell,m\in S$,
+\[
+ c(\ell,m)\in\{0,1/4,1/2\}.
+\]
+The following conditions are equivalent.
+\begin{enumerate}
+\item There is a Root System $\Phi$ spanning $V$ such that
+      $S\sbs\cL(\Phi)$.
+\item There are disjoint subsets $\cP,\cQ$ with
+      $S=\cP\cup\cQ$ such that distinct lines in the same part have
+      $c\in\{0,1/4\}$, and lines in different parts have
+      $c\in\{0,1/2\}$.
+\end{enumerate}
+\end{theorem}
+
+\begin{remark}\label{rem:conventions}
+Lemma~\ref{lem:finite-lines} proves that $S$ is automatically finite.
+The set $S$ and either part may be empty, and $S$ need not span $V$.
+Allowing an empty part is necessary: a single line lies in a Root System
+but has no partition into two nonempty parts, and two $60^\circ$ lines
+in $\typ A_2$ must lie in the same part.
+This is the proposed Implicit hypothesis 8 in \ml{cgss/errata.md}.
+Allowing a containing Root System in a larger inner product space gives
+the same condition: the necessary-direction proof uses only the inner
+products of the selected roots, and the sufficient direction constructs
+a Root System in $V$ itself.
+\end{remark}
+
+In the last clause of the
+printed theorem, ``$90^\circ$ and $45^\circ$'' means
+``$90^\circ$ or $45^\circ$''; this is Error 13, item 3 of the project
+errata. We prove the equivalence missing in Gap 11.
+Corollary~\ref{cor:normalized-containment} records the stronger construction
+with squared root lengths in $\{2,4\}$, both in the span and in $V$.
+
+Our proof follows route RS3 in \ml{cgss/prerequisites.md}, Sections 6.2
+and 13. We will prove both directions directly. The classification in
+\cite[Theorems A and B]{R311} is an allowed prerequisite, but is not
+needed for this route. The root-angle calculation in its Theorem C is
+the one we will write out in Lemma~\ref{lem:root-angles}. We will also
+give the integer-span finiteness argument referred to as LN1 in the
+prerequisites. Thus we use no unproved completion or root-system
+classification assertion from \cite{CGSS}.
+
+\section{Finiteness and the integer span}\label{sec:finite}
+
+\begin{lemma}\label{lem:finite-lines}
+Let $V$ be a finite-dimensional real inner product space, and let $S$ be
+a set of one-dimensional linear subspaces whose distinct-line squared
+cosines belong to $\{0,1/4,1/2\}$. Then $S$ is finite.
+\end{lemma}
+\begin{proof}
+Let $U$ be the set of all unit vectors on the lines of $S$, including
+both signs, and let $W$ be its real span. Every line has a unit vector:
+divide any nonzero vector on it by its positive norm. Thus $W$ is also
+the span of all the lines. Finite-dimensional linear algebra supplies
+a basis $\Zb_1,\ldots,\Zb_d$ of $W$ chosen from $U$.
+If $U$ is empty, use the empty basis and $W=0$.
+For each $\Zx\in U$ and each $i$, either $\Zx$ is on the line of
+$\Zb_i$, when $\Zx=\pm\Zb_i$, or the two lines are distinct. In
+the second case \eqref{eq:cosine} applies. Thus
+\[
+ (\Zx,\Zb_i)\in\Theta,
+ \qquad\Theta=\{-1,-1/\sqrt2,-1/2,0,1/2,1/\sqrt2,1\}.
+\]
+The map $\Zx\mapsto((\Zx,\Zb_i))_{i=1}^d$ is injective on $W$.
+Indeed, if $\Zx,\Zy$ have the same image, their difference is
+orthogonal to every basis vector. By bilinearity it is orthogonal to all
+of $W$. Since $\Zx-\Zy\in W$, its squared norm is zero,
+so $\Zx=\Zy$. This embeds $U$ into the finite set $\Theta^d$.
+The map $\Zx\mapsto\re\Zx$ maps $U$ onto $S$, proving finiteness.
+This argument also covers $d=0$, when $W$ has no unit vector.
+\end{proof}
+
+\begin{lemma}\label{lem:integer-span}
+Let $T=\{\Zt_1,\ldots,\Zt_m\}$ be a finite set of vectors in a
+real inner product space. Suppose every $(\Zt_i,\Zt_j)$ is an
+integer and every $q(\Zt_i)$ belongs to $\{2,4\}$. Put
+\[
+ L=\left\{\sum_{i=1}^m a(i)\Zt_i:a(i)\in\ints\right\},
+ \qquad W=\opk{span}_{\re}(T).
+\]
+Then every inner product of elements of $L$ is an integer, and
+$\{\Zx\in L:q(\Zx)\leq4\}$ is finite. More precisely, its
+cardinality is at most $9^d$, where $d=\dim W$.
+If $(\Zt_i,\Zt_j)$ is even for every $j$, then
+$(\Zt_i,\Zx)$ is even for every $\Zx\in L$.
+\end{lemma}
+\begin{proof}
+For integer coefficient functions $a,b$, bilinearity gives
+\[
+ \left(\sum_i a(i)\Zt_i,\sum_j b(j)\Zt_j\right)
+ =\sum_{i,j}a(i)b(j)(\Zt_i,\Zt_j)\in\ints.
+\]
+The same calculation with $\Zt_i$ fixed proves the last assertion.
+No independence of $T$ is needed: any expressions for the vectors
+give the required integer or even integer.
+
+Choose a basis $\Zb_1,\ldots,\Zb_d$ of $W$ from $T$.
+For $\Zx\in L$ with $q(\Zx)\leq4$, Cauchy--Schwarz gives
+\[
+ (\Zx,\Zb_i)^2\leq q(\Zx)q(\Zb_i)\leq16.
+\]
+Thus each $(\Zx,\Zb_i)$ is an integer in $\{-4,\ldots,4\}$.
+The inner-product coordinate map is injective by the argument in
+Lemma~\ref{lem:finite-lines}. Its target has $9^d$ elements.
+If $T$ is empty, then $L=W=\{0\}$, and the assertion gives the
+correct bound $9^0=1$.
+\end{proof}
+
+The integral inner products are essential to this argument. We do not
+infer discreteness merely from finite generation of an additive subgroup
+of a real vector space. The coordinate proof is the bounded-norm form
+of LN1, and supplies its proof here.
+
+\section{An explicit Root System for the sufficient direction}\label{sec:construction}
+
+\begin{lemma}\label{lem:reflection}
+Let $V$ be a real inner product space and $\Zr\in V$ be nonzero. Then
+the map $\tau_{\Zr}(\Zx)=\Zx-2(\Zr,\Zx)\Zr/q(\Zr)$ is linear,
+is an involution, preserves squared norms, and satisfies
+\begin{equation}\label{eq:self-adjoint}
+ (\tau_{\Zr}\Zx,\Zy)=(\Zx,\tau_{\Zr}\Zy)
+ \qquad(\Zx,\Zy\in V).
+\end{equation}
+Also $\tau_{\Zr}\Zr=-\Zr$.
+\end{lemma}
+\begin{proof}
+Linearity follows from bilinearity of the inner product. Direct expansion
+gives
+\begin{align*}
+ (\Zr,\tau_{\Zr}\Zx)&=-(\Zr,\Zx),\\
+ \tau_{\Zr}(\tau_{\Zr}\Zx)
+ &=\Zx-\frac{2(\Zr,\Zx)}{q(\Zr)}\Zr
+       +\frac{2(\Zr,\Zx)}{q(\Zr)}\Zr=\Zx,\\
+ q(\tau_{\Zr}\Zx)
+ &=q(\Zx)-\frac{4(\Zr,\Zx)^2}{q(\Zr)}
+              +\frac{4(\Zr,\Zx)^2}{q(\Zr)}=q(\Zx),\\
+ (\tau_{\Zr}\Zx,\Zy)
+ &=(\Zx,\Zy)-\frac{2(\Zr,\Zx)(\Zr,\Zy)}{q(\Zr)}
+  =(\Zx,\tau_{\Zr}\Zy).
+\end{align*}
+The denominator is nonzero because $\Zr\ne0$.
+Substitution of $\Zx=\Zr$ gives $\tau_{\Zr}\Zr=-\Zr$.
+\end{proof}
+
+\begin{proposition}\label{prop:psi}
+Let $V$ be a real inner product space, and let $T$ be a finite set of
+vectors such that:
+\begin{enumerate}
+\item $q(\Zt)\in\{2,4\}$ for every $\Zt\in T$;
+\item $(\Zt,\Zu)\in\ints$ for every $\Zt,\Zu\in T$; and
+\item if $\Zt\in T$ has $q(\Zt)=4$, then
+      $(\Zt,\Zu)\in2\ints$ for every $\Zu\in T$.
+\end{enumerate}
+Let $L=\opk{span}_{\ints}(T)$ and $W=\opk{span}_{\re}(T)$.
+The set
+\begin{equation}\label{eq:psi}
+\begin{split}
+ \Psi(T)={}&\{\Zx\in L:q(\Zx)=2\}\\
+ &{}\cup\{\Zx\in L:q(\Zx)=4\text{ and }
+                 (\Zx,\Zy)\in2\ints\text{ for every }\Zy\in L\}
+\end{split}
+\end{equation}
+is a Root System in $W$ containing $T$, with squared root lengths in
+$\{2,4\}$.
+\end{proposition}
+\begin{proof}
+Write $\Psi=\Psi(T)$. Hypotheses (1) and (3), together with
+Lemma~\ref{lem:integer-span}, give $T\sbs\Psi\sbs L\sbs W$.
+Thus $\Psi$ spans $W$. Its vectors are nonzero, and it is a subset
+of the finite set $\{\Zx\in L:q(\Zx)\leq4\}$ in that lemma.
+
+Take $\Zr\in\Psi$. For every $\Zx\in L$, the reflection coefficient is
+\begin{equation}\label{eq:coefficient}
+ \frac{2(\Zr,\Zx)}{q(\Zr)}
+ =\begin{cases}
+   (\Zr,\Zx),&q(\Zr)=2;\\
+   (\Zr,\Zx)/2,&q(\Zr)=4.
+  \end{cases}
+\end{equation}
+In the first case it is an integer by Lemma~\ref{lem:integer-span}.
+In the second case it is an integer by the evenness condition in
+\eqref{eq:psi}.
+Since $L$ is closed under subtraction and integer multiples,
+$\tau_{\Zr}(\Zx)\in L$. The involution property in
+Lemma~\ref{lem:reflection} then gives $\tau_{\Zr}(L)=L$.
+
+Take $\Zs\in\Psi$ and set $\Zt=\tau_{\Zr}(\Zs)$.
+We have just proved $\Zt\in L$. By norm preservation,
+$q(\Zt)=q(\Zs)\in\{2,4\}$. If $q(\Zt)=4$, then
+$q(\Zs)=4$; for every $\Zx\in L$, \eqref{eq:self-adjoint} gives
+\[
+ (\Zt,\Zx)=(\Zs,\tau_{\Zr}\Zx)\in2\ints,
+\]
+since $\tau_{\Zr}\Zx\in L$. Thus $\Zt\in\Psi$ in either length
+case, proving reflection closure.
+
+For $\Zr,\Zs\in\Psi$, formula \eqref{eq:coefficient}, applied
+to $\Zs\in L$, proves crystallographic integrality. We will check
+reducedness explicitly. Suppose $\Zs=t\Zr$ with
+$\Zr,\Zs\in\Psi$. Both vectors are nonzero. If their squared
+lengths are equal, $q(\Zs)=t^2q(\Zr)$ gives $t^2=1$, so
+$t=1$ or $t=-1$. If their squared lengths differ, relabel them
+and replace $t$ by $1/t$ if needed so that $q(\Zr)=2$ and
+$q(\Zs)=4$. Their proportionality then
+gives
+\[
+ t^2=2,\qquad t=\frac{(\Zr,\Zs)}2\in\rats.
+\]
+The first equation implies $t=\sqrt2$ or $t=-\sqrt2$, contrary
+to the irrationality of $\sqrt2$. Thus different lengths cannot
+occur on one line. This proves reducedness.
+
+We have now proved finiteness, nonzero roots, spanning, integrality,
+reducedness and reflection closure, which are exactly
+Definition~\ref{def:rootset} in $W$. If $T$ is empty, then $L=\{0\}$,
+$\Psi=\varnothing$ and $W=0$, giving the permitted empty Root System.
+\end{proof}
+
+\begin{lemma}\label{lem:seed-completion}
+Let $V$ be a finite-dimensional real inner product space and let
+$T\sbs V$ be finite. Suppose that every vector in $T$ has squared
+length 2 or 4, that all inner products in $T$ are integers, and that
+each vector of squared length 4 pairs evenly with every vector in $T$.
+Put $W=\opk{span}_{\re}(T)$, and let $\Ze_1,\ldots,\Ze_h$ be an
+orthonormal basis of $W^\perp$. Then
+\[
+ T'=T\cup\{\sqrt2\Ze_i:1\leq i\leq h\}
+\]
+is finite, satisfies the same three conditions, and spans $V$.
+\end{lemma}
+\begin{proof}
+Each new vector has squared length 2. Its inner products with $T$
+and with distinct new vectors are zero; its inner product with itself
+is 2. Thus all new inner products are
+integers, and the new pairings involving an old vector of squared length
+4 are even. No new vector has squared length 4. This proves the three
+conditions. The finite union $T'$ spans $W+W^\perp=V$ by orthogonal
+decomposition and $\sqrt2\ne0$. If $W=V$, the new basis is empty;
+if $W=0$, it is a basis of $V$. This also includes $V=0$.
+\end{proof}
+
+\begin{corollary}\label{cor:normalized-containment}
+Let $V$ be a finite-dimensional real inner product space and let
+$S=\cP\cup\cQ$ be a set of lines, with disjoint parts. Suppose that
+distinct lines in the same part have squared cosine 0 or $1/4$, and
+lines in different parts have squared cosine 0 or $1/2$.
+There is a Root System in the span of $S$ whose lines contain $S$
+and whose squared root lengths belong to $\{2,4\}$. There is also
+such a Root System spanning $V$.
+\end{corollary}
+\begin{proof}
+Lemma~\ref{lem:finite-lines} makes $S$ finite. Choose one vector
+$\Zt_\ell$ on each line, of squared length 2 if $\ell\in\cP$
+and squared length 4 if $\ell\in\cQ$. Such a vector is obtained
+by normalizing any nonzero vector on the line and multiplying by
+$\sqrt2$ or 2. Either sign is permitted. Put
+$T=\{\Zt_\ell:\ell\in S\}$.
+For distinct lines, \eqref{eq:cosine} and the partition conditions give
+\[
+\begin{array}{c|c|c|c}
+\hbox{parts}&q(\Zt_\ell)q(\Zt_m)&c(\ell,m)&(\Zt_\ell,\Zt_m)\\\hline
+\cP,\cP&4&0\hbox{ or }1/4&0,\ 1,\ -1\\
+\cQ,\cQ&16&0\hbox{ or }1/4&0,\ 2,\ -2\\
+\cP,\cQ&8&0\hbox{ or }1/2&0,\ 2,\ -2.
+\end{array}
+\]
+On the diagonal the inner product is 2 or 4. Thus every inner product
+is an integer, and every inner product involving a vector of squared
+length 4 is even. Proposition~\ref{prop:psi} gives the Root System
+$\Psi(T)$ in the span $W$ of $S$. Each chosen vector lies in
+$\Psi(T)$, so its lines contain $S$.
+For the ambient assertion, take an orthonormal basis of $W^\perp$ and
+form $T'$ as in Lemma~\ref{lem:seed-completion}. Apply
+Proposition~\ref{prop:psi} directly to $T'$ in $V$. Its output
+$\Psi(T')$ spans $V$ and contains $T$, so its lines also contain $S$.
+Both applications give squared root lengths in $\{2,4\}$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}, (2) implies (1)]
+The ambient assertion of Corollary~\ref{cor:normalized-containment}
+gives condition (1).
+\end{proof}
+
+\section{Root lengths and the necessary direction}\label{sec:necessity}
+
+\begin{lemma}\label{lem:root-angles}
+\textup{\cite[Theorem C, root-angle assertion]{R311}, in the two cases used here.}
+Let $\Phi$ be a Root System in a real inner product space, and let
+$\Zr,\Zs\in\Phi$ span distinct lines. If their line angle is
+$60^\circ$, then $q(\Zs)=q(\Zr)$. If it is $45^\circ$, then
+$q(\Zs)/q(\Zr)\in\{2,1/2\}$.
+\end{lemma}
+\begin{proof}
+Put $a=2(\Zr,\Zs)/q(\Zr)$ and
+$b=2(\Zr,\Zs)/q(\Zs)$. By crystallographic integrality both are
+integers. For either angle they are nonzero and have the same sign.
+Moreover,
+\[
+ ab=\frac{4(\Zr,\Zs)^2}{q(\Zr)q(\Zs)}
+    =4c(\re\Zr,\re\Zs),
+ \qquad \frac{a}{b}=\frac{q(\Zs)}{q(\Zr)}.
+\]
+At $60^\circ$, $ab=1$; the positive integers $|a|,|b|$ must both
+be 1, so $a/b=1$. At $45^\circ$, $ab=2$, so their ordered absolute
+values are $(1,2)$ or $(2,1)$, giving $a/b=1/2$ or 2.
+This proves the assertions directly from Definition~\ref{def:rootset}.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}, (1) implies (2)]
+Let $\Phi$ be a Root System in $V$ whose lines contain $S$.
+For each $\ell\in S$, choose a root $\Zr_\ell\in\Phi$ on it and
+put $\delta(\ell)=q(\Zr_\ell)>0$. Reducedness and the presence of both
+signs show that $\delta(\ell)$ is independent of the chosen root.
+For $x>0$, let $\eta(x)$ be the unique integer with
+\begin{equation}\label{eq:log-bounds}
+ 2^{\eta(x)}\leq x<2^{\eta(x)+1}.
+\end{equation}
+This is $\lfloor\log_2 x\rfloor$, implemented by \ml{Int.log 2 x}.
+The integer-logarithm bounds in Section~\ref{sec:sources} supply
+existence; strict increase of $j\mapsto2^j$ gives uniqueness.
+Multiplying \eqref{eq:log-bounds} by 2 gives
+$2^{\eta(x)+1}\leq2x<2^{\eta(x)+2}$. Uniqueness, followed by the same
+identity with $x/2$ in place of $x$, gives
+\begin{equation}\label{eq:log-shift}
+ \eta(2x)=\eta(x)+1,\qquad \eta(x/2)=\eta(x)-1.
+\end{equation}
+
+Put in $\cP$ the lines for which $\eta(\delta(\ell))$ is even, and
+in $\cQ$ those for which it is odd. Every integer is exactly one of
+even and odd, including negative integers, so these parts are disjoint
+and have union $S$. By Lemma~\ref{lem:root-angles}, a $60^\circ$
+pair has equal squared lengths and equal parities. A $45^\circ$ pair
+has squared lengths in ratio 2 or $1/2$, so \eqref{eq:log-shift}
+makes its parities opposite. Orthogonal pairs impose no condition.
+Thus two lines in the same part have angle $90^\circ$ or $60^\circ$,
+and two lines in different parts have angle $90^\circ$ or $45^\circ$.
+For $S=\varnothing$ take both parts empty. This proves condition (2)
+and completes the proof of Theorem~\ref{thm:main}.
+\end{proof}
+
+The colouring is defined globally, with no choice of components or paths.
+Unrelated scales on orthogonal components impose no additional constraint,
+so a decomposable Root System may have more than two lengths globally.
+A containing component of type $\typ G_2$ is also permitted: the angle
+restriction applies only to the selected lines.
+
+\section{Examples and computational checks}\label{sec:checks}
+
+\subsection{The role of the parity invariant}
+
+We will first give a small example showing why \eqref{eq:psi} restricts
+the vectors of squared length 4. Take independent vectors
+$\Zb_1,\Zb_2,\Zb_3$ with Gram matrix
+\[
+ M=\pmat{2&-1&0\\-1&2&0\\0&0&2}.
+\]
+Such vectors exist: for an orthonormal basis $\Ze_1,\Ze_2,\Ze_3$,
+take $\Zb_1=\sqrt2\Ze_1$,
+$\Zb_2=-\Ze_1/\sqrt2+\sqrt{3/2}\Ze_2$ and
+$\Zb_3=\sqrt2\Ze_3$.
+All initial vectors have squared length 2 and have integral inner
+products. In their integer span the vector $\Zr=\Zb_1+\Zb_3$
+has squared length 4, but $(\Zr,\Zb_2)=-1$. Thus
+\[
+ \frac{2(\Zr,\Zb_2)}{q(\Zr)}=-\frac12,
+ \qquad
+ \tau_{\Zr}(\Zb_2)=\Zb_2+\frac12(\Zb_1+\Zb_3)\notin L.
+\]
+The nonmembership follows from independence of the basis and the
+noninteger coefficients. Thus taking every vector of squared length
+2 or 4 in $L$ would fail. The evenness condition excludes this $\Zr$
+from $\Psi(T)$.
+
+The set $\Psi(T)$ need not be the least reflection-closed set containing
+$T$. For two orthogonal seeds of squared length 2, it has eight roots,
+whereas reflection closure has four. For the usual $\typ D_4$ seeds,
+$\Psi(T)$ has 48 roots of type $\typ F_4$, whereas reflection closure
+has 24. We will retain reflection closure as a separate computational
+comparison below; its counts are not counts of $\Psi(T)$.
+
+\subsection{Classical models and the exceptional model}
+
+We will use the coordinate models proved in \cite[Theorem B and the
+coordinate-model section]{R311}. Let $\Ze_1,\ldots,\Ze_k$ be
+the standard orthonormal basis. Their root sets are
+\begin{align*}
+ \Phi(\typ B_k)
+  &=\{\pm\Ze_i:1\leq i\leq k\}
+       \cup\{\pm\Ze_i\pm\Ze_j:i<j\},\\
+ \Phi(\typ C_k)
+  &=\{\pm2\Ze_i:1\leq i\leq k\}
+       \cup\{\pm\Ze_i\pm\Ze_j:i<j\},\\
+ \Phi(\typ F_4)
+  &=\{\pm\Ze_i:1\leq i\leq4\}
+       \cup\{\pm\Ze_i\pm\Ze_j:i<j\}\\
+  &\hspace{12mm}\cup
+       \left\{\frac12\sum_{i=1}^4\epsilon(i)\Ze_i:
+                   \epsilon(i)\in\{1,-1\}\right\}.
+\end{align*}
+In $\typ B_k$, short roots are on the axes; in $\typ C_k$,
+long roots are on the axes. The two line sets coincide, while the
+length partitions are interchanged. Multiplying all roots of
+$\typ B_k$ or $\typ F_4$ by $\sqrt2$ gives squared lengths
+2 and 4. The $\typ C_k$ model already has that normalization.
+The allowed squared cosines and the length partitions satisfy
+Theorem~\ref{thm:main}, by the root-angle calculation or directly
+from the coordinate lists.
+
+The script \ml{checks/check_thm312.py} uses the following generating
+seeds before that common normalization:
+\[
+\begin{array}{c|l}
+\typ B_k&\Ze_1-\Ze_2,\ldots,\Ze_{k-1}-\Ze_k,\Ze_k\\
+\typ C_k&\Ze_1-\Ze_2,\ldots,\Ze_{k-1}-\Ze_k,2\Ze_k\\
+\typ F_4&\Ze_2-\Ze_3,\Ze_3-\Ze_4,\Ze_4,
+             (\Ze_1-\Ze_2-\Ze_3-\Ze_4)/2.
+\end{array}
+\]
+It verifies all Root System axioms on the full coordinate sets,
+computes the partition from line angles, and checks its agreement with
+the two length classes. Independently, it constructs reflection closure
+from the displayed seeds with the normalized integer Gram matrix,
+checking membership in $\Psi(T)$ at every new root. It then compares the
+entire generated set with the coordinate root set, in seed coordinates.
+We check $2\leq k\leq8$ in types $\typ B,\typ C$, including
+$\typ C_2$, and all of $\typ F_4$. The numbers of generated roots
+are $2k^2$, $2k^2$ and 48, respectively; their numbers of lines
+are $k^2$, $k^2$ and 24. In rank 2 the angle $60^\circ$
+does not occur in the $\typ B,\typ C$ line set.
+
+\subsection{Containing and noncontaining examples}
+
+The following integer Gram matrices give small sets satisfying the
+partition condition. The diagonal specifies the assigned squared
+lengths. Each count is the number of roots after reflection closure;
+the initial set consists of one vector per matrix row.
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Example&Seed Gram matrix&Roots in the closure\\\midrule
+Empty set&empty&0\\[2pt]
+One line&$(2)$ or $(4)$&2\\[2pt]
+Two orthogonal lines&$\opk{diag}(2,4)$&4\\[2pt]
+Two $60^\circ$ lines&$\left(\begin{smallmatrix}2&-1\\-1&2\end{smallmatrix}\right)$&6\\[3pt]
+Two $45^\circ$ lines&$\left(\begin{smallmatrix}2&2\\2&4\end{smallmatrix}\right)$&8\\[3pt]
+Three lines&$\left(\begin{smallmatrix}2&2&1\\2&4&2\\1&2&2\end{smallmatrix}\right)$&18\\[3pt]
+Three dependent lines&$\left(\begin{smallmatrix}2&-1&-1\\-1&2&-1\\-1&-1&2\end{smallmatrix}\right)$&6\\
+\bottomrule
+\end{tabular}
+\end{center}
+For instance, the three-line matrix with 18 roots is realized by
+$\Ze_1+\Ze_2$, $2\Ze_1$, $\Ze_1+\Ze_3$ in $\re^3$ and
+generates $\typ C_3$. The last matrix is realized by
+$\Ze_1-\Ze_2$, $\Ze_2-\Ze_3$, $\Ze_3-\Ze_1$; its span is a
+plane. These include sets which are not initially reflection-closed.
+The checks also place a two-line $45^\circ$ configuration in a plane
+in $\re^4$ and add two orthogonal seeds of squared length 2, as in
+Lemma~\ref{lem:seed-completion}. Reflection closure has 12 roots,
+while $\Psi(T')$ has 32; the script asserts rank 4 for both outputs.
+A further check uses
+$\typ B_2\oplus3\typ B_2$. Its four squared lengths are
+$1,2,9,18$, so this example checks independent component scales.
+
+For noncontainment, put $\gamma=1/\sqrt2$ and consider the two unit Gram
+matrices
+\[
+ M_1=\pmat{1&\gamma&\gamma\\\gamma&1&\gamma\\\gamma&\gamma&1},\qquad
+ M_2=\pmat{1&1/2&\gamma\\1/2&1&1/2\\\gamma&1/2&1}.
+\]
+Both are realized by three independent real unit vectors.
+For $M_1$, explicit vectors are
+\[
+ \Ze_1,\quad \gamma\Ze_1+\gamma\Ze_2,\quad
+ \gamma\Ze_1+(1-\gamma)\Ze_2+\sqrt{2\gamma-1}\Ze_3.
+\]
+Here $2\gamma-1>0$; their squared norms are 1, and the three inner
+products are $\gamma,\gamma,\gamma^2+\gamma(1-\gamma)=\gamma$.
+For $M_2$, use
+\[
+ \Ze_1,\quad \tfrac12\Ze_1+\tfrac{\sqrt3}{2}\Ze_2,\quad
+ \gamma\Ze_1+\tfrac{1-\gamma}{\sqrt3}\Ze_2
+       +\sqrt{\tfrac12-\tfrac{(1-\gamma)^2}{3}}\Ze_3.
+\]
+The last radicand is positive because $0<1-\gamma<1$. The third vector
+has squared norm $\gamma^2+1/2=1$, and its inner products with the first
+two are $\gamma$ and $\gamma/2+(1-\gamma)/2=1/2$.
+Thus the matrices describe actual line sets, not just proposed angles.
+
+In $M_1$, every pair has angle $45^\circ$. A compatible partition
+would put every pair in different parts, which is impossible on three
+lines. In $M_2$, the two $60^\circ$ pairs force all three lines into
+the same part, while the $45^\circ$ pair forces two of them into
+different parts. Thus neither configuration is contained in a Root
+System, by the necessary direction. The same obstruction applies in
+any larger ambient space. The second example also shows why testing
+only bipartiteness of the graph of $45^\circ$ pairs is insufficient:
+its graph has just one edge. One must also enforce equality of parts
+along $60^\circ$ pairs.
+
+\subsection{What the computations establish}
+
+Run the checks from the repository root with
+\begin{quote}
+\ml{python cgss/proofs/thm312/checks/check_thm312.py},
+\end{quote}
+for a Python 3 with SymPy and NumPy. The script prints its results and
+writes no files. We ran it with Python 3.12.14, SymPy 1.14.0 and NumPy;
+its output records the installed versions. Integers, rational numbers and exact
+algebraic numbers determine every acceptance decision. Numerical
+eigenvalues are additional diagnostics for the two noncontaining
+examples, not the criterion for positive definiteness.
+
+The closure calculation stores integer coefficient vectors $a$ in the
+seeds and uses $Ma$ as the key for a represented vector. This also
+handles dependent seeds: if $M$ is their Gram matrix, then
+$Ma=Mb$ says that the represented difference is orthogonal to every
+seed. It lies in their span, so it is zero. Thus different coefficient
+expressions of one vector are identified. For each resulting set the
+script checks nonzero vectors, both signs, spanning, reducedness,
+integrality, reflection closure and squared lengths. For the normalized
+seeds it also checks even inner products of long roots with every seed.
+Evenness against all of $L$ follows by integer linearity, as in the proof.
+
+The explicit set $\Psi(T)$ is checked separately for the independent
+seed sets of $\typ A_1^2$, $\typ A_1^3$, $\typ A_2\oplus\typ A_1$,
+$\typ B_2$, $\typ C_3$, $\typ D_4$, the ambient-completion example,
+and the empty set. To enumerate it completely, for a positive definite
+seed Gram matrix $M$ and an integer coefficient vector $a$, the script
+uses
+\[
+ q\left(\sum_i a(i)\Zt_i\right)\leq4
+ \quad\Longrightarrow\quad a(i)^2\leq4M^{-1}(i,i).
+\]
+This is Cauchy--Schwarz against the dual basis. The resulting finite
+coefficient box contains every candidate, so enumeration has a proved
+bound. The script tests the parity condition and all Root System axioms,
+and compares the result with reflection closure.
+
+There are exactly $5^3=125$ labelled symmetric $3\times3$ matrices
+with diagonal 1 and each upper off-diagonal entry in
+$\{0,1/2,-1/2,1/\sqrt2,-1/\sqrt2\}$. The script checks all of them.
+Their proper principal minors are positive; the exact determinant
+decides positive semidefiniteness. The 97 feasible matrices have the
+following cross-tabulation, which the script asserts and prints:
+\begin{center}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+&With partition&Without partition&Total\\\midrule
+Positive definite&65&16&81\\
+Singular&16&0&16\\\midrule
+Total&81&16&97\\\bottomrule
+\end{tabular}
+\end{center}
+A graph propagation algorithm and exhaustive enumeration
+of all eight binary colourings agree in every case. For each accepted
+configuration the script constructs and verifies the reflection closure
+for both assignments of 2 and 4 to its parts. The 162 resulting closures
+have sizes $6,8,10,12,18$, occurring $10,36,12,32,72$ times, respectively.
+Independently of those colourings, the script tries all 27 assignments
+of squared lengths in $\{1,2,4\}$ for each of the 97 feasible unit
+Gram matrices. It checks both ordered crystallographic coefficients
+for every pair of seeds. Each passing assignment is closed under
+reflections without assuming the normalized parity condition, and
+the output is checked against every Root System axiom, with its rank
+asserted. Some integral assignments have nonreduced closures; these are
+rejected as Root System candidates. Amongst the 2619 assignments, 2190
+fail seed integrality, 24 give nonreduced closures, and 405 give Root
+Systems. In every configuration, an integral assignment exists if
+and only if a compatible partition exists, and if and only if an
+assignment has a verified Root System completion. In particular, all
+27 assignments fail seed integrality for each of the 16 configurations
+without a partition. These are finite obstruction checks independent
+of the colouring calculation. The script also checks the parity-failure
+example above.
+
+With random seed 20260928, the script samples 3000 proper subsets of
+2 to 9 lines from each of
+\[
+ \typ F_4\oplus\sqrt3\,\typ B_3,
+ \qquad \typ C_3\oplus\typ G_2\oplus\tfrac{17}{10}\typ B_2.
+\]
+It verifies the full containing Root Systems first. The $\typ G_2$
+model is the one in \cite[coordinate-model section]{R311}, in the
+plane of $\re^3$ with coordinate sum zero. Rational coordinates with
+block inner-product weights 3 and $289/100$ represent the two rescalings
+exactly. The 1014 subsets with a $30^\circ$ pair are counted and skipped;
+all 4986 remaining subsets are checked by graph propagation and by the parity of
+the integer logarithm of their actual squared root lengths. Common
+rescaling of squared lengths by $2^{-4}$ and $2^{-3}$ also checks negative
+logarithms and both parity shifts. The output records the counts and
+asserts coverage of $45^\circ$ pairs, multiple components and both
+length classes of the $\typ G_2$ component.
+
+These computations check finite instances, including obstructions,
+dependent seeds and degenerate cases. They neither prove the
+unbounded-rank theorem nor supply Lean proof terms. Finiteness in all
+dimensions is proved in Lemma~\ref{lem:integer-span} and
+Proposition~\ref{prop:psi}. For the normalized seeds, reflection
+closure stays inside the finite reflection-closed set $\Psi(T)$,
+which also proves termination of that comparison calculation.
+The ordinary proof does not use any of the computed counts.
+
+\section{Sources and the mathematical interface}\label{sec:sources}
+
+We will record the precise division between existing facts and the
+arguments proved here. Our Mathlib reference \cite{Mathlib} is Mathlib at commit
+\begin{center}
+\ml{082e2d37e8b0463410cdb532e111cd43d5a66174}
+\end{center}
+(4 September 2026), the version pinned in \ml{lake-manifest.json}.
+The names below were checked against its source files.
+
+\begingroup\raggedright
+\begin{enumerate}
+\item From \cite{CGSS} we use the meaning of a Root System in
+ Definition 3.9 and the statement to be proved in Theorem 3.12,
+ corrected as in Section~\ref{sec:statement}. No theorem of
+ \cite{CGSS}, including Theorem 3.10, is required as a premise of
+ our proof. In particular, we do not assume a completion theorem.
+\item From \cite{R311}, Theorem C supplies the pairwise root-angle
+ assertion; Lemma~\ref{lem:root-angles} repeats the needed proof
+ from the integrality axiom. Its Theorem B and its verified coordinate
+ models identify the $\typ B,\typ C,\typ F$ systems used for checks.
+ Theorems A and B are not premises of the equivalence. Thus no
+ root-system classification, or two-length theorem for irreducible
+ systems, is needed in the main argument.
+\item Finite-dimensional linear algebra supplies a basis chosen
+ from a spanning set. In
+ \ml{Mathlib/LinearAlgebra/LinearIndependent/Lemmas.lean},
+ \ml{exists_linearIndependent} gives an independent subset with the
+ same span over a division ring. The declaration
+ \ml{LinearIndependent.finite} in
+ \ml{Mathlib/LinearAlgebra/Dimension/Finite.lean} makes that subset
+ finite in a finite-dimensional space. We apply this over $\re$ in the two finiteness
+ lemmas. The empty span gives the empty basis.
+ For the line interface, \ml{finrank_eq_one_iff'} in
+ \ml{Mathlib/LinearAlgebra/Dimension/FreeAndStrongRankCondition.lean},
+ applied to the subtype $\ell$, supplies a nonzero vector on a
+ one-dimensional subspace. The declaration
+ \ml{eq_span_singleton_of_mem_of_finrank_eq_one} in
+ \ml{Mathlib/LinearAlgebra/FiniteDimensional/Basic.lean} says that
+ $\ell=\opk{span}_{\re}\{\Zr\}$ for any nonzero $\Zr\in\ell$.
+ In the same file, \ml{finrank_span_singleton} proves the converse
+ dimension assertion for a nonzero vector. These facts justify the
+ chosen representatives and the definition of \ml{rootLines} below.
+\item Bilinearity, positive definiteness and Cauchy--Schwarz are in
+ \ml{Mathlib/Analysis/InnerProductSpace/Basic.lean}.
+ The declarations \ml{real_inner_self_eq_norm_sq},
+ \ml{inner_self_eq_zero} and \ml{abs_real_inner_le_norm} apply to
+ real inner product spaces and give exactly the norm facts used
+ above. Reflection identities are expanded in
+ Lemma~\ref{lem:reflection}, rather than taken from an API with a
+ possibly different reflection convention.
+\item Integer-span induction is supplied by
+ \ml{Submodule.span_induction} and
+ \ml{Submodule.span_induction}\textsubscript{2}
+ in \ml{Mathlib/LinearAlgebra/Span/Defs.lean}, with scalars $\ints$.
+ We use their ordinary content, finite integer linear combinations,
+ in Lemma~\ref{lem:integer-span}. Finiteness from an injection into
+ a finite set is \ml{Set.Finite.of_injOn} in
+ \ml{Mathlib/Data/Set/Finite/Basic.lean}. These facts justify both
+ finite-target arguments, without a lattice-discreteness theorem.
+\item The irrationality used for reducedness is
+ \ml{irrational_sqrt_two} in
+ \ml{Mathlib/NumberTheory/Real/Irrational.lean}. Strict increase of
+ integer powers of $2\in\re$ is
+ \ml{zpow_right_strictMono}\textsubscript{0} in
+ \ml{Mathlib/Algebra/Order/GroupWithZero/Basic.lean}, with hypothesis
+ $1<2$. In \ml{Mathlib/Data/Int/Log.lean},
+ \ml{Int.zpow_log_le_self} and \ml{Int.lt_zpow_succ_log_self}
+ give \eqref{eq:log-bounds} for \ml{Int.log 2 x} when $x>0$.
+ The equivalent bounds \ml{Int.zpow_le_iff_le_log} and
+ \ml{Int.lt_zpow_iff_log_lt}, applied at $2x>0$, turn the multiplied
+ inequalities into $\eta(x)+1\leq \eta(2x)<\eta(x)+2$.
+ Since these are integers, this proves \eqref{eq:log-shift} in Lean
+ without an analytic-logarithm API.
+\item An orthonormal basis of a finite-dimensional inner product
+ space is supplied by \ml{exists_orthonormalBasis}, or the indexed
+ choice \ml{stdOrthonormalBasis}, in
+ \ml{Mathlib/Analysis/InnerProductSpace/PiL2.lean}.
+ We apply it to $W^\perp$ with its induced inner product.
+ Orthogonal decomposition is \ml{Submodule.isCompl_orthogonal}
+ in \ml{Mathlib/Analysis/InnerProductSpace/Projection/Basic.lean}.
+ It assumes \ml{HasOrthogonalProjection}; the instance
+ \ml{Submodule.HasOrthogonalProjection.ofCompleteSpace} supplies
+ this for $W$, since a finite-dimensional real normed space is
+ complete. Thus its hypotheses are satisfied
+ even when $W=0$ or $W=V$.
+\end{enumerate}
+\par\endgroup
+
+All remaining arithmetic consists of
+finite sums, the positive integer factor pairs of 1 and 2, or parity
+of integers. Thus Theorem~\ref{thm:main} rests only on the
+listed elementary library facts and the explicit proofs in this document.
+
+\section{Lean statement shape}\label{sec:lean}
+
+We will keep the settled name
+\ml{LineSystem.subset_rootSet_iff_bipartition} from
+\ml{cgss/notation.md}, Section 10. There is a necessary distinction
+between the namespace and the argument type. The current
+\ml{LineSystem V}, defined in
+\ml{LineGraphs/LineSystem/Defs.lean}, already requires all normalized
+inner products to be in $\{-2,-1,0,1,2\}$. It represents only
+$60^\circ$ and $90^\circ$ lines. Using an argument of that type
+would omit all $45^\circ$ cases of this theorem.
+
+We will state the theorem in the \ml{LineSystem} namespace
+on an unbundled set
+\[
+ S:\ml{Set (Submodule Real V)},
+\]
+with \ml{[NormedAddCommGroup V]}, \ml{[InnerProductSpace Real V]}
+and \ml{[FiniteDimensional Real V]}. We will require
+\[
+ \ml{hline}:\quad
+ \forall\ell\in S,\quad\ml{Module.finrank}\ \re\ \ell=1.
+\]
+The following auxiliary predicates give a precise statement without
+choosing representatives in its type. They are definitions of the
+project, in \ml{LineGraphs/Theorem312/Defs.lean}, not declarations of Mathlib.
+
+For subspaces $\ell,m$ and $a\in\re$, the predicate
+\ml{LineSystem.HasSquaredCosine} $\ell\ m\ a$ means
+\[
+ \forall\Zx\in\ell\ \forall\Zy\in m,\qquad
+ (\Zx,\Zy)^2=a\,q(\Zx)q(\Zy).
+\]
+For lines this is equivalent to \eqref{eq:cosine} having value $a$:
+nonzero representatives give the forward implication, and multiplying
+representatives gives the reverse implication, including zero vectors.
+The division-free form avoids nonzero proofs in the predicate itself.
+Define \ml{LineSystem.HasAllowedAngles} $S$ to mean
+\[
+ \forall\ell,m\in S,\ \ell\ne m\ \Longrightarrow
+ \exists a\in\{0,1/4,1/2\},\quad
+       \ml{HasSquaredCosine}\ \ell\ m\ a.
+\]
+Define \ml{LineSystem.HasBipartition} $S$ to mean that there is a
+function $b:S\to\ml{Bool}$ such that for distinct $\ell,m\in S$,
+\[
+\begin{cases}
+ \ml{HasSquaredCosine}\ \ell\ m\ 0\ \lor
+ \ml{HasSquaredCosine}\ \ell\ m\ (1/4),&b(\ell)=b(m);\\
+ \ml{HasSquaredCosine}\ \ell\ m\ 0\ \lor
+ \ml{HasSquaredCosine}\ \ell\ m\ (1/2),&b(\ell)\ne b(m).
+\end{cases}
+\]
+The two fibres of $b$ are exactly the parts of condition (2), and
+neither fibre is required to be nonempty.
+
+The predicate \ml{IsRootSet} on $\Phi:\ml{Set V}$ contains
+the six requirements of Definition~\ref{def:rootset}: finiteness,
+nonzero vectors, real span equal to the top submodule,
+crystallographic integrality, reducedness and reflection closure.
+Define \ml{LineSystem.rootLines} $\Phi$ by
+\[
+ \{\ell:\exists\Zr\in\Phi,\quad
+              \ell=\opk{Submodule.span}_{\re}\{\Zr\}\}.
+\]
+The nonzero-root field ensures that these are lines whenever
+\ml{IsRootSet} $\Phi$ holds. In particular the statement is line
+containment, not containment of a particular normalization of root vectors.
+
+With these definitions the declaration has the following conclusion,
+under the displayed typeclasses and hypotheses \ml{hline} and
+\ml{hangle : HasAllowedAngles S}:
+\begin{equation*}
+ \bigl(\exists\Phi:\ml{Set V},\quad
+     \ml{IsRootSet}\ \Phi\ \land\ S\sbs\ml{rootLines}\ \Phi\bigr)
+ \quad\Longleftrightarrow\quad \ml{HasBipartition}\ S.
+\end{equation*}
+The theorem's full name is
+\ml{LineSystem.subset_rootSet_iff_bipartition}.
+Finiteness of $S$ is derived from \ml{hline} and \ml{hangle}, as
+in Lemma~\ref{lem:finite-lines}; a finite-set wrapper can expose it
+explicitly. Spanning and nonemptiness of $S$ are not hypotheses.
+The docstring of the theorem records these conventions and the errata
+pointers:
+\begin{quote}\small
+Theorem 3.12 of [CGSS]. For one-dimensional subspaces with squared
+cosines 0, 1/4 or 1/2, root-line containment is equivalent to a
+compatible bipartition. The set and either colour fibre may be empty
+(Implicit hypothesis 8); finiteness is derived and no spanning
+hypothesis is imposed on the lines. The containing root set spans the
+given ambient space. The cross-part condition reads ``or'' (Error 13,
+item 3); the explicit construction fills Gap 11.
+\end{quote}
+
+For the construction, use \ml{Submodule.span Int T} for $L$ and
+define \ml{LineSystem.integralSpanRoots} $T$ by the set-builder
+\eqref{eq:psi}. The squared-length-4 condition quantifies over every
+element of this fixed $L$. Use the ambient version of
+Proposition~\ref{prop:psi}, with the extra hypothesis
+$\opk{span}_{\re}(T)=V$. First form $T'$ by
+Lemma~\ref{lem:seed-completion}, using \ml{stdOrthonormalBasis}
+on $W^\perp$ and viewing its vectors in $V$. Then apply the proposition
+to $T'$ directly. This proof uses no \ml{IsRootSet} on the subtype
+$W$ and no extension lemma for a union of Root Systems.
+The span assertion of Corollary~\ref{cor:normalized-containment}
+can be formalized separately by restricting the same construction to $W$.
+The helper theorems in the \ml{LineSystem} namespace are
+\ml{finite_of_hasAllowedAngles}, \ml{isRootSet_integralSpanRoots}
+and \ml{exists_rootSet_of_hasBipartition}, following the conclusion
+rule in the notation file.
+
+For the necessary direction, set the Boolean colour to
+\ml{decide (Int.emod (Int.log 2 (inner r r)) 2 = 1)} for the chosen root
+on a line. Equations \eqref{eq:log-bounds} and \eqref{eq:log-shift}
+give the argument without components or path choices.
+
+The namespace follows rule 2 of \ml{cgss/notation.md}, Section 10,
+which places line-system results in \ml{LineSystem}; the argument is
+the unbundled set $S$, not a term of the structure \ml{LineSystem V}.
+The notation file records this shape and the five definitions
+\ml{HasSquaredCosine}, \ml{HasAllowedAngles}, \ml{HasBipartition},
+\ml{rootLines} and \ml{integralSpanRoots}.
+
+For a bridge to Section 2, if $R:\ml{LineSystem V}$, then
+\ml{rootLines} $R.\Phi$ satisfies \ml{HasAllowedAngles} and
+\ml{HasBipartition}, with the constant Boolean colouring.
+Indeed, its vectors have squared length 2; inner products $\pm2$
+give equal lines, since the squared norm of their difference or sum
+is zero. Distinct lines thus have inner product $0$ or $\pm1$ on
+these representatives, giving squared cosine $0$ or $1/4$.
+Equation~\eqref{eq:cosine} transfers this to all representatives.
+The bridge lemmas are \ml{LineSystem.hasAllowedAngles_rootLines}
+and \ml{LineSystem.hasBipartition_rootLines}.
+
+No bridge to \ml{RootPairing} is needed to prove this statement.
+If the bridge proved in \cite{R311} is used afterwards, Mathlib's pairing has the
+squared length of the \emph{second} root in the denominator:
+\[
+ p(\Zr,\Zs)=\frac{2(\Zr,\Zs)}{q(\Zs)}.
+\]
+Definition~\ref{def:rootset} uses the first root as the reflecting
+root, so the bridge interchanges the arguments. Integrality for all
+ordered pairs provides both conventions. The Root System produced
+here is reduced and crystallographic and spans its stated ambient
+type, exactly as required by the bridge in \cite{R311}.
+
+There is no unresolved mathematical step in the ordinary proof.
+The structured version of these proofs is
+\ml{cgss/proofs/thm312/thm312-lamport.tex}, and the Lean formalization, in
+\ml{LineGraphs/Theorem312/}, proves
+\ml{LineSystem.subset_rootSet_iff_bipartition} with the helper
+definitions and theorems above; it uses no computational check as a
+mathematical premise.
+
+\begin{thebibliography}{Mathlib}
+\raggedright
+\bibitem[CGSS]{CGSS}
+P. J. Cameron, J. M. Goethals, J. J. Seidel and E. E. Shult,
+\emph{Line graphs, root systems, and elliptic geometry},
+J. Algebra \textbf{43} (1976), 305--327.
+Definition 3.9 and Theorem 3.12, pp.~314--315; see also
+\ml{cgss/errata.md}, Error 13, item 3 and Gap 11.
+
+\bibitem[R311]{R311}
+\emph{The classification behind Remark 3.11 of [CGSS]},
+project manuscript \ml{cgss/proofs/remark311/remark311.tex},
+Theorems A--C and the coordinate-model and Mathlib-interface sections.
+
+\bibitem[Mathlib]{Mathlib}
+The mathlib community, \emph{Mathlib}, commit
+\ml{082e2d37e8b0463410cdb532e111cd43d5a66174} (4 September 2026),
+the version pinned in \ml{lake-manifest.json}.
+The specific source files and declarations used here are listed in
+Section~\ref{sec:sources}.
+\end{thebibliography}
+\end{document}

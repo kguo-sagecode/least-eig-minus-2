@@ -1,0 +1,30 @@
+\section{Conventions}
+
+The purpose of this section is not to give full definitions and background, but rather to
+establish notation; we defer to [CGSS] for the mathematics and to \verb|cgss/notation.md| for
+the dictionary between the notation of the paper, ours and the Lean names.
+
+\subsection*{Structured proofs}
+We follow the format of Lamport [L95]. A result is stated with numbered hypotheses under
+\textsc{Assume} and its conclusion under \textsc{Prove}. A \textsc{Proof sketch} may follow; it
+is an informal road map. The proof is a list of steps $\langle1\rangle1$, $\langle1\rangle2$,
+\dots, ending in a \textsc{Qed} step, and each step at level $k$ has its own proof. The
+assumption of the enclosing level-$k$ step is cited as $\langle k\rangle$, its numbered parts as
+$\langle k\rangle{:}i$, and those of the result itself as $\langle0\rangle{:}i$. Definitions are
+made by \textsc{Let}, witnesses are introduced by \textsc{Pick}, and case splits use
+\textsc{Case}, with the proof of the closing \textsc{Qed} explaining why the cases are exhaustive.
+We expand a step until each leaf is a single inference from named facts: definitions, earlier
+steps, earlier results, Mathlib lemmas, or numbered computations. A step that departs from the
+paper's argument is tagged \new, and a step that fills a gap in it is tagged \repair.
+
+Each result records the name of its Lean declaration with \verb|\lean{...}| and the results it
+uses with \verb|\uses{...}|; these macros print nothing.
+
+\subsection*{Notation}
+We will use functional notation for the entries of matrices and vectors; the $uv$-entry of a
+matrix $M$ is written $M(u,v)$, and the entry of a vector $\Zv$ indexed by $u$ is written
+$\Zv(u)$. Graphs are $X$, $Y$ and $Z$. A set of lines at $60^\circ$ and $90^\circ$ is recorded by
+the set $\Phi$ of vectors of squared norm~2 on its lines, taken with both signs, so that
+$\Phi=-\Phi$. We keep the paper's names for the paper's own objects: $\Sigma$, $\Ga$, $\Gb$,
+$\Gc$, $\Delta$, and the sets $K$, $L$, $M$, $N$ of the proof of Lemma 2.10. The paper uses three
+graph conventions; \verb|cgss/notation.md| gives them three names, which this blueprint uses.

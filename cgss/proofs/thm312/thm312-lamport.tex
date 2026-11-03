@@ -1,0 +1,1507 @@
+\documentclass[11pt]{amsart}
+\usepackage[margin=27mm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+
+% amsart loads amsthm, whose proof environment and \qed clash with pf2's.
+% We use pf2's proof environment throughout, as Lamport's format requires.
+\let\proof\relax
+\let\endproof\relax
+\let\qed\relax
+\usepackage{pf2}
+
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% The author's macros.
+%
+% some calligraphy
+%
+\newcommand\cA{{\mathcal A}}
+\newcommand\cB{{\mathcal B}}
+\newcommand\cC{{\mathcal C}}
+\newcommand\cD{{\mathcal D}}
+\newcommand\cE{{\mathcal E}}
+\newcommand\cF{{\mathcal F}}
+\newcommand\cG{{\mathcal G}}
+\newcommand\cH{{\mathcal H}}
+\newcommand\cI{{\mathcal I}}
+\newcommand\cJ{{\mathcal J}}
+\newcommand\cK{{\mathcal K}}
+\newcommand\cL{{\mathcal L}}
+\newcommand\cM{{\mathcal M}}
+\newcommand\cN{{\mathcal N}}
+\newcommand\cP{{\mathcal P}}
+\newcommand\cQ{{\mathcal Q}}
+\newcommand\cR{{\mathcal R}}
+\newcommand\cS{{\mathcal S}}
+\newcommand\cT{{\mathcal T}}
+\newcommand\cU{{\mathcal U}}
+\newcommand\cV{{\mathcal V}}
+
+%
+% fields and rings (and a semigroup)
+%
+\newcommand\cx{{\mathbb C}}% complexes
+\newcommand\fld{{\mathbb F}}
+\newcommand\flde{{\mathbb E}}
+\newcommand\ints{{\mathbb Z}}
+\newcommand\nn{{\mathbb N}}%non-negative integers
+\newcommand\re{{\mathbb R}}%reals
+\newcommand\rats{{\mathbb Q}}
+
+\newcommand\Zu{{\mathbf u}}
+\newcommand\Zv{{\mathbf v}}
+\newcommand\Zw{{\mathbf w}}
+\newcommand\Zy{{\mathbf y}}
+\newcommand\Zz{{\mathbf z}}
+\newcommand\Zx{{\mathbf x}}
+\newcommand\Zj{{\mathbf j}}
+
+
+%
+% the really useful stuff
+%
+%\newcommand\opk[1]{\mathop{\hbox{\rm #1}}\nolimits} %% old version
+\newcommand\opk[1]{\mathop{\mathrm{#1}}\nolimits}
+\newcommand\comp[1]{{\mkern2mu\overline{\mkern-2mu#1}}}
+\newcommand\diff{\mathbin{\mkern-1.5mu\setminus\mkern-1.5mu}}% for \setminus
+\newcommand\gbin[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}}
+\newcommand\inv{^{-1}}
+\newcommand\res{\mathbin{\mkern-2.0mu\restriction\mkern-2.0mu}}% ch2
+\newcommand\sbs{\subseteq}
+\newcommand\sps{\supseteq}
+\newcommand\seq[3]{#1_{#2},\ldots,#1_{#3}}
+\newcommand\supp{\opk{supp}}
+\newcommand\im{\opk{im}}
+\newcommand\row{\opk{row}}
+\newcommand\pmat[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\newcommand\cprod{\mathbin{\square}}
+%
+% matrix theory
+%
+\newcommand\ip[2]{\langle#1,#2\rangle}
+\newcommand\one{{\bf1}}
+\newcommand\rk{\opk{rk}}
+\newcommand\tr{\opk{tr}}
+\newcommand\col{\opk{col}}
+\newcommand\mat[3]{\mathrm{Mat}_{#1\times #2}(#3)}
+
+%
+% some group theory
+%
+\newcommand\aut[1]{{\rm Aut}(#1)}
+\newcommand\fx[1]{{\rm fix}(#1)}% ch2
+\newcommand\grp[1]{\langle #1\rangle}
+\newcommand\nrml{\vartriangleleft}
+\newcommand\nrmleq{\trianglelefteq}
+\newcommand\alt[1]{\opk{Alt}(#1)}
+\DeclareMathOperator{\Sym}{Sym}
+% End of the author's macros.
+\input{macros}
+
+\begin{document}
+\title[Theorem 3.12: structured proofs]{Theorem 3.12 of Cameron, Goethals, Seidel and Shult: structured proofs}
+\date{28 September 2026}
+\begin{abstract}
+We characterize the sets of lines at angles $90^\circ$, $60^\circ$ and
+$45^\circ$ which lie in a finite reduced crystallographic Root System.
+A compatible colouring gives an explicit construction in an integer span.
+Conversely, the parity of the integer logarithm of squared root length
+gives a compatible colouring. We include the empty set of lines and
+sets of lines which do not span $V$.
+\end{abstract}
+\maketitle
+\raggedbottom
+\emergencystretch=3em
+
+% BEGIN STANDALONE INPUTS: omit this whole block when merging into the blueprint.
+% Its definitions, elementary identities, and reflection identities are supplied
+% by Sections 2 and 3 there, with the same labels and Lean names.
+\section*{Inputs from the blueprint}
+We will use the following definitions and identities from the blueprint.
+They are repeated only to make this document standalone. Throughout, $q(\Zx)$
+means $(\Zx,\Zx)$, and $\re\Zx$ means
+$\opk{span}_{\re}\{\Zx\}$.
+
+\begin{cgss}{Definition}{3.9}\label{def:3.9}
+\lean{IsRootSet}\uses{}
+\assume{$V$ is a finite-dimensional real inner product space.}
+A \emph{Root System} in $V$ is a finite set
+$\Phi\sbs V\diff\{0\}$ with $\opk{span}_{\re}\Phi=V$
+such that, for all $\Zr,\Zs\in\Phi$ and all $t\in\re$,
+\[
+ \frac{2(\Zr,\Zs)}{q(\Zr)}\in\ints,\qquad
+ \tau_{\Zr}\Zs:=\Zs-\frac{2(\Zr,\Zs)}{q(\Zr)}\Zr\in\Phi,
+ \qquad t\Zr\in\Phi\ \Longrightarrow\ t\in\{1,-1\}.
+\]
+We write $\opk{IsRootSet}(\Phi)$ for this predicate.
+The empty set is permitted when $V=0$. This is the finite, reduced,
+crystallographic convention of the corrected Definition 3.9.
+\end{cgss}
+
+\begin{namedresult}{Definition}{(line systems of Section 2)}\label{def:line-system}
+\lean{LineSystem}\uses{}
+\assume{$V$ is a finite-dimensional real inner product space.}
+A line system $R$ is a finite set $R.\Phi\sbs V$ satisfying
+\[
+ R.\Phi=-R.\Phi,\qquad q(\Zr)=2\quad(\Zr\in R.\Phi),\qquad
+ (\Zr,\Zs)\in\{-2,-1,0,1,2\}\quad(\Zr,\Zs\in R.\Phi).
+\]
+It need not span $V$.
+\end{namedresult}
+\paragraph{Elementary identities.}\label{facts:inner}\uses{}
+We will use bilinearity over $\re$, symmetry, $q(\Zx)\geq0$, and
+$q(\Zx)=0\Longleftrightarrow\Zx=0$. These are the facts of
+\path{blueprint/sec2-lines.tex}, repeated here for the standalone build.
+Their declarations in \path{Mathlib/Analysis/InnerProductSpace/Basic.lean} are
+\begingroup\raggedright
+\path{inner_add_left}, \path{inner_add_right},
+\path{inner_sub_left}, \path{inner_sub_right},
+\path{inner_neg_left}, \path{inner_neg_right},
+\path{real_inner_smul_left}, \path{real_inner_smul_right},
+\path{real_inner_comm}, \path{real_inner_self_nonneg}, and
+\path{inner_self_eq_zero}.
+\par\endgroup
+
+\begin{namedresult}{Lemma}{(reflection identities)}\label{lem:rem-reflection}
+\lean{IsRootSet.reflection_identities}
+\uses{facts:inner}
+\assume{$V$ is a real inner product space and $\Zr\in V\diff\{0\}$.}
+\pflet{$\tau_{\Zr}\Zx=\Zx-2(\Zr,\Zx)\Zr/q(\Zr)$.}
+\prove{$\tau_{\Zr}$ is real linear, and, for all $\Zx,\Zy\in V$,
+\[
+ \tau_{\Zr}^2\Zx=\Zx,\qquad
+ (\tau_{\Zr}\Zx,\tau_{\Zr}\Zy)=(\Zx,\Zy),\qquad
+ \tau_{\Zr}\Zr=-\Zr.
+\]}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will expand the reflection formula. This is the portion of
+Lemma~\hyperref[lem:rem-reflection]{(reflection identities)} in \path{blueprint/sec3-remark311.tex}
+used here; the blueprint's $s_\alpha$ and $(\alpha,\alpha)$ are
+$\tau_{\Zr}$ and $q(\Zr)$ in the notation of this section.
+\step{t312reflPositive}{$q(\Zr)>0$.}
+\begin{proof}\pf\ Positive definiteness in
+\hyperref[facts:inner]{Elementary identities} and \asm{0}.~\qed\end{proof}
+\step{t312reflLinear}{For $a,b\in\re$ and $\Zx,\Zy\in V$,
+$\tau_{\Zr}(a\Zx+b\Zy)=a\tau_{\Zr}\Zx+b\tau_{\Zr}\Zy$.}
+\begin{proof}\pf\ Bilinearity in the second argument in the defining formula.~\qed\end{proof}
+\step{t312reflInner}{$(\Zr,\tau_{\Zr}\Zx)=-(\Zr,\Zx)$ for every $\Zx\in V$.}
+\begin{proof}\pf\ Bilinearity gives
+$(\Zr,\Zx)-2(\Zr,\Zx)q(\Zr)/q(\Zr)$;
+cancel using \stepref{t312reflPositive}.~\qed\end{proof}
+\step{t312reflInvol}{$\tau_{\Zr}^2\Zx=\Zx$ for every $\Zx\in V$.}
+\begin{proof}\pf\ Substitute \stepref{t312reflInner} in the second
+application of the defining formula: the two multiples of $\Zr$ cancel.~\qed\end{proof}
+\step{t312reflMetric}{$(\tau_{\Zr}\Zx,\tau_{\Zr}\Zy)=(\Zx,\Zy)$ for all $\Zx,\Zy\in V$.}
+\begin{proof}\pf\ Bilinearity, symmetry, and \stepref{t312reflPositive} give
+\[
+ (\tau_{\Zr}\Zx,\tau_{\Zr}\Zy)
+ =(\Zx,\Zy)-\frac{4(\Zr,\Zx)(\Zr,\Zy)}{q(\Zr)}
+          +\frac{4(\Zr,\Zx)(\Zr,\Zy)}{q(\Zr)}
+ =(\Zx,\Zy).
+\]~\qed\end{proof}
+\step{t312reflNeg}{$\tau_{\Zr}\Zr=-\Zr$.}
+\begin{proof}\pf\ The formula at $\Zx=\Zr$ is $\Zr-2\Zr$, by
+\stepref{t312reflPositive}.~\qed\end{proof}
+\qedstep
+\begin{proof}\pf\ Steps \stepref{t312reflLinear}, \stepref{t312reflInvol},
+\stepref{t312reflMetric}, and \stepref{t312reflNeg}.~\qed\end{proof}
+\end{proof}
+
+% END STANDALONE INPUTS
+
+% BEGIN BLUEPRINT SECTION
+\section{Lines contained in a Root System}\label{sec:thm312}
+We will follow the ordinary proof in
+\path{cgss/proofs/thm312/thm312.tex}. The construction is the explicit set
+$\Psi(T)$ of Definition~\hyperref[def:312-integral-roots]{(the integer-span construction)}.
+All spaces are real inner product spaces; finite dimension is stated
+where needed. Entries of a vector or a matrix are function values.
+We will write $q(\Zx)=(\Zx,\Zx)$ and
+$\re\Zx=\opk{span}_{\re}\{\Zx\}$. For a real scalar $a$,
+$a\in\ints$ and
+$a\in2\ints$ mean $a=z$ and $a=2z$, respectively, for some $z\in\ints$,
+with the integer cast into $\re$ understood.
+
+The proof format is that of \cite{L95}. Numbered assumptions of a result
+are cited as \asm[1]{0}, and assumptions of an enclosing step as
+\asm{1}, \asm{2}, and so on. Each proof ends with a \textsc{Qed} step;
+each leaf gives its facts. The tags \new\ and \repair\ identify new
+arguments and repairs to the printed paper. The metadata
+\verb|\lean| and \verb|\uses| record the Lean declarations and the dependencies.
+
+\subsection{Definitions and library facts}
+
+\begin{namedresult}{Definition}{(angles and compatible colourings)}\label{def:312-angles}
+\lean{LineSystem.HasSquaredCosine}
+\lean{LineSystem.HasAllowedAngles}
+\lean{LineSystem.HasBipartition}\uses{}
+\assume{$V$ is a real inner product space, $S$ is a set of real
+subspaces of $V$, and $\ell,m$ are real subspaces.}
+For $a\in\re$, let $\opk{HasSquaredCosine}(\ell,m,a)$ mean
+\[
+ \forall\Zx\in\ell\ \forall\Zy\in m,\qquad
+ (\Zx,\Zy)^2=a\,q(\Zx)q(\Zy).
+\]
+Let $\opk{HasAllowedAngles}(S)$ mean that for all distinct
+$\ell,m\in S$ there is $a\in\{0,1/4,1/2\}$ with this property.
+Let $\opk{HasBipartition}(S)$ mean that there is a function
+$b:S\to\mathrm{Bool}$ such that, for all distinct $\ell,m\in S$,
+\[
+\begin{array}{ll}
+b(\ell)=b(m)&\Longrightarrow
+ \opk{HasSquaredCosine}(\ell,m,0)\ \lor\
+ \opk{HasSquaredCosine}(\ell,m,1/4),\\
+b(\ell)\ne b(m)&\Longrightarrow
+ \opk{HasSquaredCosine}(\ell,m,0)\ \lor\
+ \opk{HasSquaredCosine}(\ell,m,1/2).
+\end{array}
+\]
+Neither colour fibre is required to be nonempty.
+\end{namedresult}
+
+\begin{namedresult}{Definition}{(lines of a vector set)}\label{def:312-root-lines}
+\lean{LineSystem.rootLines}\uses{facts:312-linear}
+\assume{$V$ is a real inner product space and $T\sbs V$.}
+Define
+\[
+ \cL(T):=\{\ell:\exists\Zr\in T,\ \ell=\re\Zr\}.
+\]
+This is \path{LineSystem.rootLines}. When $0\notin T$, each member
+has dimension one.
+\end{namedresult}
+
+\begin{namedresult}{Definition}{(the integer-span construction)}\label{def:312-integral-roots}
+\lean{LineSystem.integralSpanRoots}\uses{}
+\assume{$V$ is a real inner product space and $T\sbs V$.}
+Put $L(T)=\opk{span}_{\ints}(T)$ and
+\[
+\begin{split}
+ \Psi(T)={}&\{\Zx\in L(T):q(\Zx)=2\}\\
+ &{}\cup\{\Zx\in L(T):q(\Zx)=4\text{ and }
+                  (\Zx,\Zy)\in2\ints\text{ for every }\Zy\in L(T)\}.
+\end{split}
+\]
+This is \path{LineSystem.integralSpanRoots}. The evenness condition
+quantifies over the entire fixed integer span.
+\end{namedresult}
+
+\paragraph{Inner products and square roots.}\label{facts:312-inner}\uses{facts:inner}
+\begingroup\raggedright
+All library citations were checked in Mathlib at commit
+\path{082e2d37e8b0463410cdb532e111cd43d5a66174} (4 September 2026),
+the version pinned in \path{lake-manifest.json}.
+We will use \hyperref[facts:inner]{Elementary identities}, together with
+\path{real_inner_self_eq_norm_sq} and \path{abs_real_inner_le_norm} in
+\path{Mathlib/Analysis/InnerProductSpace/Basic.lean}.
+These give $(\Zx,\Zy)^2\leq q(\Zx)q(\Zy)$.
+For positive real $a$, $\sqrt a>0$ and $(\sqrt a)^2=a$ are
+\path{Real.sqrt_pos} and \path{Real.sq_sqrt} in
+\path{Mathlib/Analysis/Real/Sqrt.lean}.
+\par\endgroup
+
+\paragraph{Spans and finite-dimensional linear algebra.}\label{facts:312-linear}\uses{}
+\begingroup\raggedright
+\path{finrank_eq_one_iff'} in
+\path{Mathlib/LinearAlgebra/Dimension/FreeAndStrongRankCondition.lean}
+gives a nonzero generator of a one-dimensional subspace.
+\path{eq_span_singleton_of_mem_of_finrank_eq_one} and
+\path{finrank_span_singleton} in
+\path{Mathlib/LinearAlgebra/FiniteDimensional/Basic.lean}
+identify its span and give the converse dimension assertion.
+\path{Submodule.mem_span_singleton} in
+\path{Mathlib/LinearAlgebra/Span/Defs.lean} expresses membership as a scalar multiple.
+\path{Submodule.subset_span}, \path{Submodule.span_mono}, and
+\path{Submodule.span_le} in the same file give membership of generators,
+monotonicity, and the criterion for a span to lie in a subspace.
+\path{Submodule.span_span_coe_preimage} there says that the preimage of
+a generating set under the inclusion of its span spans the whole subtype.
+\path{exists_linearIndependent} in
+\path{Mathlib/LinearAlgebra/LinearIndependent/Lemmas.lean}
+chooses an independent subset with the same real span.
+\path{LinearIndependent.finite} in
+\path{Mathlib/LinearAlgebra/Dimension/Finite.lean}
+makes that subset finite in finite dimension.
+\path{Submodule.span_induction} and \path{Submodule.span_induction}\textsubscript{2} in
+\path{Mathlib/LinearAlgebra/Span/Defs.lean}
+give induction on a span, also over $\ints$.
+\path{Submodule.mem_span_range_iff_exists_fun} in
+\path{Mathlib/LinearAlgebra/Finsupp/LinearCombination.lean}
+expresses membership in a finite span by a finite sum.
+\path{Int.cast_smul_eq_zsmul} in
+\path{Mathlib/Algebra/Module/NatInt.lean} identifies multiplication by
+a real-cast integer with integer scalar multiplication.
+\par\endgroup
+
+\paragraph{Finite sets and cardinalities.}\label{facts:312-finite}\uses{}
+\begingroup\raggedright
+\path{Set.Finite.of_injOn}, \path{Set.Finite.image},
+\path{Set.Finite.subset}, and \path{Set.Finite.preimage} in
+\path{Mathlib/Data/Set/Finite/Basic.lean} give finiteness from an
+injection into a finite set, finiteness of images and subsets, and
+finiteness of a preimage when the map is injective on that preimage.
+A function set $A^I$ is finite when $A$ and $I$ are finite.
+\par\endgroup
+
+\paragraph{Integer arithmetic and logarithms.}\label{facts:312-arithmetic}\uses{}
+Finite sums of integers are integers; finite sums of even integers are even.
+We will use field arithmetic, factorization of differences of squares,
+and integer inequalities in the arithmetic leaves.
+\begingroup\raggedright
+\path{zpow_add_one}\textsubscript{0} in
+\path{Mathlib/Algebra/GroupWithZero/Basic.lean} gives the successor
+power identity for a nonzero base, including base 2.
+\path{Int.log} is the integer logarithm, and
+\path{Int.zpow_log_le_self}, \path{Int.lt_zpow_succ_log_self},
+\path{Int.zpow_le_iff_le_log}, and \path{Int.lt_zpow_iff_log_lt}
+in \path{Mathlib/Data/Int/Log.lean} apply to base $2>1$ and $x>0$.
+\path{Int.odd_iff} and \path{Int.not_even_iff_odd} in
+\path{Mathlib/Algebra/Ring/Int/Parity.lean} identify the two parities,
+also for negative integers. In particular $k+1$ and $k-1$ have
+parity opposite to $k$, by reduction modulo 2.
+\par\endgroup
+
+\paragraph{Orthogonal complements.}\label{facts:312-orthogonal}\uses{}
+\begingroup\raggedright
+\path{stdOrthonormalBasis} in
+\path{Mathlib/Analysis/InnerProductSpace/PiL2.lean}
+gives an orthonormal basis indexed by the finite dimension.
+\path{Submodule.inner_right_of_mem_orthogonal} in
+\path{Mathlib/Analysis/InnerProductSpace/Orthogonal.lean} gives
+$(\Zx,\Zy)=0$ for $\Zx\in W$ and $\Zy\in W^\perp$.
+\path{Orthonormal.inner_eq_zero} in
+\path{Mathlib/Analysis/InnerProductSpace/Orthonormal.lean} gives zero
+inner products at distinct indices of an orthonormal family.
+\path{Submodule.isCompl_orthogonal} and
+\path{Submodule.HasOrthogonalProjection.ofCompleteSpace} in
+\path{Mathlib/Analysis/InnerProductSpace/Projection/Basic.lean}
+give $W+W^\perp=V$. Here $W$ is complete by the theorem
+\path{FiniteDimensional.complete} in
+\path{Mathlib/Topology/Algebra/Module/FiniteDimension.lean}.
+\par\endgroup
+These facts apply to the induced inner product on a subspace, including
+the zero subspace.
+
+\subsection{Representatives and finiteness}
+
+\begin{namedresult}{Lemma}{(representatives of a line)}\label{lem:312-representatives}
+\lean{LineSystem.exists_mem_line_sqNorm_eq}
+\uses{facts:312-inner}
+\assume{$V$ is a real inner product space, $\ell$ is a real subspace,
+$\Zr\in\ell\diff\{0\}$, and $h>0$.}
+\prove{There is $\Zt\in\ell$ with $q(\Zt)=h$.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will rescale the given nonzero vector.
+\step{t312repPositive}{$q(\Zr)>0$.}
+\begin{proof}\pf\ Positive definiteness in the inner-product facts,
+\asm{0}.~\qed\end{proof}
+\pflet{$\Zt=(\sqrt h/\sqrt{q(\Zr)})\Zr$.}
+\step{t312repPick}{$\Zt\in\ell$.}
+\begin{proof}\pf\ The subspace $\ell$ contains $\Zr$ by \asm{0}
+and is closed under real scalar multiplication.~\qed\end{proof}
+\step{t312repNorm}{$q(\Zt)=h$.}
+\begin{proof}\pf\ Bilinearity and the square-root facts give
+$q(\Zt)=h\,q(\Zr)/q(\Zr)=h$, using $h>0$ in \asm{0} and
+\stepref{t312repPositive}.~\qed\end{proof}
+\qedstep
+\begin{proof}\pf\ The witness $\Zt$ satisfies \stepref{t312repPick}
+and \stepref{t312repNorm}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(squared cosine from representatives)}\label{lem:312-squared-cosine}
+\lean{LineSystem.hasSquaredCosine_iff}
+\lean{LineSystem.HasSquaredCosine.unique}
+\uses{def:312-angles,facts:312-inner,facts:312-linear}
+\assume{\begin{pfenum}
+ \item $\ell$ and $m$ are subspaces of dimension one in the
+ real inner product space $V$.
+ \item $\Zr\in\ell\diff\{0\}$ and $\Zs\in m\diff\{0\}$.
+\end{pfenum}}
+\prove{For every $a\in\re$,
+\[
+ \opk{HasSquaredCosine}(\ell,m,a)
+ \ \Longleftrightarrow\ (\Zr,\Zs)^2=a\,q(\Zr)q(\Zs).
+\]
+For all $a,a'\in\re$, if $\opk{HasSquaredCosine}(\ell,m,a)$
+and $\opk{HasSquaredCosine}(\ell,m,a')$, then $a=a'$.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will write vectors on the two lines as scalar multiples
+of their representatives, then cancel their positive squared norms.
+\step{t312repProductPositive}{$q(\Zr)q(\Zs)>0$.}
+\begin{proof}\pf\ Positive definiteness and \asm[2]{0}.~\qed\end{proof}
+\step{t312repForward}{\assume{$a\in\re$ and $\opk{HasSquaredCosine}(\ell,m,a)$.}
+ \prove{$(\Zr,\Zs)^2=a\,q(\Zr)q(\Zs)$.}}
+\begin{proof}\pf\ Substitute \asm[2]{0} in Definition~\hyperref[def:312-angles]{(angles and compatible colourings)}.~\qed\end{proof}
+\step{t312repReverse}{\assume{$a\in\re$ and $(\Zr,\Zs)^2=a\,q(\Zr)q(\Zs)$.}
+ \prove{$\opk{HasSquaredCosine}(\ell,m,a)$.}}
+\begin{proof}
+ \step{t312repMultiples}{For every $\Zx\in\ell$ and $\Zy\in m$ there
+ are $u,v\in\re$ with $\Zx=u\Zr$ and $\Zy=v\Zs$.}
+ \begin{proof}\pf\ Apply the singleton-span facts to each nonzero
+ representative in \asm[2]{0}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Multiply \asm{1} by $u^2v^2$ and use bilinearity
+ with \stepref{t312repMultiples}; this includes $u=0$ or $v=0$.~\qed\end{proof}
+\end{proof}
+\step{t312repUnique}{\assume{$a,a'\in\re$,
+$\opk{HasSquaredCosine}(\ell,m,a)$ and
+$\opk{HasSquaredCosine}(\ell,m,a')$.}\prove{$a=a'$.}}
+\begin{proof}\pf\ Apply \stepref{t312repForward} at $a$ and $a'$.
+The resulting equalities give
+$(a-a')q(\Zr)q(\Zs)=0$; cancel the positive product in
+\stepref{t312repProductPositive}.~\qed\end{proof}
+\qedstep
+\begin{proof}\pf\ Steps \stepref{t312repForward} and \stepref{t312repReverse}
+give the equivalence; \stepref{t312repUnique} gives uniqueness.~\qed\end{proof}
+\end{proof}
+
+For lines, $\opk{HasSquaredCosine}(\ell,m,a)$ with
+$a=0,1/4,1/2$ means the unoriented angle is
+$90^\circ,60^\circ,45^\circ$, respectively. We will use the
+division-free predicate and Lemma~\hyperref[lem:312-squared-cosine]{(squared cosine from representatives)};
+no trigonometric fact is a premise below.
+
+\begin{namedresult}{Lemma}{(inner-product coordinates)}\label{lem:312-coordinates}
+\lean{LineSystem.inner_coordinates_injective}
+\uses{facts:312-inner,facts:312-linear}
+\assume{\begin{pfenum}
+ \item $V$ is a real inner product space, $W$ a real subspace,
+ and $(\Zb_i)_{i\in I}$ a family spanning $W$.
+ \item $\Zx,\Zy\in W$ and $(\Zx,\Zb_i)=(\Zy,\Zb_i)$ for every $i\in I$.
+\end{pfenum}}
+\prove{$\Zx=\Zy$. Equivalently, $\Zx\mapsto((\Zx,\Zb_i))_{i\in I}$ is
+injective on $W$.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will show that the difference is orthogonal to its own span.
+\step{t312coordBasis}{$(\Zx-\Zy,\Zb_i)=0$ for every $i\in I$.}
+\begin{proof}\pf\ Subtract the equalities of \asm[2]{0} by bilinearity.~\qed\end{proof}
+\step{t312coordSpan}{$(\Zx-\Zy,\Zw)=0$ for every $\Zw\in W$.}
+\begin{proof}\pf\ Real span induction from \stepref{t312coordBasis}:
+the assertion holds at zero and is preserved by addition and real
+scalar multiplication, by bilinearity.~\qed\end{proof}
+\step{t312coordSelf}{$q(\Zx-\Zy)=0$.}
+\begin{proof}\pf\ Substitute $\Zw=\Zx-\Zy\in W$ in \stepref{t312coordSpan}.~\qed\end{proof}
+\qedstep
+\begin{proof}\pf\ Positive definiteness applied to \stepref{t312coordSelf}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(finitely many lines)}\label{lem:312-finite}
+\lean{LineSystem.finite_of_hasAllowedAngles}
+\uses{def:312-angles,lem:312-representatives,lem:312-coordinates,facts:312-inner,facts:312-linear,facts:312-finite,facts:312-arithmetic}
+\assume{\begin{pfenum}
+ \item $V$ is a finite-dimensional real inner product space and
+ $S$ is a set of subspaces of dimension one.
+ \item $\opk{HasAllowedAngles}(S)$.
+\end{pfenum}}
+\prove{$S$ is finite.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will encode all unit representatives by their inner
+products with a finite spanning family chosen from those representatives.
+\pflet{\[
+\begin{gathered}
+U=\{\Zx:\exists\ell\in S,\ \Zx\in\ell\text{ and }q(\Zx)=1\},
+\qquad W=\opk{span}_{\re}U,\\
+\Theta=\{-1,-1/\sqrt2,-1/2,0,1/2,1/\sqrt2,1\}.
+\end{gathered}
+\]}
+\step{t312finiteBasis}{\pick\ a finite family $(\Zb_i)_{i\in I}$ spanning $W$
+with every $\Zb_i\in U$.}
+\begin{proof}\pf\ The independent-subset and finite-dimensional facts
+in \hyperref[facts:312-linear]{Spans and finite-dimensional linear algebra}, applied to $U$, give this family. The index set
+is empty if $U$ is empty.~\qed\end{proof}
+\step{t312finiteValues}{For every $\Zx\in U$ and $i\in I$,
+$(\Zx,\Zb_i)\in\Theta$.}
+\begin{proof}
+ \step{t312finiteLines}{\pick\ $\ell,m\in S$ with $\Zx\in\ell$,
+ $\Zb_i\in m$, and $q(\Zx)=q(\Zb_i)=1$.}
+ \begin{proof}\pf\ The definition of $U$ and \stepref{t312finiteBasis}.~\qed\end{proof}
+ \pflet{$p=(\Zx,\Zb_i)$.}
+ \step{t312finiteSame}{\case{$\ell=m$.}\prove{$p\in\{-1,1\}$.}}
+ \begin{proof}
+  \step{t312finiteScalar}{There is $t\in\re$ with $\Zx=t\Zb_i$ and $t^2=1$.}
+  \begin{proof}\pf\ The singleton-span facts give the scalar; the two
+  unit norms give its square by bilinearity.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Factor $t^2-1$ in \stepref{t312finiteScalar};
+  then $p=t\in\{-1,1\}$.~\qed\end{proof}
+ \end{proof}
+ \step{t312finiteDistinct}{\case{$\ell\ne m$.}\prove{$p\in\Theta$.}}
+ \begin{proof}
+  \step{t312finiteSquare}{$p^2\in\{0,1/4,1/2\}$.}
+  \begin{proof}\pf\ Substitute the unit representatives in
+  \asm[2]{0}, using Definition~\hyperref[def:312-angles]{(angles and compatible colourings)}.~\qed\end{proof}
+  \step{t312finiteZero}{\case{$p^2=0$.}\prove{$p=0$.}}
+  \begin{proof}\pf\ A real square is zero only at zero.~\qed\end{proof}
+  \step{t312finiteQuarter}{\case{$p^2=1/4$.}\prove{$p\in\{-1/2,1/2\}$.}}
+  \begin{proof}\pf\ Factor $(p-1/2)(p+1/2)=0$.~\qed\end{proof}
+  \step{t312finiteHalf}{\case{$p^2=1/2$.}\prove{$p\in\{-1/\sqrt2,1/\sqrt2\}$.}}
+  \begin{proof}\pf\ The square-root facts give $(1/\sqrt2)^2=1/2$;
+  factor $(p-1/\sqrt2)(p+1/\sqrt2)=0$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{t312finiteSquare} makes
+  \stepref{t312finiteZero}, \stepref{t312finiteQuarter}, and
+  \stepref{t312finiteHalf} exhaustive.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The lines are equal or distinct; apply
+ \stepref{t312finiteSame} and \stepref{t312finiteDistinct}.~\qed\end{proof}
+\end{proof}
+\step{t312finiteU}{$U$ is finite.}
+\begin{proof}\pf\ By Lemma~\hyperref[lem:312-coordinates]{(inner-product coordinates)} and
+\stepref{t312finiteBasis}, the coordinate map is injective on $U\sbs W$.
+Step \stepref{t312finiteValues} puts its image in the finite set
+$\Theta^I$; use the finite-set facts in \hyperref[facts:312-finite]{Finite sets and cardinalities}.~\qed\end{proof}
+\step{t312finiteOnto}{$\{\re\Zx:\Zx\in U\}=S$.}
+\begin{proof}
+ \step{t312finiteImage}{For $\Zx\in U$, $\re\Zx\in S$.}
+ \begin{proof}\pf\ The witness line in the definition of $U$ equals
+ $\re\Zx$ by the singleton-span facts, since $q(\Zx)=1$.~\qed\end{proof}
+ \step{t312finiteSurj}{For $\ell\in S$, some $\Zx\in U$ satisfies $\ell=\re\Zx$.}
+ \begin{proof}\pf\ A nonzero generator exists by the dimension-one
+ facts. Lemma~\hyperref[lem:312-representatives]{(representatives of a line)}, with $h=1$, normalizes it;
+ the singleton-span facts identify its line.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The two inclusions are \stepref{t312finiteImage}
+ and \stepref{t312finiteSurj}.~\qed\end{proof}
+\end{proof}
+\qedstep
+\begin{proof}\pf\ The image of the finite set in \stepref{t312finiteU}
+is finite; use \stepref{t312finiteOnto}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(a bounded part of an integer span)}\label{lem:312-integer-span}
+\lean{LineSystem.inner_int_of_mem_intSpan}
+\lean{LineSystem.inner_even_of_mem_intSpan}
+\lean{LineSystem.finite_bounded_intSpan}
+\uses{lem:312-coordinates,facts:312-inner,facts:312-linear,facts:312-finite,facts:312-arithmetic}
+\assume{\begin{pfenum}
+ \item $V$ is a finite-dimensional real inner product space and $T\sbs V$ is finite.
+ \item $q(\Zt)\in\{2,4\}$ for $\Zt\in T$, and
+ $(\Zt,\Zu)\in\ints$ for $\Zt,\Zu\in T$.
+\end{pfenum}}
+\pflet{$L=\opk{span}_{\ints}T$, $W=\opk{span}_{\re}T$,
+$B=\{\Zx\in L:q(\Zx)\leq4\}$.}
+\prove{\begin{pfenum}
+ \item $L\sbs W$, and $(\Zx,\Zy)\in\ints$ for all $\Zx,\Zy\in L$.
+ \item For every $\Zt\in T$ such that $(\Zt,\Zu)\in2\ints$ for all
+ $\Zu\in T$, we have $(\Zt,\Zx)\in2\ints$ for all $\Zx\in L$.
+ \item $B$ is finite.
+\end{pfenum}}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ \new\ We will expand integer combinations and use bounded
+inner-product coordinates against $T$ itself. This simplifies the
+ordinary draft's basis argument; no independence of $T$ is assumed.
+\step{t312intSums}{Every $\Zx\in L$ has an expression
+$\Zx=\sum_{\Zt\in T}a(\Zt)\Zt$ with $a:T\to\ints$.}
+\begin{proof}\pf\ Apply the finite-span formula in
+\hyperref[facts:312-linear]{Spans and finite-dimensional linear algebra} over $\ints$ to the inclusion $T\to V$.~\qed\end{proof}
+\step{t312intReal}{$L\sbs W$.}
+\begin{proof}\pf\ Cast the integer coefficients in
+\stepref{t312intSums} to real coefficients.~\qed\end{proof}
+\step{t312intPair}{For all $\Zx,\Zy\in L$, $(\Zx,\Zy)\in\ints$.}
+\begin{proof}
+ \step{t312intExpand}{For coefficients $a,b:T\to\ints$,
+ \[
+ \left(\sum_{\Zt\in T}a(\Zt)\Zt,\sum_{\Zu\in T}b(\Zu)\Zu\right)
+ =\sum_{\Zt,\Zu\in T}a(\Zt)b(\Zu)(\Zt,\Zu).
+ \]}
+ \begin{proof}\pf\ Bilinearity, iterated over the two finite sums.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Each summand in \stepref{t312intExpand} is an integer
+ by \asm[2]{0}; use \stepref{t312intSums} and closure under finite sums.~\qed\end{proof}
+\end{proof}
+\step{t312intEven}{\assume{$\Zt\in T$ and $(\Zt,\Zu)\in2\ints$ for every $\Zu\in T$.}
+ \prove{$(\Zt,\Zx)\in2\ints$ for every $\Zx\in L$.}}
+\begin{proof}\pf\ Bilinearity and \stepref{t312intSums} give
+$(\Zt,\Zx)=\sum_{\Zu\in T}a(\Zu)(\Zt,\Zu)$; every summand is even by
+\asm{1}, so the sum is even.~\qed\end{proof}
+\step{t312intBound}{For $\Zx\in B$ and $\Zt\in T$,
+$(\Zx,\Zt)\in\{-4,-3,\ldots,4\}$.}
+\begin{proof}
+ \step{t312intCS}{$(\Zx,\Zt)^2\leq16$.}
+ \begin{proof}\pf\ Cauchy--Schwarz in \hyperref[facts:312-inner]{Inner products and square roots} gives
+ $(\Zx,\Zt)^2\leq q(\Zx)q(\Zt)\leq4\cdot4$,
+ by the definition of $B$, $\Zt\in T$, and \asm[2]{0}.~\qed\end{proof}
+ \step{t312intDiscrete}{$(\Zx,\Zt)\in\ints$.}
+ \begin{proof}\pf\ Step \stepref{t312intPair}, since $\Zx\in L$ and
+ $\Zt\in T\sbs L$ by \path{Submodule.subset_span}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ An integer whose square is at most 16 lies between
+ $-4$ and 4; apply \stepref{t312intCS} and \stepref{t312intDiscrete}.~\qed\end{proof}
+\end{proof}
+\step{t312intFinite}{$B$ is finite.}
+\begin{proof}\pf\ The family indexed by $T$ spans $W$ by definition.
+Lemma~\hyperref[lem:312-coordinates]{(inner-product coordinates)} makes
+$\Zx\mapsto((\Zx,\Zt))_{\Zt\in T}$ injective on $W$, which contains
+$B$ by \stepref{t312intReal}. Step \stepref{t312intBound} puts its
+image in the finite function set $\{-4,-3,\ldots,4\}^{T}$, since
+$T$ is finite by \asm[1]{0}. Apply \path{Set.Finite.of_injOn}.~\qed\end{proof}
+\qedstep
+\begin{proof}\pf\ Steps \stepref{t312intReal}, \stepref{t312intPair},
+\stepref{t312intEven}, and \stepref{t312intFinite}. For $T=\varnothing$
+the same proof uses the empty coordinate family and gives $B=\{0\}$.~\qed\end{proof}
+\end{proof}
+
+\subsection{The explicit construction}
+
+\begin{namedresult}{Lemma}{(reflection adjointness)}\label{lem:312-reflection}
+\lean{IsRootSet.reflection_self_adjoint}
+\uses{lem:rem-reflection}
+\assume{$V$ is a real inner product space and $\Zr\in V\diff\{0\}$.}
+\prove{For all $\Zx,\Zy\in V$,
+$(\tau_{\Zr}\Zx,\Zy)=(\Zx,\tau_{\Zr}\Zy)$.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will use the metric identity and involution in
+Lemma~\hyperref[lem:rem-reflection]{(reflection identities)}.
+\step{t312reflAdjoint}{$(\tau_{\Zr}\Zx,\Zy)=(\Zx,\tau_{\Zr}\Zy)$ for all $\Zx,\Zy\in V$.}
+\begin{proof}\pf\ Apply the metric identity in Lemma~\hyperref[lem:rem-reflection]{(reflection identities)}
+to $\Zx,\tau_{\Zr}\Zy$; its involution identity changes the left side to
+$(\tau_{\Zr}\Zx,\Zy)$. Its nonzero hypothesis is \asm{0}.~\qed\end{proof}
+\qedstep
+\begin{proof}\pf\ Step \stepref{t312reflAdjoint}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(integral proportional vectors)}\label{lem:312-proportional}
+\lean{LineSystem.eq_one_or_neg_one_of_integral_proportional}
+\uses{facts:312-inner,facts:312-arithmetic}
+\assume{\begin{pfenum}
+ \item $V$ is a real inner product space, $\Zr,\Zs\in V$,
+ and $q(\Zr),q(\Zs)\in\{2,4\}$.
+ \item $(\Zr,\Zs)\in\ints$ and $\Zs=t\Zr$ for $t\in\re$.
+\end{pfenum}}
+\prove{$t=1$ or $t=-1$.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ \new\ We will use $t^2=1$ for equal lengths. For unequal
+lengths the integer inner product would have square 8, simplifying
+the ordinary draft's irrational-square-root argument.
+\step{t312propNorm}{$q(\Zs)=t^2q(\Zr)$.}
+\begin{proof}\pf\ Bilinearity and $\Zs=t\Zr$ in \asm[2]{0}.~\qed\end{proof}
+\step{t312propEqual}{\case{$q(\Zr)=q(\Zs)$.}\prove{$t\in\{1,-1\}$.}}
+\begin{proof}\pf\ Divide \stepref{t312propNorm} by $q(\Zr)>0$ and
+factor $t^2-1$.~\qed\end{proof}
+\step{t312propSquare}{$(\Zr,\Zs)^2=q(\Zr)q(\Zs)$.}
+\begin{proof}\pf\ Bilinearity gives $(\Zr,\Zs)=tq(\Zr)$.
+Square this equality and substitute \stepref{t312propNorm}.~\qed\end{proof}
+\step{t312propUnequal}{\case{$q(\Zr)\ne q(\Zs)$.}\prove{False.}}
+\begin{proof}
+ \step{t312propSquareEight}{$(\Zr,\Zs)^2=8$.}
+ \begin{proof}\pf\ The two unequal members of $\{2,4\}$ in \asm[1]{0}
+ have product 8; substitute in \stepref{t312propSquare}.~\qed\end{proof}
+ \step{t312propInteger}{\pick\ $z\in\ints$ with $(\Zr,\Zs)=z$.}
+ \begin{proof}\pf\ Integrality in \asm[2]{0}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{t312propSquareEight} and
+ \stepref{t312propInteger} give $z^2=8$. Thus $4<|z|^2<9$, so
+ $2<|z|<3$, impossible for an integer.~\qed\end{proof}
+\end{proof}
+\qedstep
+\begin{proof}\pf\ Equality or inequality of the squared lengths gives
+\stepref{t312propEqual} or \stepref{t312propUnequal}.
+The unequal-length case is impossible.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Proposition}{(the integer-span Root System)}\label{prop:312-rootset}
+\lean{LineSystem.isRootSet_integralSpanRoots}
+\uses{def:3.9,def:312-integral-roots,lem:312-integer-span,lem:rem-reflection,lem:312-reflection,lem:312-proportional,facts:312-inner,facts:312-linear,facts:312-finite,facts:312-arithmetic}
+\assume{\begin{pfenum}
+ \item $V$ is a finite-dimensional real inner product space,
+ $T\sbs V$ is finite, and $\opk{span}_{\re}T=V$.
+ \item $q(\Zt)\in\{2,4\}$ for every $\Zt\in T$.
+ \item $(\Zt,\Zu)\in\ints$ for every $\Zt,\Zu\in T$.
+ \item If $\Zt\in T$ and $q(\Zt)=4$, then $(\Zt,\Zu)\in2\ints$
+ for every $\Zu\in T$.
+\end{pfenum}}
+\prove{$\opk{IsRootSet}(\Psi(T))$, $T\sbs\Psi(T)$, and
+$q(\Zr)\in\{2,4\}$ for every $\Zr\in\Psi(T)$.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ \repair\ This fills part of Gap 11. The explicit set in
+Definition~\hyperref[def:312-integral-roots]{(the integer-span construction)} replaces a reflection closure,
+which would need stages, a union and a leastness argument.
+We will check each Root System
+requirement, keeping the evenness condition invariant under reflection.
+\pflet{$L=\opk{span}_{\ints}T$ and $\Psi=\Psi(T)$.}
+\step{t312psiLengths}{$\Psi\sbs L$, every $\Zr\in\Psi$ has
+$q(\Zr)\in\{2,4\}$, and $0\notin\Psi$.}
+\begin{proof}\pf\ Definition~\hyperref[def:312-integral-roots]{(the integer-span construction)} and $q(0)=0$.~\qed\end{proof}
+\step{t312psiSeeds}{$T\sbs\Psi$.}
+\begin{proof}
+ \step{t312psiSeedShort}{\assume{$\Zt\in T$ and $q(\Zt)=2$.}\prove{$\Zt\in\Psi$.}}
+ \begin{proof}\pf\ By \path{Submodule.subset_span}, $T\sbs L$.
+ The membership and length in \asm{2} give the first clause of
+ Definition~\hyperref[def:312-integral-roots]{(the integer-span construction)}.~\qed\end{proof}
+ \step{t312psiSeedLong}{\assume{$\Zt\in T$ and $q(\Zt)=4$.}\prove{$\Zt\in\Psi$.}}
+ \begin{proof}
+  \step{t312psiSeedEven}{$(\Zt,\Zx)\in2\ints$ for every $\Zx\in L$.}
+  \begin{proof}\pf\ Lemma~\hyperref[lem:312-integer-span]{(a bounded part of an integer span)}, part 2,
+  applied with \asm[1]{0}, \asm[2]{0}, and \asm[3]{0};
+  the vector belongs to $T$ and has squared norm 4 by \asm{2},
+  so \asm[4]{0} supplies its even pairings with $T$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The second clause of Definition~\hyperref[def:312-integral-roots]{(the integer-span construction)}
+  follows from $\Zt\in L$, the case length, and \stepref{t312psiSeedEven}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Hypothesis \asm[2]{0} makes
+ \stepref{t312psiSeedShort} and \stepref{t312psiSeedLong} exhaustive.~\qed\end{proof}
+\end{proof}
+\step{t312psiFinite}{$\Psi$ is finite.}
+\begin{proof}\pf\ By \stepref{t312psiLengths}, it is contained in
+$\{\Zx\in L:q(\Zx)\leq4\}$, finite by part 3 of
+Lemma~\hyperref[lem:312-integer-span]{(a bounded part of an integer span)} with \asm[1]{0}, \asm[2]{0}, and
+\asm[3]{0}. Apply \path{Set.Finite.subset}.~\qed\end{proof}
+\step{t312psiSpan}{$\opk{span}_{\re}\Psi=V$.}
+\begin{proof}\pf\ \path{Submodule.span_mono}, \stepref{t312psiSeeds}, and \asm[1]{0}.~\qed\end{proof}
+\step{t312psiCoefficient}{For $\Zr\in\Psi$ and $\Zx\in L$,
+$2(\Zr,\Zx)/q(\Zr)\in\ints$.}
+\begin{proof}
+ \step{t312psiCoeffShort}{\case{$q(\Zr)=2$.}}
+ \begin{proof}\pf\ The coefficient is $(\Zr,\Zx)$, an integer by
+ Lemma~\hyperref[lem:312-integer-span]{(a bounded part of an integer span)} and \stepref{t312psiLengths}.~\qed\end{proof}
+ \step{t312psiCoeffLong}{\case{$q(\Zr)=4$.}}
+ \begin{proof}\pf\ The coefficient is $(\Zr,\Zx)/2$, an integer by the
+ evenness clause of Definition~\hyperref[def:312-integral-roots]{(the integer-span construction)}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{t312psiLengths} makes
+ \stepref{t312psiCoeffShort} and \stepref{t312psiCoeffLong} exhaustive.~\qed\end{proof}
+\end{proof}
+\step{t312psiLattice}{For $\Zr\in\Psi$ and $\Zx\in L$, $\tau_{\Zr}\Zx\in L$.}
+\begin{proof}\pf\ Step \stepref{t312psiCoefficient} gives an integer $z$
+equal to the reflection coefficient. By \path{Int.cast_smul_eq_zsmul},
+the term $(z:\re)\Zr$ is the integer multiple $z\Zr$.
+Step \stepref{t312psiLengths} puts $\Zr$ in $L$; the integer submodule
+$L$ is closed under integer multiples and subtraction.~\qed\end{proof}
+\step{t312psiClosed}{For $\Zr,\Zs\in\Psi$, $\tau_{\Zr}\Zs\in\Psi$.}
+\begin{proof}
+ \pflet{$\Zu=\tau_{\Zr}\Zs$.}
+ \step{t312psiImageNorm}{$\Zu\in L$ and $q(\Zu)=q(\Zs)$.}
+ \begin{proof}\pf\ Step \stepref{t312psiLattice} and
+ the metric identity of Lemma~\hyperref[lem:rem-reflection]{(reflection identities)} at
+ $\Zs,\Zs$, using the nonzero assertion in \stepref{t312psiLengths}.~\qed\end{proof}
+ \step{t312psiImageShort}{\case{$q(\Zs)=2$.}\prove{$\Zu\in\Psi$.}}
+ \begin{proof}\pf\ The first clause of Definition~\hyperref[def:312-integral-roots]{(the integer-span construction)},
+ with \stepref{t312psiImageNorm}.~\qed\end{proof}
+ \step{t312psiImageLong}{\case{$q(\Zs)=4$.}\prove{$\Zu\in\Psi$.}}
+ \begin{proof}
+  \step{t312psiImageEven}{For every $\Zx\in L$, $(\Zu,\Zx)\in2\ints$.}
+  \begin{proof}\pf\ Lemma~\hyperref[lem:312-reflection]{(reflection adjointness)} gives
+  $(\Zu,\Zx)=(\Zs,\tau_{\Zr}\Zx)$. This is even by the long-root
+  clause for $\Zs$ and \stepref{t312psiLattice}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Apply the second clause of
+  Definition~\hyperref[def:312-integral-roots]{(the integer-span construction)} to \stepref{t312psiImageNorm}
+  and \stepref{t312psiImageEven}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{t312psiLengths} makes
+ \stepref{t312psiImageShort} and \stepref{t312psiImageLong} exhaustive.~\qed\end{proof}
+\end{proof}
+\step{t312psiReduced}{For $\Zr,t\Zr\in\Psi$, $t\in\{1,-1\}$.}
+\begin{proof}\pf\ Apply Lemma~\hyperref[lem:312-proportional]{(integral proportional vectors)}; its length
+hypotheses are \stepref{t312psiLengths}, and its inner-product hypothesis
+is part 1 of Lemma~\hyperref[lem:312-integer-span]{(a bounded part of an integer span)}, applied with
+\asm[1]{0}, \asm[2]{0}, and \asm[3]{0} and the inclusion
+$\Psi\sbs L$ from \stepref{t312psiLengths}.~\qed\end{proof}
+\qedstep
+\begin{proof}\pf\ Definition~\hyperref[def:3.9]{3.9} has six requirements:
+\stepref{t312psiFinite}, \stepref{t312psiLengths}, \stepref{t312psiSpan},
+\stepref{t312psiCoefficient} restricted to $\Psi\sbs L$,
+\stepref{t312psiReduced}, and \stepref{t312psiClosed} supply them.
+The additional conclusions are \stepref{t312psiSeeds} and \stepref{t312psiLengths}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(completion of the seeds)}\label{lem:312-completion}
+\lean{LineSystem.exists_spanning_integral_seed_extension}
+\uses{facts:312-inner,facts:312-linear,facts:312-finite,facts:312-arithmetic,facts:312-orthogonal}
+\assume{\begin{pfenum}
+ \item $V$ is a finite-dimensional real inner product space and $T\sbs V$ is finite.
+ \item $q(\Zt)\in\{2,4\}$ for every $\Zt\in T$.
+ \item $(\Zt,\Zu)\in\ints$ for every $\Zt,\Zu\in T$.
+ \item If $\Zt\in T$ and $q(\Zt)=4$, then $(\Zt,\Zu)\in2\ints$
+ for every $\Zu\in T$.
+\end{pfenum}}
+\prove{There is a finite set $T'\sps T$ spanning $V$ with
+$q(\Zt)\in\{2,4\}$ for $\Zt\in T'$, all inner products in $T'$
+integral, and $(\Zt,\Zu)\in2\ints$ whenever
+$\Zt,\Zu\in T'$ and $q(\Zt)=4$.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will add scaled orthonormal vectors of the orthogonal
+complement. The diagonal inner product of a new vector is 2.
+\pflet{$W=\opk{span}_{\re}T$.}
+\step{t312completeBasis}{\pick\ a finite orthonormal basis
+$(\Ze_i)_{i\in I}$ of $W^\perp$, viewed in $V$.}
+\begin{proof}\pf\ The orthogonal-complement facts in
+\hyperref[facts:312-orthogonal]{Orthogonal complements}.~\qed\end{proof}
+\pflet{$\Zu_i=\sqrt2\Ze_i$, $E=\{\Zu_i:i\in I\}$, and $T'=T\cup E$.}
+\step{t312completeNorm}{$q(\Zu_i)=2$ for every $i\in I$.}
+\begin{proof}\pf\ Orthonormality in \stepref{t312completeBasis} and
+bilinearity with $(\sqrt2)^2=2$.~\qed\end{proof}
+\step{t312completePairs}{All inner products in $T'$ are integers.}
+\begin{proof}
+ \step{t312completeOldOld}{\assume{$\Zt,\Zu\in T$.}\prove{$(\Zt,\Zu)\in\ints$.}}
+ \begin{proof}\pf\ Hypothesis \asm[3]{0}.~\qed\end{proof}
+ \step{t312completeOldNew}{\assume{$\Zt\in T$ and $i\in I$.}\prove{$(\Zt,\Zu_i)=0$.}}
+ \begin{proof}\pf\ Here $\Zt\in W$ and $\Ze_i\in W^\perp$ by
+ \stepref{t312completeBasis}; \path{Submodule.subset_span} gives the
+ first membership. Apply \path{Submodule.inner_right_of_mem_orthogonal}
+ and multiply the zero inner product by $\sqrt2$.~\qed\end{proof}
+ \step{t312completeNewOld}{\assume{$\Zt\in T$ and $i\in I$.}\prove{$(\Zu_i,\Zt)=0$.}}
+ \begin{proof}\pf\ Symmetry and \stepref{t312completeOldNew}.~\qed\end{proof}
+ \step{t312completeNewDiagonal}{\assume{$i\in I$.}\prove{$(\Zu_i,\Zu_i)=2$.}}
+ \begin{proof}\pf\ Step \stepref{t312completeNorm}.~\qed\end{proof}
+ \step{t312completeNewDistinct}{\assume{$i,j\in I$ and $i\ne j$.}\prove{$(\Zu_i,\Zu_j)=0$.}}
+ \begin{proof}\pf\ Apply \path{Orthonormal.inner_eq_zero} to
+ \stepref{t312completeBasis} and $i\ne j$ in \asm{2};
+ bilinearity preserves zero after scaling.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Membership in $T\cup E$ gives the old/old,
+ old/new, new/old, and new/new possibilities. The last splits into
+ equal and distinct indices. The preceding five steps give integers
+ in every case.~\qed\end{proof}
+\end{proof}
+\step{t312completeEven}{For $\Zt,\Zu\in T'$ with $q(\Zt)=4$,
+$(\Zt,\Zu)\in2\ints$.}
+\begin{proof}
+ \step{t312completeLongOld}{$\Zt\in T$.}
+ \begin{proof}\pf\ Step \stepref{t312completeNorm} excludes $\Zt\in E$;
+ use $\Zt\in T\cup E$.~\qed\end{proof}
+ \step{t312completeEvenOld}{\case{$\Zu\in T$.}}
+ \begin{proof}\pf\ Hypothesis \asm[4]{0} and \stepref{t312completeLongOld}.~\qed\end{proof}
+ \step{t312completeEvenNew}{\case{$\Zu\in E$.}}
+ \begin{proof}\pf\ Step \stepref{t312completeLongOld} and
+ \path{Submodule.subset_span} put $\Zt$ in $W$.
+ The definition of $E$ puts $\Zu$ in $W^\perp$.
+ The inner product is zero by
+ \path{Submodule.inner_right_of_mem_orthogonal}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The two cases cover $\Zu\in T\cup E$.~\qed\end{proof}
+\end{proof}
+\step{t312completeSpan}{$\opk{span}_{\re}T'=V$.}
+\begin{proof}
+ \step{t312completeW}{$W\sbs\opk{span}_{\re}T'$.}
+ \begin{proof}\pf\ \path{Submodule.span_mono} and $T\sbs T'$.~\qed\end{proof}
+ \step{t312completePerp}{$W^\perp\sbs\opk{span}_{\re}T'$.}
+ \begin{proof}\pf\ Since $\sqrt2\ne0$, each basis vector is
+ $\Ze_i=(1/\sqrt2)\Zu_i\in\opk{span}_{\re}T'$.
+ The basis in \stepref{t312completeBasis} spans $W^\perp$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The orthogonal decomposition $W+W^\perp=V$,
+ with \stepref{t312completeW} and \stepref{t312completePerp}.~\qed\end{proof}
+\end{proof}
+\qedstep
+\begin{proof}\pf\ The set $E$ is a finite image of $I$, so $T'$ is
+finite and contains $T$. The lengths follow from \asm[2]{0} and
+\stepref{t312completeNorm}; the other properties are
+\stepref{t312completePairs}, \stepref{t312completeEven}, and
+\stepref{t312completeSpan}. The construction allows an empty basis.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(seeds from a colouring)}\label{lem:312-seeds}
+\lean{LineSystem.exists_integral_seeds_of_hasBipartition}
+\uses{def:312-angles,def:312-root-lines,lem:312-representatives,lem:312-finite,facts:312-inner,facts:312-linear,facts:312-finite,facts:312-arithmetic}
+\assume{\begin{pfenum}
+ \item $V$ is a finite-dimensional real inner product space,
+ and $S$ is a set of subspaces of dimension one.
+ \item $\opk{HasBipartition}(S)$.
+\end{pfenum}}
+\pflet{$W=\opk{span}_{\re}(\bigcup_{\ell\in S}\ell)$.}
+\prove{There is a finite set $T\sbs V$ such that
+\begin{pfenum}
+ \item $\cL(T)=S$ and $\opk{span}_{\re}T=W$;
+ \item $q(\Zt)\in\{2,4\}$ for every $\Zt\in T$;
+ \item $(\Zt,\Zu)\in\ints$ for every $\Zt,\Zu\in T$; and
+ \item $(\Zt,\Zu)\in2\ints$ whenever $\Zt,\Zu\in T$ and $q(\Zt)=4$.
+\end{pfenum}}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will give the two colour classes squared lengths 2 and 4
+and check each ordered pair of colours.
+\step{t312seedsColour}{\pick\ a compatible colouring $b:S\to\mathrm{Bool}$.}
+\begin{proof}\pf\ Hypothesis \asm[2]{0} and Definition~\hyperref[def:312-angles]{(angles and compatible colourings)}.~\qed\end{proof}
+\step{t312seedsAllowed}{$\opk{HasAllowedAngles}(S)$ and $S$ is finite.}
+\begin{proof}
+ \step{t312seedsEqualColour}{\assume{$\ell,m\in S$, $\ell\ne m$ and $b(\ell)=b(m)$.}
+ \prove{There is $a\in\{0,1/4,1/2\}$ with
+ $\opk{HasSquaredCosine}(\ell,m,a)$.}}
+ \begin{proof}\pf\ The equal-colour clause of \stepref{t312seedsColour}
+ gives a parameter in $\{0,1/4\}$ with the required predicate.~\qed\end{proof}
+ \step{t312seedsDifferentColour}{\assume{$\ell,m\in S$, $\ell\ne m$ and $b(\ell)\ne b(m)$.}
+ \prove{There is $a\in\{0,1/4,1/2\}$ with
+ $\opk{HasSquaredCosine}(\ell,m,a)$.}}
+ \begin{proof}\pf\ The different-colour clause of \stepref{t312seedsColour}
+ gives a parameter in $\{0,1/2\}$ with the required predicate.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Equality or inequality of the colours exhausts all
+ pairs. Definition~\hyperref[def:312-angles]{(angles and compatible colourings)} gives allowed angles, and
+ Lemma~\hyperref[lem:312-finite]{(finitely many lines)} gives finiteness.~\qed\end{proof}
+\end{proof}
+\step{t312seedsChoose}{\pick\ $\Zt_\ell\in\ell$ for every $\ell\in S$, with
+$q(\Zt_\ell)=2$ when $b(\ell)=\mathrm{false}$ and
+$q(\Zt_\ell)=4$ when $b(\ell)=\mathrm{true}$.}
+\begin{proof}\pf\ Choose a nonzero generator by the dimension-one facts,
+then apply Lemma~\hyperref[lem:312-representatives]{(representatives of a line)} with $h=2$ or $h=4$.
+Choice on the empty set gives the empty family.~\qed\end{proof}
+\pflet{$T=\{\Zt_\ell:\ell\in S\}$.}
+\step{t312seedsLines}{$T$ is finite, $\cL(T)=S$, and
+$\opk{span}_{\re}T=W$.}
+\begin{proof}
+ \step{t312seedsFinite}{$T$ is finite.}
+ \begin{proof}\pf\ It is an image of the finite set in \stepref{t312seedsAllowed}.~\qed\end{proof}
+ \step{t312seedsLineEq}{$\re\Zt_\ell=\ell$ for every $\ell\in S$.}
+ \begin{proof}\pf\ Step \stepref{t312seedsChoose} gives a nonzero member;
+ use the singleton-span facts in \hyperref[facts:312-linear]{Spans and finite-dimensional linear algebra}.~\qed\end{proof}
+ \step{t312seedsSpanForward}{$\opk{span}_{\re}T\sbs W$.}
+ \begin{proof}\pf\ Every seed belongs to its line in $S$ by
+ \stepref{t312seedsChoose}; use the definition of $W$ and \path{Submodule.span_mono}.~\qed\end{proof}
+ \step{t312seedsSpanReverse}{$W\sbs\opk{span}_{\re}T$.}
+ \begin{proof}\pf\ Step \stepref{t312seedsLineEq} puts every line in
+ $S$ in the span of $T$, by \path{Submodule.subset_span}
+ and \path{Submodule.span_le}. Apply \path{Submodule.span_le}
+ again to their union.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Definition~\hyperref[def:312-root-lines]{(lines of a vector set)} and
+ \stepref{t312seedsLineEq} give $\cL(T)=S$. The other assertions are
+ \stepref{t312seedsFinite}, \stepref{t312seedsSpanForward}, and
+ \stepref{t312seedsSpanReverse}.~\qed\end{proof}
+\end{proof}
+\step{t312seedsPairs}{For $\ell,m\in S$, $(\Zt_\ell,\Zt_m)$ is an integer,
+and is even if $q(\Zt_\ell)=4$.}
+\begin{proof}
+ \pflet{$p=(\Zt_\ell,\Zt_m)$.}
+ \step{t312seedsDiagonal}{\case{$\ell=m$.}}
+ \begin{proof}\pf\ Step \stepref{t312seedsChoose} gives $p=2$ or $p=4$;
+ both are even integers.~\qed\end{proof}
+ \step{t312seedsFF}{\case{$\ell\ne m$ and $b(\ell)=b(m)=\mathrm{false}$.}}
+ \begin{proof}
+  \step{t312seedsFFSquare}{$p^2\in\{0,1\}$.}
+  \begin{proof}\pf\ The norms in \stepref{t312seedsChoose} have product
+  4; substitute them in the equal-colour clause of \stepref{t312seedsColour}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Factoring the two possible square equations in
+  \stepref{t312seedsFFSquare} gives $p\in\{0,1,-1\}$.
+  The evenness implication has false hypothesis, since $q(\Zt_\ell)=2$.~\qed\end{proof}
+ \end{proof}
+ \step{t312seedsTT}{\case{$\ell\ne m$ and $b(\ell)=b(m)=\mathrm{true}$.}}
+ \begin{proof}
+  \step{t312seedsTTSquare}{$p^2\in\{0,4\}$.}
+  \begin{proof}\pf\ The norms in \stepref{t312seedsChoose} have product
+  16; use the equal-colour clause of \stepref{t312seedsColour}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Factoring the square equations in
+  \stepref{t312seedsTTSquare} gives $p\in\{0,2,-2\}$, all even integers.~\qed\end{proof}
+ \end{proof}
+ \step{t312seedsFT}{\case{$\ell\ne m$, $b(\ell)=\mathrm{false}$ and $b(m)=\mathrm{true}$.}}
+ \begin{proof}
+  \step{t312seedsFTSquare}{$p^2\in\{0,4\}$.}
+  \begin{proof}\pf\ The norms have product 8 by \stepref{t312seedsChoose};
+  use the different-colour clause of \stepref{t312seedsColour}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Factoring \stepref{t312seedsFTSquare} gives
+  $p\in\{0,2,-2\}$, all even integers.~\qed\end{proof}
+ \end{proof}
+ \step{t312seedsTF}{\case{$\ell\ne m$, $b(\ell)=\mathrm{true}$ and $b(m)=\mathrm{false}$.}}
+ \begin{proof}
+  \step{t312seedsTFSquare}{$p^2\in\{0,4\}$.}
+  \begin{proof}\pf\ The norms have product 8 by \stepref{t312seedsChoose};
+  use the different-colour clause of \stepref{t312seedsColour}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Factoring \stepref{t312seedsTFSquare} gives
+  $p\in\{0,2,-2\}$, all even integers.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The diagonal and the four ordered Boolean pairs
+ exhaust the possibilities, as in \stepref{t312seedsDiagonal},
+ \stepref{t312seedsFF}, \stepref{t312seedsTT}, \stepref{t312seedsFT},
+ and \stepref{t312seedsTF}.~\qed\end{proof}
+\end{proof}
+\qedstep
+\begin{proof}\pf\ Step \stepref{t312seedsLines} supplies part 1 and
+finiteness; \stepref{t312seedsChoose} supplies part 2; and
+\stepref{t312seedsPairs} supplies parts 3 and 4 on the image $T$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Corollary}{(normalized containment)}\label{cor:312-containment}
+\lean{LineSystem.exists_rootSet_of_hasBipartition}
+\lean{LineSystem.exists_rootSet_in_span_of_hasBipartition}
+\uses{def:3.9,def:312-angles,def:312-root-lines,def:312-integral-roots,lem:312-seeds,lem:312-completion,prop:312-rootset,facts:312-linear,facts:312-inner,facts:312-finite}
+\assume{\begin{pfenum}
+ \item $V$ is a finite-dimensional real inner product space,
+ and $S$ is a set of subspaces of dimension one.
+ \item $\opk{HasBipartition}(S)$.
+\end{pfenum}}
+\pflet{$W=\opk{span}_{\re}(\bigcup_{\ell\in S}\ell)$,
+and let $\iota:W\to V$ be the inclusion.}
+\prove{\begin{pfenum}
+ \item There is $\Phi\sbs V$ with $\opk{IsRootSet}(\Phi)$,
+ $S\sbs\cL(\Phi)$, and $q(\Zr)\in\{2,4\}$ for $\Zr\in\Phi$.
+ \item There is $\Phi_W\sbs W$ with $\opk{IsRootSet}(\Phi_W)$
+ in the induced inner product on $W$, $S\sbs\cL(\iota(\Phi_W))$,
+ and $q(\Zr)\in\{2,4\}$ for $\Zr\in\Phi_W$.
+\end{pfenum}}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will apply the construction in $V$ after completing
+seeds. For the span assertion we will apply the same proposition to the
+seeds regarded as vectors in the separate ambient type $W$.
+\step{t312containSeeds}{\pick\ a finite set $T$ such that
+$\cL(T)=S$, $\opk{span}_{\re}T=W$, each squared length in
+$T$ is 2 or 4, all inner products in $T$ are integers, and each
+length-4 vector in $T$ pairs evenly with every vector in $T$.}
+\begin{proof}\pf\ Lemma~\hyperref[lem:312-seeds]{(seeds from a colouring)} applies to
+\asm[1]{0} and \asm[2]{0}.~\qed\end{proof}
+\step{t312containAmbient}{There is a set $\Phi$ satisfying part 1.}
+\begin{proof}
+ \step{t312containExtend}{\pick\ a finite $T'\sps T$ spanning $V$,
+ with every squared length 2 or 4, all inner products integral,
+ and every length-4 vector pairing evenly with all of $T'$.}
+ \begin{proof}\pf\ Apply Lemma~\hyperref[lem:312-completion]{(completion of the seeds)} to the
+ conditions in \stepref{t312containSeeds} and the finite dimension
+ in \asm[1]{0}.~\qed\end{proof}
+ \step{t312containRoot}{$\Phi=\Psi(T')$ is a Root System in $V$,
+ contains $T'$, and has squared lengths 2 or 4.}
+ \begin{proof}\pf\ Proposition~\hyperref[prop:312-rootset]{(the integer-span Root System)} with
+ \stepref{t312containExtend}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Definition~\hyperref[def:312-root-lines]{(lines of a vector set)} sends
+ $T\sbs T'\sbs\Phi$ to $S=\cL(T)\sbs\cL(\Phi)$, by
+ \stepref{t312containSeeds} and \stepref{t312containRoot}.~\qed\end{proof}
+\end{proof}
+\step{t312containSpan}{There is a set $\Phi_W$ satisfying part 2.}
+\begin{proof}
+ \pflet{$T_W=\{\Zw\in W:\iota\Zw\in T\}$.}
+ \step{t312containLiftFinite}{$T_W$ is finite and $\iota(T_W)=T$.}
+ \begin{proof}\pf\ The inclusion is injective, and every member of
+ $T$ lies in $W$ by \stepref{t312containSeeds}; it restricts to a
+ bijection $T_W\to T$. Finiteness follows from
+ \path{Set.Finite.preimage}, applied to the finite $T$ and the
+ injectivity of $\iota$ on $T_W$.~\qed\end{proof}
+ \step{t312containLiftSpan}{$\opk{span}_{\re}T_W=W$ as a subspace of $W$.}
+ \begin{proof}\pf\ Rewrite $W=\opk{span}_{\re}T$ using
+ \stepref{t312containSeeds}. The assertion is
+ \path{Submodule.span_span_coe_preimage} for the inclusion $\iota$.~\qed\end{proof}
+ \step{t312containLiftData}{Every squared length in $T_W$ is 2 or 4,
+ all its inner products are integers, and each length-4 vector pairs
+ evenly with all of $T_W$.}
+ \begin{proof}\pf\ The induced inner product on $W$ is the ambient
+ inner product; substitute $\iota$ in the three conditions for $T$
+ in \stepref{t312containSeeds}.~\qed\end{proof}
+ \step{t312containLiftRoot}{$\Phi_W=\Psi(T_W)$ is a Root System in $W$,
+ contains $T_W$, and has squared lengths 2 or 4.}
+ \begin{proof}\pf\ Apply Proposition~\hyperref[prop:312-rootset]{(the integer-span Root System)} in the
+ finite-dimensional inner product space $W$, with
+ \stepref{t312containLiftFinite}, \stepref{t312containLiftSpan}, and
+ \stepref{t312containLiftData}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{t312containLiftFinite} and
+ \stepref{t312containLiftRoot}, $T\sbs\iota(\Phi_W)$.
+ Definition~\hyperref[def:312-root-lines]{(lines of a vector set)} and \stepref{t312containSeeds}
+ give $S\sbs\cL(\iota(\Phi_W))$.~\qed\end{proof}
+\end{proof}
+\qedstep
+\begin{proof}\pf\ Steps \stepref{t312containAmbient} and \stepref{t312containSpan}.~\qed\end{proof}
+\end{proof}
+
+\subsection{Lengths and the necessary colouring}
+
+\begin{namedresult}{Lemma}{(lengths on root lines)}\label{lem:312-lengths}
+\lean{IsRootSet.sqNorm_eq_of_four_mul_inner_sq_eq}
+\lean{IsRootSet.sqNorm_eq_two_mul_or_of_two_mul_inner_sq_eq}
+\uses{def:3.9,facts:312-inner,facts:312-arithmetic}
+\assume{\begin{pfenum}
+ \item $V$ is a finite-dimensional real inner product space and
+ $\opk{IsRootSet}(\Phi)$.
+ \item $\Zr,\Zs\in\Phi$.
+\end{pfenum}}
+\prove{\begin{pfenum}
+ \item If $4(\Zr,\Zs)^2=q(\Zr)q(\Zs)$, then $q(\Zr)=q(\Zs)$.
+ \item If $2(\Zr,\Zs)^2=q(\Zr)q(\Zs)$, then
+ $q(\Zs)=2q(\Zr)$ or $q(\Zr)=2q(\Zs)$.
+\end{pfenum}}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will use the two ordered crystallographic coefficients.
+This lemma keeps the integrality argument separate from
+\emph{angles and fixed-length subsystems} (\path{lem:angles}) in the
+blueprint, whose later conclusions use Theorem B. Here neither
+reducedness nor classification is needed.
+\step{t312lengthPositive}{$q(\Zr),q(\Zs)>0$.}
+\begin{proof}\pf\ Nonzero roots in Definition~\hyperref[def:3.9]{3.9}, \asm[2]{0},
+and positive definiteness in
+\hyperref[facts:312-inner]{Inner products and square roots}.~\qed\end{proof}
+\pflet{$u=2(\Zr,\Zs)/q(\Zr)$ and $v=2(\Zr,\Zs)/q(\Zs)$.}
+\step{t312lengthArithmetic}{\assume{$(\Zr,\Zs)\ne0$.}
+ \prove{$u,v$ are nonzero integers of the same sign, and
+ \[
+ |u||v|=uv=\frac{4(\Zr,\Zs)^2}{q(\Zr)q(\Zs)},\qquad
+ \frac{|u|}{|v|}=\frac{u}{v}=\frac{q(\Zs)}{q(\Zr)}.
+ \]}}
+\begin{proof}
+ \step{t312lengthIntegral}{$u,v\in\ints$.}
+ \begin{proof}\pf\ Definition~\hyperref[def:3.9]{3.9} for the two ordered pairs
+ in \asm[2]{0}, using symmetry for $v$.~\qed\end{proof}
+ \step{t312lengthNonzero}{$u,v$ have the same nonzero sign.}
+ \begin{proof}\pf\ Their common numerator is nonzero by \asm{1},
+ and their denominators are positive by \stepref{t312lengthPositive}.~\qed\end{proof}
+ \step{t312lengthProduct}{$|u||v|=uv=4(\Zr,\Zs)^2/(q(\Zr)q(\Zs))$.}
+ \begin{proof}\pf\ Multiply the defining fractions; the equal signs in
+ \stepref{t312lengthNonzero} give the absolute-value identity.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Cancel the common nonzero numerator to obtain
+ $u/v=q(\Zs)/q(\Zr)$. Step \stepref{t312lengthNonzero} gives
+ $|u|/|v|=u/v$; combine with \stepref{t312lengthIntegral}
+ and \stepref{t312lengthProduct}.~\qed\end{proof}
+\end{proof}
+\step{t312lengthQuarter}{\assume{$4(\Zr,\Zs)^2=q(\Zr)q(\Zs)$.}
+ \prove{$q(\Zr)=q(\Zs)$.}}
+\begin{proof}
+ \step{t312lengthQuarterNonzero}{$(\Zr,\Zs)\ne0$.}
+ \begin{proof}\pf\ The right side of \asm{1} is positive by
+ \stepref{t312lengthPositive}; its left side cannot vanish.~\qed\end{proof}
+ \step{t312lengthUnitFactors}{$|u|=|v|=1$.}
+ \begin{proof}\pf\ Apply \stepref{t312lengthArithmetic} with
+ \stepref{t312lengthQuarterNonzero}. Its product identity and \asm{1}
+ give positive integers $|u|,|v|$ with product 1.
+ Each is at least 1, so neither can exceed 1.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Apply the ratio identity in
+ \stepref{t312lengthArithmetic} with \stepref{t312lengthQuarterNonzero}.
+ Substitute \stepref{t312lengthUnitFactors} and multiply by
+ $q(\Zr)>0$ from \stepref{t312lengthPositive}.~\qed\end{proof}
+\end{proof}
+\step{t312lengthHalf}{\assume{$2(\Zr,\Zs)^2=q(\Zr)q(\Zs)$.}
+ \prove{$q(\Zs)=2q(\Zr)$ or $q(\Zr)=2q(\Zs)$.}}
+\begin{proof}
+ \step{t312lengthHalfNonzero}{$(\Zr,\Zs)\ne0$.}
+ \begin{proof}\pf\ The right side of \asm{1} is positive by
+ \stepref{t312lengthPositive}; its left side cannot vanish.~\qed\end{proof}
+ \pflet{$A=|u|$ and $B=|v|$.}
+ \step{t312lengthFactorBound}{$A,B$ are positive integers, $AB=2$ and $1\leq A\leq2$.}
+ \begin{proof}\pf\ Apply \stepref{t312lengthArithmetic} with
+ \stepref{t312lengthHalfNonzero}. Its product identity and \asm{1}
+ give $AB=2$ and positivity; $B\geq1$ bounds $A$ by 2.~\qed\end{proof}
+ \step{t312lengthFactorOne}{\case{$A=1$.}\prove{$q(\Zr)=2q(\Zs)$.}}
+ \begin{proof}\pf\ Step \stepref{t312lengthFactorBound} gives $B=2$.
+ Apply the ratio identity in \stepref{t312lengthArithmetic} with
+ \stepref{t312lengthHalfNonzero}, then clear the positive denominator
+ from \stepref{t312lengthPositive}.~\qed\end{proof}
+ \step{t312lengthFactorTwo}{\case{$A=2$.}\prove{$q(\Zs)=2q(\Zr)$.}}
+ \begin{proof}\pf\ Step \stepref{t312lengthFactorBound} gives $B=1$.
+ Apply the ratio identity in \stepref{t312lengthArithmetic} with
+ \stepref{t312lengthHalfNonzero}, then clear the positive denominator
+ from \stepref{t312lengthPositive}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The integer interval in \stepref{t312lengthFactorBound}
+ makes \stepref{t312lengthFactorOne} and \stepref{t312lengthFactorTwo}
+ exhaustive.~\qed\end{proof}
+\end{proof}
+\qedstep
+\begin{proof}\pf\ Steps \stepref{t312lengthQuarter} and
+\stepref{t312lengthHalf} give the two conclusions.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(integer logarithm shifts)}\label{lem:312-log}
+\lean{Int.log_two_mul}
+\lean{Int.log_two_div}
+\uses{facts:312-arithmetic}
+\assume{$x\in\re$ and $x>0$.}
+\pflet{$\eta(y)=\opk{Int.log}(2,y)$ for real $y>0$.}
+\prove{$\eta(2x)=\eta(x)+1$ and $\eta(x/2)=\eta(x)-1$.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will multiply the defining interval by 2, then apply
+the doubling identity at $x/2$.
+\step{t312logDouble}{For every real $y>0$, $\eta(2y)=\eta(y)+1$.}
+\begin{proof}
+ \step{t312logBounds}{$2^{\eta(y)}\leq y<2^{\eta(y)+1}$.}
+ \begin{proof}\pf\ \path{Int.zpow_log_le_self} and
+ \path{Int.lt_zpow_succ_log_self} with base $2>1$ and $y>0$
+ in \stepref{t312logDouble}.~\qed\end{proof}
+ \step{t312logDoubleBounds}{$2^{\eta(y)+1}\leq2y<2^{(\eta(y)+1)+1}$.}
+ \begin{proof}\pf\ Multiply \stepref{t312logBounds} by $2>0$ and
+ apply \path{zpow_add_one}\textsubscript{0} at base $2\ne0$.~\qed\end{proof}
+ \step{t312logDoubleLower}{$\eta(y)+1\leq\eta(2y)$.}
+ \begin{proof}\pf\ Apply \path{Int.zpow_le_iff_le_log} at $2y>0$
+ to the lower bound of \stepref{t312logDoubleBounds}.~\qed\end{proof}
+ \step{t312logDoubleUpper}{$\eta(2y)<\eta(y)+2$.}
+ \begin{proof}\pf\ Apply \path{Int.lt_zpow_iff_log_lt} at $2y>0$
+ to the upper bound of \stepref{t312logDoubleBounds}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The adjacent integer bounds in
+ \stepref{t312logDoubleLower} and \stepref{t312logDoubleUpper}.~\qed\end{proof}
+\end{proof}
+\step{t312logHalf}{$\eta(x/2)=\eta(x)-1$.}
+\begin{proof}\pf\ Apply \stepref{t312logDouble} to $x/2>0$, using
+\asm{0}: $\eta(x)=\eta(2(x/2))=\eta(x/2)+1$.
+Rearrange this integer equality.~\qed\end{proof}
+\qedstep
+\begin{proof}\pf\ Step \stepref{t312logDouble} at $x>0$ and
+\stepref{t312logHalf}.~\qed\end{proof}
+\end{proof}
+
+The two logarithm lemmas are declarations in
+namespace \path{Int}; they concern positive real numbers, independently
+of line systems.
+
+\begin{namedresult}{Lemma}{(colouring selected root lines)}\label{lem:312-necessary}
+\lean{LineSystem.hasBipartition_of_subset_rootLines}
+\uses{def:3.9,def:312-angles,def:312-root-lines,lem:312-squared-cosine,lem:312-lengths,lem:312-log,facts:312-inner,facts:312-linear,facts:312-arithmetic}
+\assume{\begin{pfenum}
+ \item $V$ is a finite-dimensional real inner product space,
+ $\opk{IsRootSet}(\Phi)$, and $S\sbs\cL(\Phi)$.
+ \item $\opk{HasAllowedAngles}(S)$.
+\end{pfenum}}
+\prove{$\opk{HasBipartition}(S)$.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will colour a line by the parity of the integer logarithm
+of its squared root length. Orthogonal pairs impose no constraint.
+\step{t312necessaryChoose}{\pick\ $\Zr_\ell\in\Phi$ with $\ell=\re\Zr_\ell$
+for every $\ell\in S$.}
+\begin{proof}\pf\ Containment in \asm[1]{0} and
+Definition~\hyperref[def:312-root-lines]{(lines of a vector set)} give the witnesses.~\qed\end{proof}
+\pflet{$\delta(\ell)=q(\Zr_\ell)$, $\eta(x)=\opk{Int.log}(2,x)$,
+and $b(\ell)=\mathrm{true}$ exactly when $\eta(\delta(\ell))$ is odd.}
+\step{t312necessaryLines}{Every $\ell\in S$ has dimension one,
+and $\delta(\ell)>0$.}
+\begin{proof}
+ \step{t312necessaryPositive}{$\Zr_\ell\ne0$ and $\delta(\ell)>0$.}
+ \begin{proof}\pf\ Definition~\hyperref[def:3.9]{3.9}, \stepref{t312necessaryChoose},
+ and positive definiteness.~\qed\end{proof}
+ \step{t312necessaryDimension}{$\dim\ell=1$.}
+ \begin{proof}\pf\ Apply \path{finrank_span_singleton} to
+ \stepref{t312necessaryPositive} and \stepref{t312necessaryChoose}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{t312necessaryPositive}
+ and \stepref{t312necessaryDimension}.~\qed\end{proof}
+\end{proof}
+\step{t312necessaryQuarter}{\assume{$\ell,m\in S$, $\ell\ne m$, and $\opk{HasSquaredCosine}(\ell,m,1/4)$.}
+ \prove{$b(\ell)=b(m)$.}}
+\begin{proof}
+ \step{t312necessaryEqualLength}{$\delta(\ell)=\delta(m)$.}
+ \begin{proof}\pf\ Lemma~\hyperref[lem:312-squared-cosine]{(squared cosine from representatives)}, applied to
+ \asm{1} and the nonzero representatives from \stepref{t312necessaryChoose}
+ and \stepref{t312necessaryLines}, gives
+ $4(\Zr_\ell,\Zr_m)^2=\delta(\ell)\delta(m)$.
+ Apply part 1 of Lemma~\hyperref[lem:312-lengths]{(lengths on root lines)} to these roots and
+ the Root System in \asm[1]{0}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Equal inputs in \stepref{t312necessaryEqualLength}
+ give equal integer logarithms and equal Boolean colours.~\qed\end{proof}
+\end{proof}
+\step{t312necessaryHalf}{\assume{$\ell,m\in S$, $\ell\ne m$, and $\opk{HasSquaredCosine}(\ell,m,1/2)$.}
+ \prove{$b(\ell)\ne b(m)$.}}
+\begin{proof}
+ \step{t312necessaryRatio}{$\delta(m)=2\delta(\ell)$ or $\delta(m)=\delta(\ell)/2$.}
+ \begin{proof}\pf\ Lemma~\hyperref[lem:312-squared-cosine]{(squared cosine from representatives)}, applied to
+ \asm{1} and the representatives in \stepref{t312necessaryChoose}
+ and \stepref{t312necessaryLines}, gives
+ $2(\Zr_\ell,\Zr_m)^2=\delta(\ell)\delta(m)$.
+ Part 2 of Lemma~\hyperref[lem:312-lengths]{(lengths on root lines)}, using \asm[1]{0},
+ gives $\delta(m)=2\delta(\ell)$ or $\delta(\ell)=2\delta(m)$.
+ Divide the second equality by 2.~\qed\end{proof}
+ \step{t312necessaryDouble}{\case{$\delta(m)=2\delta(\ell)$.}
+ \prove{$b(\ell)\ne b(m)$.}}
+ \begin{proof}
+  \step{t312necessaryPlus}{$\eta(\delta(m))=\eta(\delta(\ell))+1$.}
+  \begin{proof}\pf\ The doubling identity in Lemma~\hyperref[lem:312-log]{(integer logarithm shifts)}
+  and positivity in \stepref{t312necessaryLines}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Consecutive integers have opposite parities by
+  \hyperref[facts:312-arithmetic]{Integer arithmetic and logarithms}; apply \stepref{t312necessaryPlus} and the definition of $b$.~\qed\end{proof}
+ \end{proof}
+ \step{t312necessaryHalved}{\case{$\delta(m)=\delta(\ell)/2$.}
+ \prove{$b(\ell)\ne b(m)$.}}
+ \begin{proof}
+  \step{t312necessaryMinus}{$\eta(\delta(m))=\eta(\delta(\ell))-1$.}
+  \begin{proof}\pf\ The halving identity in Lemma~\hyperref[lem:312-log]{(integer logarithm shifts)}
+  and positivity in \stepref{t312necessaryLines}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Integers differing by 1 have opposite parities by
+  \hyperref[facts:312-arithmetic]{Integer arithmetic and logarithms}; apply \stepref{t312necessaryMinus} and the definition of $b$.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{t312necessaryRatio} makes
+ \stepref{t312necessaryDouble} and \stepref{t312necessaryHalved} exhaustive.~\qed\end{proof}
+\end{proof}
+\step{t312necessaryEqual}{\assume{$\ell,m\in S$, $\ell\ne m$, and $b(\ell)=b(m)$.}
+ \prove{$\opk{HasSquaredCosine}(\ell,m,0)$ or
+ $\opk{HasSquaredCosine}(\ell,m,1/4)$.}}
+\begin{proof}\pf\ Hypothesis \asm[2]{0} and Definition~\hyperref[def:312-angles]{(angles and compatible colourings)}
+give a parameter in $\{0,1/4,1/2\}$ satisfying the predicate.
+Step \stepref{t312necessaryHalf} and the colour equality in \asm{1}
+exclude the predicate at $1/2$. The other two parameters give the
+stated disjunction.~\qed\end{proof}
+\step{t312necessaryDifferent}{\assume{$\ell,m\in S$, $\ell\ne m$, and $b(\ell)\ne b(m)$.}
+ \prove{$\opk{HasSquaredCosine}(\ell,m,0)$ or
+ $\opk{HasSquaredCosine}(\ell,m,1/2)$.}}
+\begin{proof}\pf\ Hypothesis \asm[2]{0} and Definition~\hyperref[def:312-angles]{(angles and compatible colourings)}
+give a parameter in $\{0,1/4,1/2\}$ satisfying the predicate.
+Step \stepref{t312necessaryQuarter} and the colour inequality in \asm{1}
+exclude the predicate at $1/4$. The other two parameters give the
+stated disjunction.~\qed\end{proof}
+\qedstep
+\begin{proof}\pf\ Steps \stepref{t312necessaryEqual} and
+\stepref{t312necessaryDifferent} give the two clauses of
+Definition~\hyperref[def:312-angles]{(angles and compatible colourings)}; $b$ is the required witness. For $S=\varnothing$ it is the empty function.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Theorem}{3.12}\label{thm:3.12}
+\lean{LineSystem.subset_rootSet_iff_bipartition}
+\uses{def:3.9,def:312-angles,def:312-root-lines,cor:312-containment,lem:312-necessary}
+\assume{\begin{pfenum}
+ \item $V$ is a finite-dimensional real inner product space.
+ The set $S$ consists of real subspaces of $V$, with
+ $\dim\ell=1$ for every $\ell\in S$.
+ \item $\opk{HasAllowedAngles}(S)$.
+\end{pfenum}}
+\prove{\[
+ \bigl(\exists\Phi\sbs V,\quad
+ \opk{IsRootSet}(\Phi)\ \text{and}\ S\sbs\cL(\Phi)\bigr)
+ \quad\Longleftrightarrow\quad \opk{HasBipartition}(S).
+\]}
+\end{cgss}
+\begin{proof}
+\pfsketch\ \repair\ The paper gives no proof (Gap 11).
+We will use the normalized construction for sufficiency and the
+integer-logarithm colouring for necessity.
+\step{t312mainNecessary}{\assume{There is a Root System $\Phi$ in $V$ with $S\sbs\cL(\Phi)$.}
+ \prove{$\opk{HasBipartition}(S)$.}}
+\begin{proof}\pf\ Lemma~\hyperref[lem:312-necessary]{(colouring selected root lines)} with the finite
+dimension in \asm[1]{0}, the containment and Root System in \asm{1},
+and the angle hypothesis \asm[2]{0}.~\qed\end{proof}
+\step{t312mainSufficient}{\assume{$\opk{HasBipartition}(S)$.}
+ \prove{There is a Root System $\Phi$ in $V$ with $S\sbs\cL(\Phi)$.}}
+\begin{proof}\pf\ Part 1 of Corollary~\hyperref[cor:312-containment]{(normalized containment)}, with
+\asm[1]{0} and \asm{1}.~\qed\end{proof}
+\qedstep
+\begin{proof}\pf\ Steps \stepref{t312mainNecessary} and
+\stepref{t312mainSufficient} are the two implications.~\qed\end{proof}
+\end{proof}
+
+\paragraph{Conventions in the statement.}
+\repair\ A bipartition means the two fibres of a Boolean colouring;
+either fibre may be empty. This is required even for a single line,
+or for two lines at $60^\circ$, which must have the same colour.
+The ordinary proof records this as Implicit hypothesis 8 of
+\path{cgss/errata.md}. The word \emph{and} between the two cross-part
+angles in the printed statement is read as \emph{or} (Error 13, item 3).
+Finiteness is a conclusion of Lemma~\hyperref[lem:312-finite]{(finitely many lines)};
+spanning and nonemptiness of $S$ are not hypotheses.
+Corollary~\hyperref[cor:312-containment]{(normalized containment)} separately states the stronger
+normalized construction, in both the span and the given ambient space.
+Allowing a containing Root System in a larger finite-dimensional inner
+product space gives the same condition: apply
+Lemma~\hyperref[lem:312-necessary]{(colouring selected root lines)} in that space to the isometric images
+of the selected lines and pull back its colouring.
+
+The Lean declaration has argument \path{S : Set (Submodule Real V)},
+not an argument of the bundled type \path{LineSystem V}, which permits
+only the $60^\circ$ and $90^\circ$ cases. Its ambient assumptions are
+\path{NormedAddCommGroup V}, \path{InnerProductSpace Real V},
+and \path{FiniteDimensional Real V}; the line hypothesis is
+\path{Module.finrank Real} equal to 1 on each member of $S$.
+The docstring records the empty-fibre convention and the
+errata references above. The names in the metadata are the settled
+ones from \path{cgss/notation.md}, Section 10, supplemented by the
+separately stated helper lemmas.
+
+\subsection{The bridge from Section 2}
+
+\begin{namedresult}{Lemma}{(the lines of a line system)}\label{lem:312-bridge}
+\lean{LineSystem.hasAllowedAngles_rootLines}
+\lean{LineSystem.hasBipartition_rootLines}
+\uses{def:line-system,def:312-root-lines,def:312-angles,lem:312-squared-cosine,facts:312-inner,facts:312-linear}
+\assume{$V$ is a finite-dimensional real inner product space and
+$R:\opk{LineSystem}(V)$ is as in Definition~\hyperref[def:line-system]{(line systems of Section 2)}.}
+\prove{$\opk{HasAllowedAngles}(\cL(R.\Phi))$ and
+$\opk{HasBipartition}(\cL(R.\Phi))$, witnessed by the constant
+colouring with value $\mathrm{false}$.}
+\end{namedresult}
+\begin{proof}
+\pfsketch\ We will exclude the two endpoint inner products on distinct
+lines and then use the constant colouring.
+\step{t312bridgeDimension}{Every $\ell\in\cL(R.\Phi)$ has dimension one.}
+\begin{proof}\pf\ A representative has squared norm 2 by
+Definition~\hyperref[def:line-system]{(line systems of Section 2)}, so is nonzero; apply
+\path{finrank_span_singleton} and Definition~\hyperref[def:312-root-lines]{(lines of a vector set)}.~\qed\end{proof}
+\step{t312bridgeAngles}{\assume{$\ell,m\in\cL(R.\Phi)$ and $\ell\ne m$.}
+ \prove{$\opk{HasSquaredCosine}(\ell,m,0)$ or
+ $\opk{HasSquaredCosine}(\ell,m,1/4)$.}}
+\begin{proof}
+ \step{t312bridgePick}{\pick\ $\Zr,\Zs\in R.\Phi$ with $\ell=\re\Zr$, $m=\re\Zs$.}
+ \begin{proof}\pf\ Definition~\hyperref[def:312-root-lines]{(lines of a vector set)}.~\qed\end{proof}
+ \step{t312bridgePositive}{\assume{$(\Zr,\Zs)=2$.}\prove{False.}}
+ \begin{proof}
+  \step{t312bridgeDifference}{$q(\Zr-\Zs)=0$ and $\Zr=\Zs$.}
+  \begin{proof}\pf\ Bilinearity and the squared norms in
+  Definition~\hyperref[def:line-system]{(line systems of Section 2)} give $q(\Zr-\Zs)=2+2-2\cdot2=0$;
+  positive definiteness gives the equality.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{t312bridgeDifference} makes the spans
+  in \stepref{t312bridgePick} equal, contrary to \asm{1}.~\qed\end{proof}
+ \end{proof}
+ \step{t312bridgeNegative}{\assume{$(\Zr,\Zs)=-2$.}\prove{False.}}
+ \begin{proof}
+  \step{t312bridgeSum}{$q(\Zr+\Zs)=0$ and $\Zr=-\Zs$.}
+  \begin{proof}\pf\ Bilinearity gives $q(\Zr+\Zs)=2+2+2(-2)=0$;
+  positive definiteness gives the equality.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Multiplication by $-1$ does not change a real span;
+  \stepref{t312bridgeSum} contradicts the distinct spans in \asm{1}.~\qed\end{proof}
+ \end{proof}
+ \step{t312bridgeSmall}{$(\Zr,\Zs)\in\{-1,0,1\}$.}
+ \begin{proof}\pf\ Exclude the two endpoint values in
+ Definition~\hyperref[def:line-system]{(line systems of Section 2)} by \stepref{t312bridgePositive} and
+ \stepref{t312bridgeNegative}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{t312bridgeSmall} gives
+ $(\Zr,\Zs)^2\in\{0,1\}$. The squared norms are 2 by
+ Definition~\hyperref[def:line-system]{(line systems of Section 2)}. Lemma~\hyperref[lem:312-squared-cosine]{(squared cosine from representatives)},
+ using \stepref{t312bridgeDimension} and \stepref{t312bridgePick},
+ gives the predicate at $0$ or $1/4$.~\qed\end{proof}
+\end{proof}
+\step{t312bridgeAllowed}{$\opk{HasAllowedAngles}(\cL(R.\Phi))$.}
+\begin{proof}\pf\ Step \stepref{t312bridgeAngles} supplies an allowed
+parameter in Definition~\hyperref[def:312-angles]{(angles and compatible colourings)}.~\qed\end{proof}
+\step{t312bridgeColour}{The constant function $b(\ell)=\mathrm{false}$ is compatible.}
+\begin{proof}
+ \step{t312bridgeSameColour}{For distinct $\ell,m$, the equal-colour angle clause holds.}
+ \begin{proof}\pf\ Step \stepref{t312bridgeAngles}.~\qed\end{proof}
+ \step{t312bridgeCrossColour}{There are no $\ell,m$ with $b(\ell)\ne b(m)$.}
+ \begin{proof}\pf\ The definition of the constant function.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{t312bridgeSameColour} and
+ \stepref{t312bridgeCrossColour} give the two clauses of
+ Definition~\hyperref[def:312-angles]{(angles and compatible colourings)}.~\qed\end{proof}
+\end{proof}
+\qedstep
+\begin{proof}\pf\ Steps \stepref{t312bridgeAllowed} and \stepref{t312bridgeColour}.~\qed\end{proof}
+\end{proof}
+
+The exact computational examples remain in the ordinary proof and its
+\path{cgss/proofs/thm312/checks/check_thm312.py}. They are not premises of any result here.
+The construction and colouring use neither the classification of Root
+Systems nor a two-length assertion for a reducible Root System.
+The proof permits unrelated scales on orthogonal components, and
+restricts angles only on the selected set of lines.
+% END BLUEPRINT SECTION
+
+\begin{thebibliography}{CGSS}
+\bibitem[CGSS]{CGSS}
+P. J. Cameron, J. M. Goethals, J. J. Seidel and E. E. Shult,
+Line graphs, root systems, and elliptic geometry,
+\emph{J. Algebra} \textbf{43} (1976), 305--327.
+\bibitem[L95]{L95}
+L. Lamport, How to write a proof,
+\emph{Amer. Math. Monthly} \textbf{102} (1995), 600--608.
+\end{thebibliography}
+\end{document}

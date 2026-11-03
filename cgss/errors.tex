@@ -1,0 +1,728 @@
+\documentclass[11pt]{amsart}
+\usepackage[margin=25mm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,longtable,array}
+\usepackage[hyphens]{url}
+\urlstyle{tt}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+% The author's macros.
+%
+% some calligraphy
+%
+\newcommand\cA{{\mathcal A}}
+\newcommand\cB{{\mathcal B}}
+\newcommand\cC{{\mathcal C}}
+\newcommand\cD{{\mathcal D}}
+\newcommand\cE{{\mathcal E}}
+\newcommand\cF{{\mathcal F}}
+\newcommand\cG{{\mathcal G}}
+\newcommand\cH{{\mathcal H}}
+\newcommand\cI{{\mathcal I}}
+\newcommand\cJ{{\mathcal J}}
+\newcommand\cK{{\mathcal K}}
+\newcommand\cL{{\mathcal L}}
+\newcommand\cM{{\mathcal M}}
+\newcommand\cN{{\mathcal N}}
+\newcommand\cP{{\mathcal P}}
+\newcommand\cQ{{\mathcal Q}}
+\newcommand\cR{{\mathcal R}}
+\newcommand\cS{{\mathcal S}}
+\newcommand\cT{{\mathcal T}}
+\newcommand\cU{{\mathcal U}}
+\newcommand\cV{{\mathcal V}}
+
+%
+% fields and rings (and a semigroup)
+%
+\newcommand\cx{{\mathbb C}}% complexes
+\newcommand\fld{{\mathbb F}}
+\newcommand\flde{{\mathbb E}}
+\newcommand\ints{{\mathbb Z}}
+\newcommand\nn{{\mathbb N}}%non-negative integers
+\newcommand\re{{\mathbb R}}%reals
+\newcommand\rats{{\mathbb Q}}
+
+\newcommand\Zu{{\mathbf u}}
+\newcommand\Zv{{\mathbf v}}
+\newcommand\Zw{{\mathbf w}}
+\newcommand\Zy{{\mathbf y}}
+\newcommand\Zz{{\mathbf z}}
+\newcommand\Zx{{\mathbf x}}
+\newcommand\Zj{{\mathbf j}}
+
+
+%
+% the really useful stuff
+%
+%\newcommand\opk[1]{\mathop{\hbox{\rm #1}}\nolimits} %% old version
+\newcommand\opk[1]{\mathop{\mathrm{#1}}\nolimits}
+\newcommand\comp[1]{{\mkern2mu\overline{\mkern-2mu#1}}}
+\newcommand\diff{\mathbin{\mkern-1.5mu\setminus\mkern-1.5mu}}% for \setminus
+\newcommand\gbin[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}}
+\newcommand\inv{^{-1}}
+\newcommand\res{\mathbin{\mkern-2.0mu\restriction\mkern-2.0mu}}% ch2
+\newcommand\sbs{\subseteq}
+\newcommand\sps{\supseteq}
+\newcommand\seq[3]{#1_{#2},\ldots,#1_{#3}}
+\newcommand\supp{\opk{supp}}
+\newcommand\im{\opk{im}}
+\newcommand\row{\opk{row}}
+\newcommand\pmat[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\newcommand\cprod{\mathbin{\square}}
+%
+% matrix theory
+%
+\newcommand\ip[2]{\langle#1,#2\rangle}
+\newcommand\one{{\bf1}}
+\newcommand\rk{\opk{rk}}
+\newcommand\tr{\opk{tr}}
+\newcommand\col{\opk{col}}
+\newcommand\mat[3]{\mathrm{Mat}_{#1\times #2}(#3)}
+
+%
+% some group theory
+%
+\newcommand\aut[1]{{\rm Aut}(#1)}
+\newcommand\fx[1]{{\rm fix}(#1)}% ch2
+\newcommand\grp[1]{\langle #1\rangle}
+\newcommand\nrml{\vartriangleleft}
+\newcommand\nrmleq{\trianglelefteq}
+\newcommand\alt[1]{\opk{Alt}(#1)}
+\DeclareMathOperator{\Sym}{Sym}
+% End of the author's macros.
+% Vectors that the author's macros do not provide (as in blueprint/macros.tex).
+\newcommand\Za{{\mathbf a}}
+\newcommand\Zb{{\mathbf b}}
+\newcommand\Ze{{\mathbf e}}
+\newcommand\Zp{{\mathbf p}}
+
+\newcommand{\cgss}{[CGSS]}
+\newcommand{\file}[1]{\path{#1}}
+% Lean declarations and blueprint labels, set like paths so that they break at "." and "_".
+\DeclareUrlCommand\lean{\urlstyle{tt}}
+\DeclareUrlCommand\lbl{\urlstyle{tt}}
+% A subscript digit in a Lean name, such as the 8 of E8.
+\newcommand{\lsub}[1]{\ensuremath{{}_{#1}}}
+\newcommand{\errhead}[3]{\subsection*{\texorpdfstring{#1. #2}{#1}}\noindent\emph{Where.} #3\par\smallskip}
+\newcommand{\printed}[1]{\noindent\emph{Printed.} #1\par\smallskip}
+\newcommand{\correct}[1]{\noindent\emph{Correct.} #1\par\smallskip}
+\newcommand{\missing}[1]{\noindent\emph{Missing.} #1\par\smallskip}
+\newcommand{\note}[1]{\noindent\emph{Note.} #1\par\smallskip}
+\newcommand{\evidence}[1]{\noindent\emph{Evidence.} #1\par\smallskip}
+\newcommand{\repair}[1]{\noindent\emph{Repair.} #1\par\smallskip}
+\newcommand{\status}[1]{{\raggedright\noindent\emph{Status.} #1\par}\medskip}
+
+\title[Errors and implicit hypotheses in CGSS]{Errors and implicit hypotheses in\\
+Cameron, Goethals, Seidel and Shult,\\
+\emph{Line graphs, root systems, and elliptic geometry}}
+\hypersetup{pdftitle={Errors and implicit hypotheses in Cameron, Goethals, Seidel and Shult}}
+\author{Krystal Guo}
+\date{9 October 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Scope}
+
+This document lists the errors in the printed paper \cgss{} (J.\ Algebra \textbf{43} (1976),
+305--327) and the hypotheses that its statements leave implicit, as found while formalizing the
+paper. We checked every item against the published paper, and we quote the paper as printed;
+page numbers are those of the journal. The permanent record
+is \file{cgss/errata.md}. It also
+records 19 gaps in the arguments, which are neither errors nor missing hypotheses; we do not
+repeat them here, and we will cite them by their numbers there, as ``Gap 14''. Numbers in
+brackets, such as [15], refer to the references of \cgss{}.
+
+This version follows \file{cgss/errata.md}: 17 errors and 8 implicit
+hypotheses. A kernel-checked certificate in Lean proves the cospectral pair behind Errors 14, 16
+and 17.
+
+Each item ends with a \emph{Status} line, which says where the correction now lives: its label in
+the blueprint (the structured proofs in the style of Lamport, in \file{blueprint/}) and its Lean
+declaration (in \file{LineGraphs/}), each with its file. Every numbered result of \cgss{} is
+in Lean, except Remark 2.11 (Shult's characterization, which is outside the scope);
+\file{dependency-diagram.md}, at the top of the repository, gives the declarations and their
+files. The Lean statements state the implicit hypotheses explicitly. The statement audit
+(\file{LineGraphs/AUDIT-statements.md}), which
+compared the final Lean with the paper itself, found no Lean statement that says something other
+than the paper without a recorded reason.
+
+We keep the three graph conventions of the paper apart in our files: the \emph{orthogonality
+graph} of Section 2 (adjacent at $90^\circ$), the \emph{represented graph} of Section 4 (inner
+product 1), and the \emph{obtuse graph} before Theorem 3.8 (inner product $-1$). The quotations
+keep the paper's $G$ for a graph. In our own text graphs are $X$, $Y$, $Z$; we will write $X_1$
+and $X_2$ for the paper's $G_1$ and $G_2$ in Section 5, and $Y$ for the paper's graph $H$ with
+$L(H)=G$ in Theorem 4.13. Strongly regular parameters are $(n,k,a,c)$. The other symbols are the
+paper's, such as the parameters $v,k,b,r,\lambda$ of a design.
+
+\section*{Summary}
+
+In the column Status, a label is that of the blueprint, and ``Lean'' says that the corrected
+statement is in Lean; each item names the declarations.
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{21mm}>{\raggedright\arraybackslash}p{29mm}%
+>{\raggedright\arraybackslash}p{60mm}>{\raggedright\arraybackslash}p{41mm}@{}}
+\toprule
+Entry & Item of \cgss & Problem & Status \\
+\midrule
+\endhead
+Error 1 & Theorem 3.7 & $E_8$: $(C-18I)$ should be $(C-28I)$ & fixed: \lbl{thm:3.7}; Lean \\
+Error 2 & Example 4.6 & coefficient $\frac13$ should be $\frac12$ & fixed: \lbl{ex:4.6}; Lean \\
+Error 3 & Lemma 2.10 & entry $(3,1)$ of the block-sum matrix is 0, not 2 & fixed: \lbl{lem:2.10}; Lean \\
+Error 4 & Theorem 5.8 & $s\le 2t-1$ should be $s\ge 2t-1$ & fixed: \lbl{thm:5.8}; Lean \\
+Error 5 & Theorem 3.6 & coclique of $T(6)$ should be clique & fixed: before \lbl{thm:3.6}; Lean (C5) avoids it \\
+Error 6 & Defs.\ 3.2, Thm.\ 2.13, proofs of 4.3, 4.4, 5.8 & labels; $\Delta$ counted by lines & fixed: \lbl{def:3.2}, \lbl{thm:2.13}; Lean \\
+Error 7 & Theorem 4.13 & the count $v-2$, $v-1$ is reversed & fixed: \lbl{lem:4-LG1}; Lean \\
+Error 8 & Theorem 4.4 & ``28 equiangular lines lie in $\re^7$'' is false as stated & fixed: \lbl{thm:4.4}, \lbl{lem:4-EQ1}, \lbl{lem:4-EQ2}; Lean \\
+Error 9 & Section 6 & $xAJ=-nJ$ and $AJ=-dJ$ fail in general; $x\mid n$ needs $n\ge3$ & fixed: \lbl{lem:6-fourth}; Lean \\
+Error 10 & Definition 3.9 (b) & $S$ should be $\Sigma$ & fixed: \lbl{def:3.9}; Lean \\
+Error 11 & Remark 3.11 & four statements need qualification & fixed: \lbl{rem:3.11}, \lbl{thm:C}; Lean \\
+Error 12 & Lemma 2.12 & ``the unique strongly regular graphs on 9, 15, 27 vertices'' & fixed: \lbl{lem:2.10}, \lbl{lem:2.12}; Lean \\
+Error 13 & several & further slips & fixed in the blueprint \\
+Error 14 & Remark 5.7 & the eigenvalues for $\alpha=vw$; the sum of two multiplicities & fixed: \lbl{rem:5.7}; Lean \\
+Error 15 & Theorem 4.4 & ``$I+\frac12A$ has rank $\le7$'' fails for $(n,d)=(28,12)$ & fixed: \lbl{thm:4.4}; Lean \\
+Error 16 & Theorem 5.8 & false without $b\ge v$ & fixed: \lbl{thm:5.8}; Lean \\
+Error 17 & Corollary 5.9 & the exception must be unordered & fixed: \lbl{cor:5.9}; Lean \\
+Impl.~hyp.~1 & Theorem 4.10; Section 1 & $X$ connected & fixed: \lbl{thm:4.10}, \lbl{lem:4-rootsystem}; Lean \\
+Impl.~hyp.~2 & Theorem 4.13 & a note on how we read ``least eigenvalue $-2$''; nothing is missing & none needed: \lbl{thm:4.13}; Lean as printed \\
+Impl.~hyp.~3 & Lemmas 5.4, 5.5 & no isolated vertices; an edge & fixed: \lbl{lem:5.4}, \lbl{lem:5.5}; Lean \\
+Impl.~hyp.~4 & Hypothesis 2.4 & at least two lines & fixed: \lbl{hyp:2.4}, \lbl{lem:2.12}, \lbl{thm:2.13}, \lbl{thm:3.5}; Lean \\
+Impl.~hyp.~5 & Lemma 5.6 & $X_2$ without isolated vertices & fixed: \lbl{lem:5.6}; Lean \\
+Impl.~hyp.~6 & Section 5 & meaning of ``characterized by its spectrum'' & fixed: \lbl{def:flag}; Lean \\
+Impl.~hyp.~7 & Definition 2.2 & maximal within the span of the lines & fixed: \lbl{def:2.2}; Lean \\
+Impl.~hyp.~8 & Theorem 3.12 & either part of the partition may be empty & fixed: \lbl{thm:3.12}; Lean \\
+\bottomrule
+\end{longtable}
+
+\section{Errors in the printed paper}
+
+\errhead{Error 1}{Theorem 3.7, the constant for $E_8$}{Theorem 3.7; p.~312.}
+\printed{``$E_8$: $(C+2I)(C-18I)=0$''.}
+\correct{$(C+2I)(C-28I)=0$. The bound 28 on the valency in Theorem 4.3 is this constant (Gap 14);
+with the printed 18, the same argument would give 18, which the example in Theorem 4.3
+contradicts.}
+\evidence{Take one vector of squared norm 2 on each of the 120 lines of $E_8$. These vectors form
+a tight frame in $\re^8$, $\sum\Zv\Zv^T=30I$, so the Gram matrix $2I+C$ satisfies
+$(2I+C)^2=30(2I+C)$, and $C$ has eigenvalues 28 and $-2$, with multiplicities 8 and 112.
+Equivalently, each line of $E_8$ is at $60^\circ$ to $56=2\cdot28$ others, and the trace argument
+that the paper gives for $D_n$ yields $\gamma_1+\dots+\gamma_8=224$, so each $\gamma_i$ is 28. We
+checked the eigenvalues numerically for $E_6$, $E_7$ and $E_8$; the printed values 10 and 16 for
+$E_6$ and $E_7$ are correct.}
+\repair{We derive all five constants from the frame identity. Let $N$ be the number of lines and
+$\ell$ the rank. Over one vector per line, $\sum\Zv\Zv^T=\frac{2N}{\ell}I$ on the span of the roots
+(computation C6); in coordinates, this is $\frac{2N}{\ell}$ times the orthogonal projection onto
+the span, since the models of $A_n$, $E_7$, $E_6$ and the first model of $E_8$ do not span their
+coordinate spaces. The second constant is then $\frac{2N}{\ell}-2$, which is 28 for $E_8$, where
+$\frac N\ell=15$. The diagonal of $C^2$ is LN6 of \file{cgss/prerequisites.md} (computation C20).
+The same derivation is in \file{cgss/proofs/remark311/remark311.tex}.}
+\status{Fixed. Blueprint: Theorem 3.7, \lbl{thm:3.7}, through the frame identity within the span,
+\lbl{lem:sec3-frame}, and C6, \lbl{comp:C6} (\file{blueprint/sec3-rootsystems.tex}). Lean:
+\lean{LineSystem.signedAdj_quadratic_E}\lsub8, and the same name ending in \lean{_An}, \lean{_Dn},
+\lean{_E}\lsub7 and \lean{_E}\lsub6 for the other types, all from \lean{LineSystem.frame_identity}
+(\file{LineGraphs/Computations/C6.lean}); C6 is \lean{Computations.C6.coordinate_frame_matrices}.}
+
+\errhead{Error 2}{Example 4.6, the Schl\"afli graph}{Example 4.6; p.~319.}
+\printed{``$\{\frac13\Sigma e_k-e_i-e_7;\ i\in T(6,1)\}$''.}
+\correct{$\frac12\sum_{k=1}^8\Ze_k-\Ze_i-\Ze_7$, as in the third family.}
+\evidence{With $\frac13$ these vectors have squared norm $14/9$, so they do not lie in the model
+(ii) of $E_8$. With $\frac12$ the 27 vectors lie in $E_8$ and represent a strongly regular graph
+with parameters $(27,16,10,8)$ (computation C9).}
+\repair{We use $\frac12$; computation C9 checks the vectors and the parameters.}
+\status{Fixed. Blueprint: Example 4.6, \lbl{ex:4.6}, with C9, \lbl{comp:C9}
+(\file{blueprint/sec4-leasteigenvalue.tex}). Lean:
+\lean{SimpleGraph.schlafli_isRepresentedIn_E}\lsub8 and \lean{SimpleGraph.schlafli_isSRGWith}
+(\file{LineGraphs/Computations/C9Schlafli.lean}).}
+
+\errhead{Error 3}{Lemma 2.10, the matrix of block sums}{Proof of Lemma 2.10; p.~309.}
+\printed{The third row of the $5\times5$ matrix of block sums is
+``$2\quad0\quad k^2+k\quad k^2-k\quad k^2-k$''.}
+\correct{Its first entry is 0. The block of the first matrix that it sums, the inner products of
+the vertices of $K$ with $u$, is 0, since the vertices of $K$ are adjacent to $u$; as printed, the
+second matrix is not even symmetric.}
+\evidence{Symmetry, and a direct computation of the block sums of the first matrix. The
+determinant that the proof uses is that of the matrix with its first row and column deleted, which
+does not contain the wrong entry; it is $2k^5(5-k)$, as stated. Thus the argument is unaffected.}
+\repair{The blueprint recomputes the block sums, with 0 in position $(3,1)$; computation C1 is the
+determinant.}
+\status{Fixed. Blueprint: Lemma 2.10, \lbl{lem:2.10}, step \lbl{210gram}, which computes the
+block sums in its substeps \lbl{210blocks} and \lbl{210sums} and corrects the entry in its closing
+step, and C1, step \lbl{210det} (\lbl{comp:C1}), in \file{blueprint/sec2-lines.tex}.
+Lean: \lean{Computations.C1.blockSumMatrix}, with the entry 0, is the Gram matrix of the five
+block sums by \lean{LineSystem.Hyp24.gram_blockSumVectors}
+(\file{LineGraphs/LineSystem/OrthGraphGram.lean}); C1 is \lean{Computations.C1.det_blockSumMinor}
+(\file{LineGraphs/Computations/C1.lean}).}
+
+\errhead{Error 4}{Theorem 5.8, the direction of an inequality}{Proof of Theorem 5.8; p.~323.}
+\printed{``$k\leqslant v$ implies $s\leqslant 2t-1$''.}
+\correct{$s\ge 2t-1$, as in the statement, case (iii).}
+\evidence{Here $k=st$ and $v=\frac12 s(s+1)$ with $s,t>0$ (the remark after Theorem 5.8), so
+$k\le v$ if and only if $t\le\frac12(s+1)$, that is, $s\ge 2t-1$.}
+\repair{The blueprint of Theorem 5.8 proves $s\ge2t-1$ from $k\le v$; computation C11.}
+\status{Fixed. Blueprint: Theorem 5.8, \lbl{thm:5.8}, step \lbl{s558nbineq}
+(\file{blueprint/sec5-spectral.tex}). Lean: \lean{Computations.C11.two_mul_sub_one_le}
+(\file{LineGraphs/Computations/C11.lean}), used by Theorem 5.8, \lean{Design.flagGraph_cospectral}
+(\file{LineGraphs/LineGraphSpectra/Theorem58.lean}).}
+
+\errhead{Error 5}{Theorem 3.6, clique and coclique}{Proof of Theorem 3.6; p.~312.}
+\printed{``$A_7\subset E_7$ since a 5-coclique is imbeddable in the triangular graph on 6
+symbols''.}
+\correct{The argument mixes the two graphs on $\Gamma_a$. In the graph of Section 2, where
+adjacency is orthogonality, $\Gamma_a$ of $A_7$ is a coclique on 5 vertices, and $\Gamma_a$ of
+$E_7$ is the complement of $T(6)$, with parameters $(15,6,1,3)$. The inclusion needs a 5-coclique
+of the complement of $T(6)$, that is, a 5-clique of $T(6)$: the five pairs through a fixed symbol.
+$T(6)$ itself has no coclique on more than 3 vertices. The conclusion stands.}
+\evidence{The definitions; computation C5.}
+\repair{Computation C5 proves $A_7\subset E_7$ by an explicit inclusion of coordinates, and does
+not need the 5-clique.}
+\status{Fixed. Blueprint: a remark just before Theorem 3.6 (\lbl{thm:3.6}) records the correction,
+and C5, \lbl{comp:C5}, proves the inclusion (\file{blueprint/sec3-rootsystems.tex}). Lean:
+\lean{Computations.C5.inclusions_and_obstructions} (\file{LineGraphs/Computations/C5.lean}), which
+Theorem 3.6, \lean{LineSystem.classification_of_isMaximal}, uses.}
+
+\errhead{Error 6}{Minor inconsistencies of labels and counts}{Definition 3.2 (p.~311), Theorem 2.13
+(p.~310), the proofs of Theorems 4.3 and 4.4 (pp.~317--318) and of Theorem 5.8 (p.~323).}
+\printed{Definition 3.2 labels its second model ``(i)''; later references call it (ii): ``We use
+Definition 3.2(ii) for $E_8$'' (p.~318). Theorem 2.13 gives ``$|\Delta|=36$'', ``$|\Delta|=15$'',
+``$|\Delta|=6$''. The proofs of Theorems 4.3 and 4.4 cite ``Lemma 3.7'' for Theorem 3.7, and the
+proof of Theorem 5.8 cites ``Theorem 5.6'' for Lemma 5.6.}
+\correct{The second model is (ii). The numbers of Theorem 2.13 count lines: as defined in
+Hypothesis 2.4, $\Delta$ is a set of vectors closed under negation, with 72, 30 and 12 elements.
+The line counts are the ones for which $3+3|\Gamma_a|+|\Delta|$ is 120, 63 and 36. The citations
+are of Theorem 3.7 and Lemma 5.6.}
+\evidence{The printed text.}
+\repair{The blueprint uses the correct labels and names the three models of $E_8$ (i), (ii),
+(iii). In Theorem 2.13 it writes $|\Delta|/2$ for the number of lines; in Lean, $\Delta$ is a set
+of vectors.}
+\status{Fixed. Blueprint: Definition 3.2, \lbl{def:3.2} (\file{blueprint/sec3-rootsystems.tex});
+Theorem 2.13, \lbl{thm:2.13}, step \lbl{213exceptional} (\file{blueprint/sec2-lines.tex}); the
+citation of Theorem 3.7 for the valencies, in Lemma \lbl{lem:4-valency}
+(\file{blueprint/sec4-leasteigenvalue.tex}); and that of Lemma 5.6 in Theorem 5.8, \lbl{thm:5.8}
+(\file{blueprint/sec5-spectral.tex}). Lean: the three models are
+\lean{LineSystem.E}\lsub8\lean{viaA}\lsub8, \lean{LineSystem.E}\lsub8\lean{viaD}\lsub8 and
+\lean{LineSystem.E}\lsub8\lean{viaSteiner} (\file{LineGraphs/LineSystem/Models.lean}), and
+\lean{LineSystem.five_possibilities'} gives $|\Delta|/2=36,15,6$
+(\file{LineGraphs/LineSystem/ClassificationModels.lean}).}
+
+\errhead{Error 7}{Theorem 4.13, a reversed count}{Proof of Theorem 4.13; p.~320.}
+\printed{``If $\{i,j\}$ and $\{i,k\}$ are edges of $H$, then the number of vertices of $L(H)$
+adjacent to both is $v-2$ or $v-1$ according as $\{j,k\}$ is an edge or not.''}
+\correct{It is $v-1$ if $\{j,k\}$ is an edge and $v-2$ otherwise.}
+\evidence{Here $Y$, the paper's $H$, is regular of valency $v$. The common neighbours of $\{i,j\}$
+and $\{i,k\}$ in $L(Y)$ are the $v-2$ other edges on $i$, together with $\{j,k\}$ when it is an
+edge. The argument uses only that the two values differ, so it is unaffected.}
+\repair{The line graph case LG1 of \file{cgss/prerequisites.md}, \S7.2, which the blueprint
+proves for Theorem 4.13, uses the corrected count.}
+\status{Fixed. Blueprint: Lemma (the line graph case, LG1), \lbl{lem:4-LG1}, used by Theorem 4.13,
+\lbl{thm:4.13} (\file{blueprint/sec4-leasteigenvalue.tex}). Lean:
+\lean{SimpleGraph.lineGraph_isSRGWith_cases} (\file{LineGraphs/Seidel/LineGraphCases.lean}), which
+the proof of \lean{SimpleGraph.seidel} uses.}
+
+\errhead{Error 8}{Theorem 4.4, 28 equiangular lines}{Proof of Theorem 4.4; p.~318.}
+\printed{``But any set of 28 equiangular lines lies in $\re^7$, hence the multiplicity of 0 as an
+eigenvalue actually is $\geqslant n-7$. This implies that $I+\frac12A$ has rank $\leqslant 7$,
+hence the set of vectors we started with is contained in $E_7$ or $D_7$.''}
+\correct{The first sentence is false as stated: 28 lines at angle $\arccos\frac13$ can span
+$\re^{15}$. It is true for lines in $\re^m$ with $m\le14$, in particular in $\re^8$, which is the
+case used, but [15] (Lemmens and Seidel, \emph{Equiangular lines}) does not state it (Gap 7). The
+last clause should also allow $A_7$ and the smaller systems; since $A_7\subset E_7$, every
+indecomposable star-closed set of rank at most 7 lies in $E_7$ or $D_7$, and nothing changes.}
+\evidence{A single full pillar in the sense of [15] gives 28 lines at $\arccos\frac13$ spanning
+$\re^{15}$ (\file{cgss/prerequisites.md}, \S7.1).}
+\repair{EQ1 to EQ3 of \file{cgss/prerequisites.md}: the relative bound of [15], and the cone
+construction through Theorem 3.5 (decision 1 of \file{cgss/prerequisites.md}, \S13).}
+\status{Fixed. Blueprint: Theorem 4.4, \lbl{thm:4.4}, through the relative bound EQ1,
+\lbl{lem:4-EQ1}, and the lines spanning eight dimensions, EQ2, \lbl{lem:4-EQ2}
+(\file{blueprint/sec4-leasteigenvalue.tex}). Lean: \lean{InnerProductSpace.card_le_relativeBound}
+(\file{LineGraphs/Representation/Theorem44.lean}) and
+\lean{InnerProductSpace.card_le_fourteen_of_finrank_eq_eight}
+(\file{LineGraphs/Spectral/RelativeBoundFourteen.lean}); Theorem 4.4 is
+\lean{SimpleGraph.IsRepresentedIn.card_le_28_of_regular} and
+\lean{SimpleGraph.IsRepresentedIn.degree_le_16_of_regular}
+(\file{LineGraphs/Representation/Theorem44Unconditional.lean}).}
+
+\errhead{Error 9}{Section 6, the row sums of $A$}{Section 6, before Theorem 6.2; p.~326.}
+\printed{``$(xA+nI)(xA-\frac12n(n-2)I)=0$, $xAJ=-nJ$, hence $x$ divides $n$'' and
+``$(A+dI)(A-\frac12d(n-2)I)=0$, $AJ=-dJ$''.}
+\correct{The quadratic equations hold; the equations $xAJ=-nJ$ and $AJ=-dJ$ do not hold in
+general. Since $PP^T=nI+xA$, the equation $xAJ=-nJ$ says that $PP^T\Zj=0$, that is, $P^T\Zj=0$.
+The entry of $P^T\Zj$ at a column $c$ is $\frac12(\sigma(c)^2-n)$, where $\sigma(c)$ is the sum of
+column $c$ of $H_n$. Thus $xAJ=-nJ$ holds if and only if every column sum of $H_n$ is $\pm\sqrt n$.
+This depends on the signs of the rows of $H_n$, and it fails for every choice of signs unless $n$
+is a square. The conclusion that $x$ divides $n$ is true for another reason: as the paper says
+next, $d^2=(n/x)^2$ is the number of fourth rows that agree with three given rows in
+$\frac18(n\pm x)$ places, so $n/x$ is a rational number whose square is an integer. (For a fixed
+row $i$, the $n-1$ vectors $H_i\circ H_j$ form an orthogonal basis of $\Zj^\perp$, and expanding
+$H_k\circ H_l$ in this basis gives the count.) The claim needs $n\ge3$. For $n=1$ and $n=2$ the
+matrix has fewer than four rows, so Hypothesis 6.1 holds for every $x$, and $x$ need not divide
+$n$ (take $n=2$ and $x=3$); there is no Hadamard matrix of order 3. The assumption $x>0$ costs
+nothing: for $n\ge4$ and $x=0$ we would have $PP^T=nI$, of rank $\binom n2>n$, whereas $P$ has
+only $n$ columns.}
+\evidence{For the Paley matrix $H_{12}$, the row sums of $xA$ are $-60$ and $36$, and no choice of
+row signs makes every column sum $\pm\sqrt{12}$. For the Sylvester matrix of order 8, every row
+sum of $xA$ is $24=\frac12n(n-2)$, so $\Zj$ is an eigenvector of $PP^T$ for $\frac12n^2$, not
+for 0 (NumPy, scratch). The same check confirms Hypothesis 6.1 for $H_{12}$ with $x=4$. Theorem 6.2
+is unaffected, since its proof uses only the quadratic equation, the fact that the lines lie in
+$\Zj^\perp$, and the orthogonality of the lines through a fixed row.}
+\repair{The blueprint states the quadratic equation, and derives $x\mid n$ from the count of
+fourth rows; computation C16. A shorter route: for $n>2$ the eigenvalue $-n/x$ of the integer
+matrix $C_H$ (the paper's $A$) has multiplicity $\frac12(n-1)(n-2)>0$, so it is an integer by the
+rational root theorem (\file{cgss/proofs/spectraltools/spectraltools.tex}, Theorem 9.6, used in its
+Theorem 10.4).}
+\status{Fixed. Blueprint: the background of Section 6, the quadratic equation,
+\lbl{lem:6-quadratic}, and the fourth rows, \lbl{lem:6-fourth}, with the remark after it
+(\file{blueprint/sec6-hadamard.tex}). Lean: \lean{Matrix.IsHadamard.hadamardSignedAdj_quadratic}
+(\file{LineGraphs/Hadamard/Agreement.lean}) and \lean{Matrix.IsHadamard.FourRowAgreement.dvd_card}
+(\file{LineGraphs/Hadamard/FourthRows.lean}), which assumes $n\ge3$ and $x>0$. The two false
+identities have no Lean statement; the statement audit records them as rightly absent.}
+
+\errhead{Error 10}{Definition 3.9 (b), $S$ for $\Sigma$}{Definition 3.9 (b); p.~314.}
+\printed{``$\forall_{r\in\Sigma}\forall_{\lambda\in\re}((\lambda r\in S)\Rightarrow(\lambda\in\{1,-1\}))$''.}
+\correct{$\lambda r\in\Sigma$. The letter $S$ names the set of lines of Section 2.}
+\evidence{The printed text, and the sense of the definition. Read with $\Sigma$, condition (b) also
+excludes 0 from $\Sigma$ (if $0\in\Sigma$, then $\lambda0\in\Sigma$ for $\lambda=2$).}
+\repair{Section 2 of \file{cgss/proofs/remark311/remark311.tex}, and item 2 of its section
+``Interpretations and corrections of the sources''.}
+\status{Fixed. Blueprint: Definition 3.9, \lbl{def:3.9} (\file{blueprint/sec3-remark311.tex}).
+Lean: \lean{IsRootSet} (\file{LineGraphs/RootSystems/Defs.lean}), whose field \lean{reduced} is
+condition (b), read with $\Sigma$.}
+
+\errhead{Error 11}{Remark 3.11, statements that need qualification}{Remark 3.11; p.~314.}
+\printed{``Let $r,s\in\Sigma$ be not perpendicular. Since $4(r,s)^2/(r,r)(s,s)$ is a positive
+integer $<4$, \dots''; ``the subset of a Root System consisting of vectors of any fixed length is
+itself a Root System, necessarily one of those described by Theorem 3.10''; ``$B_n$ and $C_n$: a
+set of $n^2$ lines in $\re^n$ with angles $90^\circ$, $60^\circ$, $45^\circ$, and equation
+$(C+2I)(C-2(n-1)I)=0$'', and the similar lines for $F_4$ and $G_2$.}
+\correct{(1) The roots $r$ and $s$ must also be non-proportional; for $s=\pm r$ the quotient is 4.
+(2) The roots of one length form a Root System in their own span, which need not be the whole space
+and need not be indecomposable: the long roots of $B_2$ form $A_1\oplus A_1$, and the roots of
+length 1 in $\{\pm\Zu_1,\pm2\Zu_2\}$ span a line. (3) The matrix $C$ is defined before Theorem 3.7
+only for vectors of one length. For two root lengths we take unit vectors on the lines, as the
+columns of a matrix $U$, and put $C=2U^TU-2I$; then the three printed equations hold. (4) The
+listed angles are the angles allowed: for $B_2=C_2$ the angle $60^\circ$ does not occur.}
+\evidence{\file{cgss/proofs/remark311/remark311.tex}, \S~``Interpretations and corrections of the
+sources'', items 3 to 6, and its Lemma ``angles'' and Theorem C, with their checks.}
+\repair{\file{cgss/proofs/remark311/remark311.tex} (decision 5 of \file{cgss/prerequisites.md},
+\S13); the blueprint of Remark 3.11 follows it.}
+\status{Fixed. Blueprint: Remark 3.11, \lbl{rem:3.11}, through Lemma (angles and fixed-length
+subsystems), \lbl{lem:angles}, and Theorem C, \lbl{thm:C} (\file{blueprint/sec3-remark311.tex}).
+Lean: \lean{IsRootSet.remark_lines} (\file{LineGraphs/RootSetClassification/RemarkLines.lean}),
+with \lean{RootSetModel.Bn_Cn_same_lines} and the equations
+\lean{RootSetModel.signedAdj_quadratic_Bn}, \lean{_Cn}, \lean{_F}\lsub4 and \lean{_G}\lsub2; the
+subsets of one length are \lean{IsRootSet.fixedLength_isRootSet}.}
+
+\errhead{Error 12}{Lemma 2.12, ``the unique strongly regular graphs on 9, 15, 27 vertices''}{Lemma
+2.12; p.~310.}
+\printed{``\dots the void graph on $n$ vertices, the graph consisting of $n$ triangles meeting at
+one vertex, the unique strongly regular graphs on 9, 15, 27 vertices.''}
+\correct{There are other strongly regular graphs on these numbers of vertices: $T(6)$ on 15 and
+the Schl\"afli graph on 27 (the complements of the intended graphs), and the degenerate $3K_3$ and
+$K_{3,3,3}$ on 9. The intended graphs are those of Lemma 2.10, which are strongly regular with
+parameters $(9,4,1,2)$, $(15,6,1,3)$ and $(27,10,1,5)$. The paper proves only that they are
+regular. Strong regularity takes two further observations, in the notation of Lemma 2.10: adjacent
+vertices have exactly one common neighbour, the third vertex of their triangle; and nonadjacent
+vertices $u$, $v$ have the $k$ common neighbours in $K$.}
+\evidence{$T(6)$ has parameters $(15,8,4,4)$ and the Schl\"afli graph $(27,16,10,8)$.}
+\repair{The blueprint names the graphs by their parameters, or as the collinearity graphs of the
+generalized quadrangles of orders $(2,1)$, $(2,2)$, $(2,4)$ (GQ1 and GQ2 of
+\file{cgss/prerequisites.md}).}
+\status{Fixed. Blueprint: Lemma 2.10, \lbl{lem:2.10}, proves strong regularity with parameters
+$(6k-3,2k,1,k)$, and Lemma 2.12, \lbl{lem:2.12}, lists the graphs by their parameters
+(\file{blueprint/sec2-lines.tex}). Lean: \lean{LineSystem.Hyp24.orthGraph_isSRGWith}
+(\file{LineGraphs/LineSystem/OrthGraphParameters.lean}) and \lean{LineSystem.Hyp24.orthGraph_cases}
+(\file{LineGraphs/LineSystem/OrthGraphCases.lean}).}
+
+\errhead{Error 13}{Further slips}{Various pages.}
+\printed{(1) Lemma 3.4: ``$|A|=\frac12n(n+1)$'' for $|A_n|$ (p.~311). (2) Definition 3.2 (ii):
+``$\epsilon_i=\pm1$'' appears twice in the display (p.~311). (3) Theorem 3.12: ``two lines in
+different subsets are at angles $90^\circ$ and $45^\circ$'' for ``$90^\circ$ or $45^\circ$''
+(p.~315). (4) Section 4: ``is and orthonormal basis'' (p.~315); ``by delecting a one-factor''
+(p.~316); ``whose lines from a subset of $D_n$'' (p.~316); and Corollary 5.10: ``The graphs ar
+switching equivalent'' (p.~324). (5) The representation of the generalized line graphs, and the
+proof of Theorem 4.2: ``$1\leqslant\alpha\leqslant\alpha_i$'' for $1\le\alpha\le a_i$ (pp.~316
+and 317). (6) Proof of Theorem 4.4: ``The projections onto the lines spanned by these vectors are
+elements of $\re^{28}$ and have Gram matrix $(1-\frac{d+2}{2n})^2I+\cdots$'' (p.~317). (7) Proof
+of Theorem 4.4: ``for each eigenvalue $\alpha\neq d$ of $A$'' (p.~318). (8) Remark 5.7: ``two
+eigenvalues $\delta:=\gamma-\frac12(v+w)$ and $\delta:=\gamma'-\frac12(v+w)$'' (p.~322).}
+\correct{Items (1) to (5) are misprints with evident corrections. In (6), the vectors have squared
+norm $1-\frac{d+2}{2n}$, and the displayed matrix is the Gram matrix of the rank-one matrices
+$\Zp\Zp^T$, not of the projections, whose Gram matrix is the displayed one divided by
+$(1-\frac{d+2}{2n})^2$; the conclusion is the same. In (7), read ``for each eigenvalue $\alpha$ of
+$A$ with an eigenvector orthogonal to $\Zj$''. The two readings differ only when the graph is
+disconnected; then $d$ is also an eigenvalue on $\Zj^\perp$, the inequality holds for it, and the
+sum over $\alpha_1,\dots,\alpha_7$ needs it. In (8), the second is $\delta':=\gamma'-\frac12(v+w)$.}
+\evidence{The printed text. None of these affects an argument.}
+\repair{The blueprint uses the corrected forms.}
+\status{Fixed in the blueprint: (1) Lemma 3.4, \lbl{lem:3.4}; (2) Definition 3.2, \lbl{def:3.2};
+(3) Theorem 3.12, \lbl{thm:3.12}, whose Lean statement,
+\lean{LineSystem.subset_rootSet_iff_bipartition}, also reads ``or''; (4) Theorem 4.2,
+\lbl{thm:4.2}, for ``form''; (5) Lemma (the representation of a generalized line graph),
+\lbl{lem:4-glgrep}; (6) and (7) Theorem 4.4, \lbl{thm:4.4}; (8) Remark 5.7, \lbl{rem:5.7}. The
+Lean statements are those of the corrected forms; for instance, \lean{LineSystem.numLines_An}
+counts the lines of $A_n$.}
+
+\errhead{Error 14}{Remark 5.7, the eigenvalues of $A(X_2)$}{Remark 5.7; pp.~322--323.}
+\printed{``To each eigenvalue $\alpha\neq0$ of $B_1B_1^T$ there correspond \dots\ two eigenvalues
+$\delta:=\gamma-\frac12(v+w)$ and $\delta:=\gamma'-\frac12(v+w)$ of $A(G_2)$'' (the second
+$\delta$ is the misprint of Error 13, item 8) and ``For an eigenvalue 0 of $A(G_1)$ the
+corresponding eigenvalues of $A(G_2)$ are $\pm\frac12(v-w)$. Their multiplicities need not be
+equal, add up to $q-p$''.}
+\correct{In the paper's notation, the parts of $X_1$ have sizes $p\le q$ and valencies $v$ and $w$,
+and $\rho=\rk B_1$. (a) For $\alpha=vw$ the roots of $(\gamma-v)(\gamma-w)=\alpha$ are $v+w$ and
+0, and 0 is not an eigenvalue of $M_2M_2^T$, which is nonsingular; thus only $\frac12(v+w)$
+occurs, not $-\frac12(v+w)$. (b) The multiplicities of $\pm\frac12(v-w)$ are $p-\rho$ and $q-\rho$; their
+\emph{difference} is $q-p$, and their sum is $p+q-2\rho$.}
+\evidence{Take $X_1=K_{6,10}$ and $X_2=T(6)$. Then $L(K_{6,10})$ and $L(T(6))$ both have spectrum
+$14^1\,8^5\,4^9\,(-2)^{45}$, $X_2$ is 8-regular and not bipartite, and $|X_1|=|X_2|+1$; the
+eigenvalues $\pm2$ of $T(6)$ have multiplicities 5 and 9, which add up to $14\ne q-p=4$. This is
+the situation of Corollary 5.9 and Remark 5.12, where $B_1=J$ has rank 1. We checked it by
+hand, and a kernel-checked certificate also proves it (see the Status). Theorem 5.8 does not use
+these statements.}
+\repair{The spectral toolkit, Corollary 6.8 of \file{cgss/proofs/spectraltools/spectraltools.tex}, states the
+correct spectrum, and the blueprint of Remark 5.7 uses it.}
+\status{Fixed. Blueprint: Remark 5.7, \lbl{rem:5.7} (\file{blueprint/sec5-spectral.tex}), which
+gives the spectrum of $A(X_2)$, with the multiplicities $p-\rho$ and $q-\rho$. Lean:
+\lean{SimpleGraph.lineGraph_cospectral_bipartite_spectrum_of_not_isBipartite}
+(\file{LineGraphs/LineGraphSpectra/Nonbipartite.lean}). The evidence is kernel-checked: the
+spectra of $L(K_{10,6})$, the flag graph of the trivial design $(6,6,10,10,10)$, of
+$L(L(K_6))=L(T(6))$ and of $T(6)$ are \lean{Computations.TrivialDesignException.spectrum_flagGraph},
+\lean{.spectrum_double_lineGraph} and \lean{.spectrum_triangular}, and the cospectrality is
+\lean{.flagGraph_cospectral_double_lineGraph}
+(\file{LineGraphs/Computations/TrivialDesignException.lean}).}
+
+\errhead{Error 15}{Theorem 4.4, the rank of $I+\frac12A$ when $d=12$}{Proof of Theorem 4.4; p.~318.}
+\printed{The matrix $I+\frac23A-\frac13(J-I)$ ``has the simple eigenvalue
+$1+\frac23d-\frac13(n-1)>0$'', and later ``This implies that $I+\frac12A$ has rank $\leqslant7$,
+hence the set of vectors we started with is contained in $E_7$ or $D_7$.''}
+\correct{For $n=28$ the eigenvalue on $\Zj$ is $\frac13(2d-24)$, which is 0 when $d=12$, and
+$(n,d)=(28,12)$ is the case of $T(8)$ and the Chang graphs, which lie in $E_8$. For $T(8)$, with
+spectrum $12^1\,4^7\,(-2)^{20}$, the matrix $I+\frac23A-\frac13(J-I)$ has eigenvalues $0$, $4^7$,
+$0^{20}$, and so rank 7, while $I+\frac12A$ has eigenvalues $7$, $3^7$, $0^{20}$, and so rank 8.
+Thus the sentence is false for $d=12$. The conclusion $d\le16$ stands, since $12\le16$.}
+\evidence{We checked it by hand from the spectrum of $T(8)$.}
+\repair{The blueprint of Theorem 4.4 splits into $d\le12$, where there is nothing to prove for the
+bound, and $d>12$, where the eigenvalue on $\Zj$ is positive and the rank argument goes through.}
+\status{Fixed. Blueprint: Theorem 4.4, \lbl{thm:4.4}, step \lbl{s44rankE}, with the case $d\le12$
+in step \lbl{s44big} (\file{blueprint/sec4-leasteigenvalue.tex}). Lean:
+\lean{SimpleGraph.IsRepresentedIn.degree_le_16_of_regular}
+(\file{LineGraphs/Representation/Theorem44Unconditional.lean}); that the case $(28,12)$ occurs is
+part of \lean{SimpleGraph.regular_28_12_and_27_16_isRepresentedIn_E}\lsub8
+(\file{LineGraphs/Representation/Theorem44.lean}).}
+
+\errhead{Error 16}{Theorem 5.8 needs $b\ge v$}{Theorem 5.8 and the remark after it; pp.~323--324.}
+\printed{``Let $D_1$ be a 2-design with parameters $v,k,b,r,\lambda$ \dots\ Then one of the
+following holds'', with the cases (i) ``$v+b\leqslant9$, \dots'', (ii) ``$G_2=F(D_2)$, \dots''
+and (iii) ``$v=\frac12s(s+1)$, $k=st$, $b=\frac12(s+1)(s+2)$, \dots''.}
+\correct{The statement fails without $b\ge v$. Take the trivial design $v=k=10$,
+$b=r=\lambda=6$: its flag graph $L(K_{10,6})$ is cospectral with $L(T(6))$ (Error 14). Case (i)
+fails, since $v+b=16$; (ii) fails, since the only design with these parameters has flag graph
+$L(K_{10,6})$, and $T(6)$ is not bipartite; and (iii) fails, since $v=10$ forces $s=4$, and then
+$b=15$. The dual design ($v=6$, $b=10$) satisfies (iii) with $s=3$, $t=2$. The paper's remark
+after the theorem ($s,t>0$ when $\lambda<r$; otherwise pass to the dual) is the intended
+hypothesis, and every corollary meets it.}
+\evidence{We checked it by hand from the spectra in Error 14, and a kernel-checked certificate
+proves that $L(K_{10,6})$ and $L(T(6))=L(L(K_6))$ are cospectral and not isomorphic.}
+\repair{The blueprint of Theorem 5.8 assumes $b\ge v$.}
+\status{Fixed. Blueprint: Theorem 5.8, \lbl{thm:5.8} (\file{blueprint/sec5-spectral.tex}). Lean:
+\lean{Design.flagGraph_cospectral}, with the hypothesis \lean{hvb} that $v\le b$
+(\file{LineGraphs/LineGraphSpectra/Theorem58.lean}). The evidence:
+\lean{Computations.TrivialDesignException.lineGraph_completeBipartite_cospectral_double_lineGraph}
+and \lean{.flagGraph_not_nonempty_iso_double_lineGraph}, the latter for the flag graph of the dual
+design $(6,6,10,10,10)$, which is $L(K_{10,6})$ again
+(\file{LineGraphs/Computations/TrivialDesignException.lean}).}
+
+\errhead{Error 17}{Corollary 5.9, the exception is unordered}{Corollary 5.9; p.~324.}
+\printed{``the graph $L(K_{m,n})$ is characterized by its spectrum, unless $m=2t^2+t$,
+$n=2t^2-t$, and there exists a symmetric Hadamard matrix with constant diagonal of order
+$4t^2$.''}
+\correct{The exception must read $\{m,n\}=\{2t^2+t,2t^2-t\}$: for $(m,n)=(6,10)$ the printed
+condition does not apply, but $L(K_{6,10})=L(K_{10,6})$ is not characterized (it is cospectral
+with $L(T(6))$; $t=2$).}
+\evidence{The pair of Error 14. A kernel-checked certificate proves that the
+flag graph $L(K_{10,6})$ of the trivial design $(6,6,10,10,10)$ is cospectral with
+$L(L(K_6))=L(T(6))$, is not isomorphic to it, and is not characterized by its spectrum in the
+sense of Implicit hypothesis 6.}
+\repair{The blueprint states Corollary 5.9 for the unordered pair $\{m,n\}$, and reduces it to
+$m\ge n$ by symmetry.}
+\status{Fixed. Blueprint: Corollary 5.9, \lbl{cor:5.9}, step \lbl{s559ordered}
+(\file{blueprint/sec5-spectral.tex}). Lean: \lean{SimpleGraph.lineGraph_completeBipartite_characterized},
+whose exception \lean{SimpleGraph.HasCompleteBipartiteHadamardException} is symmetric in $m$ and
+$n$, through \lean{SimpleGraph.lineGraph_completeBipartite_characterized_of_le}
+(\file{LineGraphs/LineGraphSpectra/Corollaries.lean}). The evidence:
+\lean{Computations.TrivialDesignException.flagGraph_cospectral_double_lineGraph},
+\lean{.flagGraph_not_nonempty_iso_double_lineGraph} and \lean{.not_flagGraphCharacterized}
+(\file{LineGraphs/Computations/TrivialDesignException.lean}).}
+
+\section{Implicit hypotheses}
+
+The Lean statements state each of these explicitly. Implicit hypothesis 2 is a note on how we
+read a phrase of the paper, not a hypothesis that the paper leaves out; it keeps its number, which
+other files cite.
+
+\errhead{Implicit hypothesis 1}{Theorem 4.10 needs $X$ to be connected}{Theorem 4.10; p.~319. The
+claim of the introduction that the lines of such a graph lie in one of the root systems needs the
+condition too; p.~306.}
+\printed{``If $G$ is a graph with least eigenvalue $-2$, then either (i) $G$ is a generalized line
+graph; or (ii) $G$ is represented by a subset of $E_8$.'' In the introduction: ``Any graph with
+least eigenvalue $-2$ may be viewed as a set of lines at $60^\circ$ and $90^\circ$. As a
+consequence of the main theorem, this set is contained in one of the root systems.''}
+\missing{$X$ is connected.}
+\evidence{Two disjoint copies of the Petersen graph have least eigenvalue $-2$ and do not form a
+generalized line graph. Their matrix $2I+A$ has rank $12>8$, so they are not represented in $E_8$
+either. Thus their lines lie in none of the root systems $A_n$, $D_n$, $E_6$, $E_7$, $E_8$: subsets
+of $A_n$ and $D_n$ represent generalized line graphs (Theorems 4.1 and 4.2), and $E_6$, $E_7$ and
+$E_8$ span at most 8 dimensions. Section 4 states the condition (p.~315).}
+\repair{The Lean statement of Theorem 4.10 assumes that $X$ is connected, and so does the Lean
+form of the claim of the introduction.}
+\status{Fixed. Blueprint: Theorem 4.10, \lbl{thm:4.10}, and Lemma (a root system containing the
+lines), \lbl{lem:4-rootsystem} (\file{blueprint/sec4-leasteigenvalue.tex}). Lean:
+\lean{SimpleGraph.hoffman} (\file{LineGraphs/Representation/Hoffman.lean}) and
+\lean{SimpleGraph.IsRepresentation.exists_isRepresentedIn_rootType}
+(\file{LineGraphs/Representation/RootTypeClassified.lean}), both with the hypothesis
+\lean{X.Connected}.}
+
+\errhead{Implicit hypothesis 2}{Theorem 4.13 and ``least eigenvalue $-2$''}{Theorem 4.13; p.~320.
+The phrase also occurs in Theorems 4.10 and 4.11 (pp.~319 and 320).}
+\printed{``If $G$ is a connected strongly regular graph with least eigenvalue $-2$, then either
+\dots''}
+\note{Nothing is missing from the printed theorem. Read literally, ``least eigenvalue $-2$'' says
+that the least eigenvalue is $-2$, so that $-2$ is an eigenvalue, and the paper uses the phrase in
+this sense. Thus Theorem 4.13 is correct as printed. In Theorems 4.10 and 4.11 we read the phrase
+as the lower bound $\lambda_{\min}\ge-2$, that is, $2I+A\succeq0$, which makes these two theorems
+stronger. Theorem 4.13 is false under that reading.}
+\evidence{The paper writes ``the least eigenvalue of $L(G;a_1,\dots,a_m)$ is $-2$ if the number of
+vertices exceeds $n$'' (p.~316), and the proof of Theorem 4.13 ends with ``$K_n=L(K_{1,n})$ and
+$C_5=L(C_5)$ do not have $-2$ as an eigenvalue''. Under the lower bound reading, $K_n$ with $n>36$
+is a counterexample: it is strongly regular in Mathlib's sense (\lean{IsSRGWith}) and has least
+eigenvalue $-1$, but it is none of the graphs in (i) or (ii).}
+\repair{None is needed. The Lean statement assumes the lower bound and, as a second hypothesis,
+that $-2$ is an eigenvalue; together these say that the least eigenvalue is $-2$, by the bridge
+lemma \lean{SimpleGraph.leastEigenvalue_eq_neg_two_iff}, so the Lean states the printed
+theorem.}
+\status{Nothing to fix. Blueprint: Theorem 4.13, \lbl{thm:4.13}, with its two hypotheses
+(\file{blueprint/sec4-leasteigenvalue.tex}). Lean: \lean{SimpleGraph.seidel}
+(\file{LineGraphs/Representation/Seidel413.lean}), whose hypotheses \lean{hp} and \lean{hneg} say
+that $2I+A\succeq0$ and that $-2$ is an eigenvalue; the bridge is
+\lean{SimpleGraph.leastEigenvalue_eq_neg_two_iff} (\file{LineGraphs/Spectral/Positivity.lean}).
+Theorems 4.10 and 4.11, \lean{SimpleGraph.hoffman} and \lean{SimpleGraph.hoffman_rayChaudhuri},
+assume only the lower bound.}
+
+\errhead{Implicit hypothesis 3}{Lemmas 5.4 and 5.5}{Lemmas 5.4 and 5.5; p.~321.}
+\printed{Lemma 5.4: ``If $L(G)$ is regular and connected, then either $G$ is regular, or $G$ is
+bipartite and the vertices in the same bipartite block have the same valency.'' Lemma 5.5: ``The
+spectrum of a regular graph is determined by the spectrum of its line graph.''}
+\missing{Lemma 5.4 needs $X$ to have no isolated vertices, and Lemma 5.5 needs at least one edge.}
+\evidence{$K_2$ together with an isolated vertex is a counterexample to Lemma 5.4. All edgeless
+graphs have the same line graph, so Lemma 5.5 fails without an edge.}
+\repair{SP4 of \file{cgss/prerequisites.md}, and the blueprint of Lemmas 5.4 and 5.5, assume
+these.}
+\status{Fixed. Blueprint: Lemma 5.4, \lbl{lem:5.4}, and Lemma 5.5, \lbl{lem:5.5}
+(\file{blueprint/sec5-spectral.tex}). Lean:
+\lean{SimpleGraph.regular_or_isBiregularWith_of_lineGraph_regular}
+(\file{LineGraphs/Spectral/LineGraphRegular.lean}) assumes that every vertex has positive degree,
+and \lean{SimpleGraph.cospectral_of_lineGraph_cospectral}
+(\file{LineGraphs/Spectral/LineGraphRecovery.lean}) assumes that both graphs have an edge.}
+
+\errhead{Implicit hypothesis 4}{Hypothesis 2.4 needs two lines}{After Hypothesis 2.4; p.~307.}
+\printed{``Without loss of generality we assume that $S$ contains lines $\langle a\rangle$ and
+$\langle b\rangle$ whose spanning vectors $a$ and $b$ have the inner product $(a,b)=-1$.''}
+\missing{$S$ has at least two lines; in particular, $S$ is not empty.}
+\evidence{The assumption is possible exactly when $S$ has at least two lines: an indecomposable set
+with two or more lines contains two lines at $60^\circ$, since otherwise all its lines would be
+mutually orthogonal, and a choice of signs gives $(\Za,\Zb)=-1$. A single line is an indecomposable
+star-closed set, namely $A_1$, and for it $\Gamma_a$, $\Delta$ and $\Sigma$ are not defined. Thus
+Lemma 2.12, Theorem 2.13 and Theorem 3.5 need the case of one line separately; the first line of
+Theorem 2.13 with $n=1$ is this case. The empty set must be excluded too.}
+\repair{The blueprint of Theorems 2.13 and 3.5 splits on the number of lines. In Lean the
+structure \lean{LineSystem.Hyp24} carries $\Za$ and $\Zb$, and the classification,
+\lean{LineSystem.classification}, assumes a nonempty set (\lean{hne}).}
+\status{Fixed. Blueprint: Hypothesis 2.4, \lbl{hyp:2.4}, Lemma 2.12, \lbl{lem:2.12}, step
+\lbl{212star}, and Theorem 2.13, \lbl{thm:2.13} (\file{blueprint/sec2-lines.tex}); Theorem 3.5,
+\lbl{thm:3.5} (\file{blueprint/sec3-rootsystems.tex}). Lean: \lean{LineSystem.Hyp24}
+(\file{LineGraphs/LineSystem/Hyp24.lean}); the split
+\lean{LineSystem.IsIndecomposable.eq_pair_or_exists_hyp24}
+(\file{LineGraphs/LineSystem/OrthGraphCases.lean}); and \lean{LineSystem.five_possibilities'} and
+\lean{LineSystem.classification}, which assume that the set of roots is nonempty.}
+
+\errhead{Implicit hypothesis 5}{Lemma 5.6 needs $X_2$ without isolated vertices}{Lemma 5.6;
+p.~321.}
+\printed{Lemma 5.6: ``Let $G_1$ be connected bipartite such that $L(G_1)$ is regular. Let $G_2$ be
+such that $\operatorname{spec}(L(G_1))=\operatorname{spec}(L(G_2))$. Then either (i) \dots\ or (ii) $G_1$ is
+not regular; $G_2$ is regular, not bipartite; $|G_1|=|G_2|+1$.''}
+\missing{$X_2$, the paper's $G_2$, has no isolated vertices.}
+\evidence{Take $X_1=K_{1,3}$, and let $X_2$ be a triangle together with an isolated vertex. Then
+$L(X_1)=L(X_2)=K_3$, but $X_2$ is neither bipartite nor regular. The proof applies Lemma 5.4 to
+$X_2$, which needs no isolated vertices (Implicit hypothesis 3); it also uses that $L(X_2)$ is
+regular and connected, which follows from Lemmas 5.1 and 5.2. Theorem 5.8 is unaffected, since
+there the graph $Y$ with $X_2=L(Y)$ can be chosen without isolated vertices.}
+\repair{The blueprint and the Lean statement of Lemma 5.6 assume that $X_2$ has no isolated
+vertices.}
+\status{Fixed. Blueprint: Lemma 5.6, \lbl{lem:5.6} (\file{blueprint/sec5-spectral.tex}). Lean:
+\lean{SimpleGraph.lineGraph_cospectral_bipartite_forall_isBiregularWith}
+(\file{LineGraphs/LineGraphSpectra/Bipartite.lean}), whose hypothesis \lean{hnoY} says that every
+vertex of the second graph has positive degree.}
+
+\errhead{Implicit hypothesis 6}{The meaning of ``characterized by its spectrum''}{Corollaries
+5.9--5.11, Remark 5.12 and Example 5.13; pp.~324--325.}
+\printed{For instance, ``The flag graph of a 2-design with $\lambda=1$ is characterized by its
+spectrum.''}
+\missing{The paper does not define the phrase. Its proofs show, through Theorem 5.8 (ii), that
+every graph with the spectrum of $F(D_1)$ is $F(D_2)$ for some 2-design $D_2$ with the same
+parameters, and this is the sense of Hoffman and Ray-Chaudhuri [14] and of Doob [6, 7].}
+\evidence{Read as ``determined up to isomorphism by its spectrum'', Corollaries 5.10 and 5.11 and
+Remark 5.12 are false. The spectrum of $F(D)$ depends only on the parameters, since
+$NN^T=(r-\lambda)I+\lambda J$ (proof of Theorem 5.8), whereas $F(D)=L(I(D))$ determines $I(D)$ by
+Whitney's theorem, and so determines $D$ up to duality. Thus the two Steiner triple systems on 13
+points have cospectral, non-isomorphic flag graphs (against Corollary 5.11), and the five symmetric
+designs with parameters $(15,7,3)$ give at least three (against Corollary 5.10 and Remark 5.12,
+with $\lambda=3$). For Corollary 5.9 the two readings agree, since the trivial design with given
+parameters is unique.}
+\repair{The blueprint and the Lean statements define the phrase in this sense: every graph with the
+spectrum of $F(D_1)$ is isomorphic to $F(D_2)$ for some 2-design $D_2$ with the parameters of
+$D_1$. On the paper's route, the ``not characterized'' of Example 5.13 is then EX4 of
+\file{cgss/prerequisites.md}, a case of Whitney's theorem; the Lean proof avoids EX4 by a clique
+bound (blueprint, Example 5.13).}
+\status{Fixed. Blueprint: Definition (incidence graphs, flag graphs, characterization),
+\lbl{def:flag}, used from Corollary 5.9, \lbl{cor:5.9}, to Example 5.13, \lbl{ex:5.13}
+(\file{blueprint/sec5-spectral.tex}). Lean: \lean{Design.FlagGraphCharacterized}
+(\file{LineGraphs/LineGraphSpectra/DesignGraphs.lean}), used by
+\lean{Design.IsSymmetric.flagGraphCharacterized}, \lean{Design.flagGraphCharacterized_of_lam_eq_one},
+\lean{Design.flagGraphCharacterized_of_lam_lt_nineteen} and
+\lean{Design.not_flagGraphCharacterized_of_resolvable}, the last for Example 5.13.}
+
+\errhead{Implicit hypothesis 7}{Definition 2.2 means maximal within the span}{Section 2, first
+paragraph, and Definition 2.2; p.~306.}
+\printed{``Without loss of generality the lines are taken to pass through the origin of $\re^n$
+and to span $\re^n$.'' and ``A set of lines at $60^\circ$ and $90^\circ$ in $\re^n$ is maximal if
+any line of $\re^n$ belongs to the set whenever it has angles $60^\circ$ or $90^\circ$ with all
+lines of the set.''}
+\missing{Maximality is meant relative to the space that the lines span.}
+\evidence{Theorem 3.6 needs this reading: it calls $A_7$ and $A_8$ non-maximal because
+$A_7\subset E_7$ and $A_8\subset E_8$ in the same dimension, and $A_n$ is defined in
+Definition 3.1 in $\re^{n+1}$, where $\Ze_1+\Ze_2$ is at $60^\circ$ or $90^\circ$ to all its lines,
+so that no $A_n$ would be maximal in its ambient space. Brouwer, Cohen and Neumaier,
+\emph{Distance-Regular Graphs}, work with root lattices and do not use the notion.}
+\repair{The Lean definition and Definition 2.2 of the blueprint ask for maximality within
+$\operatorname{span}(\Phi)$. Lemma 2.3 is unchanged, since the sum of two roots lies in
+the span.}
+\status{Fixed. Blueprint: Definition 2.2, \lbl{def:2.2}, and Lemma 2.3, \lbl{lem:2.3}
+(\file{blueprint/sec2-lines.tex}); Theorem 3.6, \lbl{thm:3.6}
+(\file{blueprint/sec3-rootsystems.tex}). Lean: \lean{LineSystem.IsMaximal}
+(\file{LineGraphs/LineSystem/Defs.lean}), with \lean{LineSystem.IsMaximal.isStarClosed} for
+Lemma 2.3 and \lean{LineSystem.classification_of_isMaximal} for Theorem 3.6.}
+
+\errhead{Implicit hypothesis 8}{Theorem 3.12: a part may be empty}{Theorem 3.12; p.~315.}
+\printed{The lines can be ``partitioned into two subsets''.}
+\missing{Either subset may be empty.}
+\evidence{With both subsets nonempty the theorem is false: a single line lies in a Root System but
+cannot be split into two nonempty parts, and two lines of $A_2$ at $60^\circ$ must lie in the same
+part.}
+\repair{The partition is a colouring $\phi$ of $S$ with two colours, not necessarily surjective,
+and the empty set of lines is allowed. The note \file{cgss/proofs/thm312/thm312.tex} proves the theorem
+in this form.}
+\status{Fixed. Blueprint: Theorem 3.12, \lbl{thm:3.12}, with its paragraph on the conventions
+(\file{blueprint/sec3-thm312.tex}), after \file{cgss/proofs/thm312/thm312.tex}. Lean:
+\lean{LineSystem.subset_rootSet_iff_bipartition} (\file{LineGraphs/Theorem312/Main.lean}), whose
+colouring, in \lean{LineSystem.HasBipartition}, takes values in \lean{Bool}; its docstring says
+that the set and either colour fibre may be empty.}
+
+\end{document}

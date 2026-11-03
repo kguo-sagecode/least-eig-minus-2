@@ -1,0 +1,18 @@
+name = "linegraphs"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["LineGraphs"]
+
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "082e2d37e8b0463410cdb532e111cd43d5a66174"
+
+[[lean_lib]]
+name = "LineGraphs"

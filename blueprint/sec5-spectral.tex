@@ -1,0 +1,1897 @@
+\section{Spectral characterization}\label{sec:5}
+\begingroup
+\emergencystretch=3em
+\raggedbottom
+
+We will follow Section 5 of [CGSS]. All graphs are finite and simple. For a graph $X$ we write
+$V(X)$ and $E(X)$ for its vertices and edges, $A(X)$ for its adjacency matrix and $L(X)$ for
+its line graph. The paper's graphs $G$, $G_1$, $G_2$ are our $X$, $X_1$, $X_2$, and its
+auxiliary graph $H$ in Theorem 5.8 is our $Y$ (\path{cgss/notation.md}, Section 1). Valencies
+are $k$, $k_1$, $k_2$ in Lemmas 5.1 to 5.6 and in Remark 5.7; from Theorem 5.8 on, $k$ is the
+block size of a design and $(v,k,b,r,\lambda)$ are the design parameters, as in the paper. A
+generic eigenvalue is $\mu$, since $\lambda$ is a design parameter.
+
+The spectrum $\Spec(M)$ of a real symmetric matrix $M$ is the multiset of the roots of its
+characteristic polynomial, and $\mult_M(\mu)$ is the number of copies of $\mu$ in it. In a
+multiset $\ms{\mu^{m},\dots}$ the exponent $m$ counts copies, and a sum of multisets adds the
+counts. The spectrum of a graph is that of its adjacency matrix, two graphs are
+\emph{cospectral} when their adjacency matrices have the same characteristic polynomial, and
+$\lmax$ is the largest eigenvalue. Where the paper writes that two graphs have the same
+spectrum, we will say that they are cospectral. We cite the spectral toolkit \path{cgss/proofs/spectraltools/spectraltools.tex} as [ST],
+by the numbers of its results; its structured version \path{cgss/proofs/spectraltools/spectraltools-lamport.tex}
+has the same numbering. The toolkit is not part of this document, so we list the facts that we
+take from it, with its proposed Lean names, before we use them.
+
+The paper quotes Lemmas 5.1 to 5.4 as well known (errata, Gap 8). The toolkit proves them as
+SP1 to SP4, and we will state them in the paper's form and cite the toolkit. Lemmas 5.5 and 5.6
+and Remark 5.7 have proofs in the paper, and we will follow those proofs, with the toolkit's
+facts at the leaves. For Lemmas 5.1, 5.2, 5.3 and 5.5 the toolkit proposes the same Lean
+declarations (its Theorems 5.3, 5.4, 5.6 and 6.5), so each of these results and the
+corresponding toolkit result are one declaration. Lemma 5.4, Lemma 5.6 and Remark 5.7 differ in
+statement from the toolkit's Theorem 6.4, Theorem 6.7 and Corollary 6.8, in the forms that
+Theorem 5.8 needs: Lemma 5.4 does not assume an edge, and asserts $k_1\ne k_2$; Lemma 5.6 (i) holds for
+every biregular bipartition of $X_1$ with $|P_1|\le|Q_1|$; and Remark 5.7 assumes only that
+$X_2$ has no isolated vertices and is not bipartite. We will derive them from the toolkit's
+results, which we cite as inputs, and give them their own Lean names, derived from the
+toolkit's by the rules of \path{cgss/notation.md}, Section 10:
+\path{SimpleGraph.regular_or_isBiregularWith_of_lineGraph_regular},
+\path{SimpleGraph.lineGraph_cospectral_bipartite_forall_isBiregularWith} and
+\path{SimpleGraph.lineGraph_cospectral_bipartite_spectrum_of_not_isBipartite}.
+
+\begingroup\raggedright
+\medskip\noindent\textbf{Inputs from the spectral toolkit.}\label{input:st}
+\repair\ These are the toolkit's proofs of the facts that the paper quotes (errata, Gap 8, and
+\path{cgss/prerequisites.md}, SP1 to SP5). Matrices are real, square matrices are symmetric,
+and index sets are finite.
+\begin{itemize}
+ \item \factlabel{[ST, Theorem 2.2]}{st:2.2}\ST{Theorem 2.2}
+  (\path{Matrix.IsHermitian.eigenvalueMultiplicity_eq_finrank},
+  \path{Matrix.IsHermitian.mem_spectrumMultiset_iff}). If $M$ is symmetric of order $n$, then
+  $\Spec(M)$ has $n$ members counted with multiplicity, $\mult_M(\mu)=\dim\ker(M-\mu I)$, and
+  $\mu\in\Spec(M)$ exactly when $M\Zx=\mu\Zx$ for some $\Zx\ne0$.
+ \item \factlabel{[ST, Lemma 2.4]}{st:2.4}\ST{Lemma 2.4}
+  (\path{Matrix.IsHermitian.largestEigenvalue_mem_spectrumMultiset},
+  \path{Matrix.IsHermitian.le_largestEigenvalue_of_mem}). If $M$ is symmetric of positive
+  order, then $\lmax(M)$ is the largest member of $\Spec(M)$.
+ \item \factlabel{[ST, Proposition 2.6]}{st:2.6}\ST{Proposition 2.6}
+  (\path{Matrix.IsHermitian.spectrumMultiset_eq_iff_charpoly_eq},
+  \path{SimpleGraph.cospectral_iff_spectrumMultiset_eq}, \path{SimpleGraph.Iso.cospectral}).
+  For symmetric $M$, $M'$, possibly on different index sets, $\chi_M=\chi_{M'}$ if and only if
+  $\Spec(M)=\Spec(M')$, if and only if $\mult_M(\mu)=\mult_{M'}(\mu)$ for every real $\mu$.
+  Cospectral graphs have the same number of vertices, and isomorphic graphs are cospectral.
+ \item \factlabel{[ST, Theorem 3.1]}{st:3.1}\ST{Theorem 3.1}
+  (\path{Matrix.IsHermitian.spectrumMultiset_aeval}). If $M$ is symmetric and $f$ is a real
+  polynomial, then $\Spec(f(M))$ is the image of $\Spec(M)$ under $f$, with multiplicities. In
+  particular $\Spec(cI+M)$ is $\Spec(M)$ shifted by $c$, and $\mult_{cI+M}(\mu+c)=\mult_M(\mu)$.
+ \item \factlabel{[ST, Theorem 3.2]}{st:3.2}\ST{Theorem 3.2}
+  (\path{Matrix.IsHermitian.rank_aeval_eq_sum_multiplicity}). If $M$ is symmetric of order $n$,
+  then $\rk M=n-\mult_M(0)$, and for a real polynomial $f$, $\rk f(M)$ is the sum of
+  $\mult_M(\theta)$ over the distinct eigenvalues $\theta$ of $M$ with $f(\theta)\ne0$.
+ \item \factlabel{[ST, Corollary 3.4]}{st:3.4}\ST{Corollary 3.4}
+  (\path{SimpleGraph.posSemidef_two_add_adjMatrix_iff}). For a graph $X$, the matrix
+  $2I+A(X)$ is positive semidefinite if and only if every member of $\Spec(X)$ is at least $-2$.
+ \item \factlabel{[ST, Theorem 3.5]}{st:3.5}\ST{Theorem 3.5}
+  (\path{Matrix.rank_gram_eq_finrank_span}). For every matrix $B$,
+  $\rk(B^TB)=\rk B=\rk(BB^T)$. The Gram matrix of a finite family of vectors in a real inner
+  product space is positive semidefinite, and its rank is the dimension of the span of the family.
+ \item \factlabel{[ST, Theorem 5.1]}{st:5.1}\ST{Theorem 5.1}
+  (\path{SimpleGraph.adjMatrix_cube_apply_self_eq_twice_triangles}). For a graph $X$ with
+  $A=A(X)$ and a vertex $u$, $A^3(u,u)$ is twice the number of triangles of $X$ that
+  contain $u$.
+ \item \factlabel{[ST, Theorem 5.3]}{st:5.3}\ST{Theorem 5.3} (SP1;
+  \path{SimpleGraph.IsRegularOfDegree.largestEigenvalue_eq},
+  \path{SimpleGraph.IsRegularOfDegree.multiplicity_eq_card_components}). If $X$ is
+  $k$-regular on a nonempty vertex set, then $\lmax(X)=k$ and $\mult_X(k)$ is the number of
+  connected components of $X$.
+ \item \factlabel{[ST, Theorem 5.4]}{st:5.4}\ST{Theorem 5.4} (SP2;
+  \path{SimpleGraph.isRegular_iff_sum_sq_eigenvalues}). A graph $X$ on $n\ge1$ vertices is
+  regular if and only if $\sum_{\mu\in\Spec(X)}\mu^2=n\lmax(X)$.
+ \item \factlabel{[ST, Corollary 5.5]}{st:5.5}\ST{Corollary 5.5}
+  (\path{SimpleGraph.Cospectral.isRegularOfDegree},
+  \path{SimpleGraph.Cospectral.connected_of_regular}). If $X$ is $k$-regular on a nonempty
+  vertex set and $X'$ is cospectral with $X$, then $X'$ is $k$-regular, and $X'$ is connected
+  if $X$ is.
+ \item \factlabel{[ST, Theorem 5.6]}{st:5.6}\ST{Theorem 5.6} (SP3;
+  \path{SimpleGraph.IsRegularOfDegree.isBipartite_iff_neg_eigenvalue}). If $X$ is connected and
+  $k$-regular, then $X$ is bipartite if and only if $-k\in\Spec(X)$, and then $\mult_X(-k)=1$.
+ \item \factlabel{[ST, Corollary 5.9]}{st:5.9}\ST{Corollary 5.9}
+  (\path{Matrix.spectrumMultiset_smul_one_add_smul_allOnes}). For real $c$, $t$ and order
+  $n>0$, $\Spec(cI+tJ)=\ms{(c+tn)^{1},c^{n-1}}$.
+ \item \factlabel{[ST, Theorem 6.1]}{st:6.1}\ST{Theorem 6.1}
+  (\path{Matrix.eigenvalueMultiplicity_mul_comm_of_ne_zero},
+  \path{Matrix.spectrumMultiset_gram_products}). If $M$ is $P\times Q$ and $N$ is $Q\times P$,
+  then $\mult_{MN}(\mu)=\mult_{NM}(\mu)$ for every $\mu\ne0$. If $B$ is $P\times Q$ of rank
+  $\rho$, then $BB^T$ and $B^TB$ are positive semidefinite, have the same positive eigenvalues
+  with multiplicities, and have $\mult_{BB^T}(0)=|P|-\rho$ and $\mult_{B^TB}(0)=|Q|-\rho$.
+ \item \factlabel{[ST, Theorem 6.2]}{st:6.2}\ST{Theorem 6.2}
+  (\path{SimpleGraph.edgeIncMatrix_mul_transpose}, \path{SimpleGraph.transpose_edgeIncMatrix_mul},
+  \path{SimpleGraph.multiplicity_neg_two_lineGraph}). Let $M$ be the $V(X)\times E(X)$
+  incidence matrix of a graph $X$ and $D$ its diagonal matrix of degrees. Then $MM^T=D+A(X)$,
+  $M^TM=2I+A(L(X))$, and $\rk M=|V(X)|-c$, where $c$ is the number of bipartite connected
+  components of $X$. Every eigenvalue of $L(X)$ is at least $-2$.
+ \item \factlabel{[ST, Lemma 6.3]}{st:6.3}\ST{Lemma 6.3}
+  (\path{SimpleGraph.lineGraph_connected_iff_of_no_isolated}, \path{SimpleGraph.degree_lineGraph}).
+  If $X$ has at least one edge and no isolated vertices, then $X$ is connected if and only if
+  $L(X)$ is connected, and the edge $\{u,w\}$ has degree $\deg(u)+\deg(w)-2$ in $L(X)$.
+ \item \factlabel{[ST, Theorem 6.4]}{st:6.4}\ST{Theorem 6.4} (SP4;
+  \path{SimpleGraph.regular_or_semiregular_of_lineGraph_regular}). If $X$ has at least one edge
+  and no isolated vertices, and $L(X)$ is connected and $h$-regular, then $X$ is regular, or $X$
+  is bipartite with constant degree on each part.
+ \item \factlabel{[ST, Theorem 6.6]}{st:6.6}\ST{Theorem 6.6}
+  (\path{Matrix.spectrumMultiset_fromBlocks_scalar}). Let $B$ be $P\times Q$ of rank $\rho$,
+  let $\mu_1,\dots,\mu_\rho$ be the positive eigenvalues of $BB^T$ with repetition, and
+  let $s,t\in\re$. Then the spectrum of $C=\pmat{sI&B\\B^T&tI}$ consists of
+  $\gamma_j^{\pm}=\frac12\bigl(s+t\pm\sqrt{(s-t)^2+4\mu_j}\bigr)$ for $1\le j\le\rho$,
+  of $s$ with multiplicity $|P|-\rho$ and of $t$ with multiplicity $|Q|-\rho$.
+ \item \factlabel{[ST, Theorem 6.7]}{st:6.7}\ST{Theorem 6.7}
+  (\path{SimpleGraph.lineGraph_cospectral_bipartite}). Let $X_1$ be a connected bipartite graph
+  with an edge such that $L(X_1)$ is regular, and let $X_2$ be a graph without isolated vertices
+  such that $L(X_2)$ is cospectral with $L(X_1)$. Then $X_2$ is connected, and precisely one of
+  the following holds: $X_2$ is bipartite, and with the part sizes ordered $p\le q$ in each graph,
+  the part sizes, the respective degrees and the spectra of $B_1B_1^T$ and $B_2B_2^T$ agree; or
+  $X_1$ is not regular, $X_2$ is regular and not bipartite, and $|V(X_1)|=|V(X_2)|+1$.
+ \item \factlabel{[ST, Corollary 6.8]}{st:6.8}\ST{Corollary 6.8}
+  (\path{SimpleGraph.lineGraph_cospectral_bipartite_spectrum}). Let $X_1$ be a connected graph
+  with a bipartition $(P,Q)$, biregular with degrees $(k_1,k_2)$, with $k_1>k_2>0$,
+  $p=|P|\le q=|Q|$ and biadjacency matrix $B$ of rank $\rho$, and let $X_2$ be a connected
+  regular graph that is not bipartite with $L(X_2)$ cospectral with $L(X_1)$. Then $k_1k_2$ is a
+  positive eigenvalue of $BB^T$ of multiplicity 1, and if $\mu_2,\dots,\mu_\rho$ are the other
+  positive eigenvalues of $BB^T$ with repetition, then $\Spec(X_2)$ consists of
+  $\frac12(k_1+k_2)$, of $\pm\sqrt{\mu_j+\frac14(k_1-k_2)^2}$ for $2\le j\le\rho$, of
+  $\frac12(k_1-k_2)$ with multiplicity $p-\rho$ and of $-\frac12(k_1-k_2)$ with multiplicity
+  $q-\rho$.
+ \item \factlabel{[ST, Theorem 7.7]}{st:7.7}\ST{Theorem 7.7}
+  (\path{Matrix.gram_eq_of_two_eigenvalues}). Let $N$ be a $v\times b$ zero-one matrix with
+  $v>1$, constant row sum $r>0$ and constant column sum $k>1$, and let $\lambda>0$ with
+  $r(k-1)=\lambda(v-1)$. If $\Spec(NN^T)=\ms{(rk)^{1},(r-\lambda)^{v-1}}$, then
+  $NN^T=(r-\lambda)I+\lambda J$. If moreover $r>\lambda$, then $b\ge v$ (Fisher's inequality,
+  DS3).
+ \item \factlabel{[ST, Theorem 7.10]}{st:7.10}\ST{Theorem 7.10}
+  (\path{SimpleGraph.IsRegularOfDegree.aeval_eq_smul_allOnes_of_connected}). If $X$ is connected
+  and $k$-regular on $n>0$ vertices, and the real polynomial $f$ vanishes at every eigenvalue
+  of $X$ other than $k$, then $f(A(X))=\frac{f(k)}{n}J$.
+\end{itemize}
+\endgroup
+
+\begingroup\raggedright
+\medskip\noindent\textbf{Inputs from Mathlib and from the Hall--Connor section.}\label{facts:sec5}
+\uses{hc:facts:finite}
+We will use the following declarations of Mathlib at commit \path{082e2d37}
+(4 September 2026), the version pinned in \path{lake-manifest.json}: \path{SimpleGraph.Iso.lineGraph} (an isomorphism of graphs induces one of
+their line graphs), \path{SimpleGraph.lineGraph_adj_iff_exists} (two edges are adjacent in the
+line graph exactly when they are distinct and share an endpoint),
+\path{SimpleGraph.sum_degrees_eq_twice_card_edges}, \path{SimpleGraph.degree_compl},
+\path{SimpleGraph.adjMatrix_mul_self_apply_self} (the diagonal of $A(X)^2$ is the degree),
+\path{SimpleGraph.cycleGraph_adj'}, \path{SimpleGraph.Iso.completeGraph},
+\path{SimpleGraph.completeBipartiteGraphCongr}, \path{Equiv.sumComm}, \path{Fintype.equivFin},
+\path{Finset.card_le_univ}, \path{Finset.eq_of_subset_of_card_le},
+\path{LinearEquiv.finrank_eq}, \path{Submodule.finrank_le}, \path{finrank_euclideanSpace_fin}
+and the structure \path{Matrix.IsHadamard}. Double counting is the paragraph
+\hyperref[hc:facts:finite]{(finite counting and order)} of the Hall--Connor section. The
+design interface is Definition~\ref{hc:def:design} of that section, with its incidence matrix
+$N$ of Definition~\ref{hc:def:matrices}. This is the one design interface of Section 5; the
+toolkit's facts concern real matrices, and we apply them to the entrywise real cast of the
+integer matrix $N$, which we also write $N$. The cast is taken in Lemma~\ref{lem:design},
+assertion 3, and in Theorem~\ref{thm:5.8}, where \ST{Theorem 7.7} is applied to a real zero-one
+matrix. The toolkit's Section 7 proposes the same names \path{Design} and
+\path{Design.incMatrix} with a real incidence matrix; the shared declarations are those of the
+Hall--Connor section, over $\ints$, and we use no toolkit result stated for the toolkit's
+designs.\par
+\endgroup
+
+\begingroup\raggedright
+\medskip\noindent\textbf{Inputs from Section 4.}\label{input:sec4}
+Theorem 5.8 rests on Theorem 4.11. We recall what we will use from Section 4, where these
+results are proved: Definition~\ref{def:CP}, Definition~\ref{def:represented} and
+Theorem~\ref{thm:4.11}. Theorem~\ref{thm:5.8} and Lemma~\ref{lem:dense} depend on those labels
+directly, and none of them depends on Section 5.
+\begin{itemize}
+ \item The \emph{cocktail party graph} $CP(m)$ (\path{SimpleGraph.cocktailParty}) has vertex set
+  $\{1,\dots,m\}\times\{0,1\}$, and $(i,a)$ is adjacent to $(j,a')$ exactly when $i\ne j$. It is
+  $(2m-2)$-regular on $2m$ vertices.
+ \item A graph $X$ is \emph{represented in $\typ E_8$} (\path{SimpleGraph.IsRepresentedIn}) if
+  there is a family $(\Zx_u)_{u\in V(X)}$ of vectors of $\Phi(\typ E_8)\sbs\re^8$ (model (ii) of
+  Definition~\ref{def:3.2}) whose Gram matrix is $2I+A(X)$.
+ \item Theorem 4.11 (Hoffman and Ray-Chaudhuri; \path{SimpleGraph.hoffman_rayChaudhuri}). If
+  $X$ is connected and regular and $2I+A(X)$ is positive semidefinite, then $X$ is isomorphic to
+  $L(Y)$ for some graph $Y$, or $X$ is isomorphic to $CP(m)$ for some $m$, or $X$ is represented
+  in $\typ E_8$.
+\end{itemize}
+\endgroup
+
+\begingroup\raggedright
+\medskip\noindent\textbf{Inputs for Example 5.13.}\label{input:ex513}
+The example needs one fact that this section does not prove, EX4 of
+\path{cgss/prerequisites.md}, and the existence results EX1 to EX3 for its instances. We record
+them as deferred inputs; none of them may depend on Section 5.
+\begin{itemize}
+ \item (EX4, deferred.) If $Y$ is a connected graph on more than three vertices that is not
+  bipartite, and $Z$ is a bipartite graph without isolated vertices, then $L(Y)\not\cong L(Z)$.
+  This is a case of Whitney's theorem on line graphs, which Mathlib does not have. The
+  prerequisites prove it from four facts, which belong to Sections 3 and 4: the star closure of
+  the standard representation of $L(Y)$ is $\typ D_n$ when $Y$ is connected, not bipartite and on
+  $n$ vertices; that of $L(Z)$ is $\typ A_{m-1}$ when $Z$ is connected, bipartite and on $m$
+  vertices; isomorphic graphs have isometric representations, so the star closures are
+  isomorphic (LN3 and LA2 there), and $\typ D_n\not\cong\typ A_n$ for $n\ge4$; and $Z$ is
+  connected, since $L(Z)\cong L(Y)$ is connected and $Z$ has no isolated vertices. \new\ The
+  Lean proof of Example 5.13 avoids EX4, by a clique bound recorded at the step
+  on non-isomorphism in the proof of Example~\ref{ex:5.13}; we keep EX4 for the route of the paper.
+ \item (EX1 to EX3; computation C23.) Resolvable designs with parameters
+  $(k(2k-1),k,4k^2-1,2k+1,1)$ exist for $k=2^d$ with $d\ge1$ and for $k=3$, and designs with
+  parameters $(6,3,10,5,2)$ and $(28,21,36,27,20)$ exist. We will use these only in the remark after
+  Example 5.13. Computation C23 gives in Lean the designs that the paper's instances $k=2$ and $k=4$
+  need; their existence for every $k=2^d$ and for $k=3$ is a citation, outside the scope.
+\end{itemize}
+\endgroup
+
+\subsection{Lemmas 5.1 to 5.7}
+
+\medskip\noindent\textbf{Definitions and auxiliary lemmas.}
+
+\begin{namedresult}{Definition}{(bipartitions and biadjacency matrices)}\label{def:bipartition}
+ \lean{SimpleGraph.IsBiregularWith}\lean{SimpleGraph.biadjMatrix}\uses{}
+ \assume{$X$ is a graph.}
+ A \emph{bipartition} of $X$ is a pair $(P,Q)$ of disjoint sets with $P\cup Q=V(X)$ such that
+ every edge has one end in $P$ and one in $Q$; in Mathlib, \path{X.IsBipartiteWith P Q}
+ (\path{SimpleGraph.IsBipartiteWith}) with $Q=V(X)\diff P$. $X$ is bipartite if it has a bipartition. The bipartition is \emph{biregular
+ with degrees} $(k_1,k_2)$ if every vertex of $P$ has degree $k_1$ and every vertex of $Q$ has
+ degree $k_2$. The \emph{biadjacency matrix} of $X$ for $(P,Q)$ is the $P\times Q$ matrix $B$
+ with $B(u,w)=A(X)(u,w)$.
+\end{namedresult}
+
+\begin{namedresult}{Definition}{(incidence graphs, flag graphs, characterization)}\label{def:flag}
+ \lean{Design.incidenceGraph}\lean{Design.flagGraph}\lean{Design.FlagGraphCharacterized}
+ \uses{hc:def:design}
+ \leavevmode\par
+ \assume{$D$ is a design with parameters $(v,k,b,r,\lambda)$.}
+ Here $D$ is as in Definition~\ref{hc:def:design}, with points $P$ and block labels $\cB$. The
+ \emph{incidence graph} $I(D)$ has vertex set $P\sqcup\cB$, and a point $p$ is adjacent to a
+ block $B$ when $p\in B$; there are no other edges. The \emph{flag graph} is $F(D)=L(I(D))$. We
+ say that $F(D)$ is \emph{characterized by its spectrum} if every graph cospectral with $F(D)$
+ is isomorphic to $F(D_2)$ for some design $D_2$ with the parameters $(v,k,b,r,\lambda)$, on
+ some finite types $P_2$ of points and $\cB_2$ of block labels with decidable equality. In Lean,
+ $P_2$ and $\cB_2$ range over \texttt{Type}, as do the vertex types of all graphs of this section;
+ the design $D_2$ of Theorem 5.8 lives on subtypes of the vertex type of a graph.
+ \repair\ This is the sense of the paper's proofs and of its sources (errata, Implicit
+ hypothesis 6); in the stronger sense ``determined up to isomorphism'' Corollaries 5.10 and 5.11
+ and Remark 5.12 are false.
+\end{namedresult}
+
+\begin{namedresult}{Lemma}{(design identities)}\label{lem:design}
+ \lean{Design.b_mul_k_eq_v_mul_r}\lean{Design.r_mul_k_sub_one_eq}\lean{Design.k_le_v}
+ \lean{Design.one_le_lam}\lean{Design.lam_le_r}\lean{Design.lam_eq_r_iff}
+ \lean{Design.incMatrix_mul_transpose}\lean{Design.spectrumMultiset_incMatrix_mul_transpose}
+ \lean{Design.v_le_b_of_lam_lt_r}
+ \uses{hc:def:design,hc:def:matrices,hc:facts:finite,facts:sec5,st:5.9,st:7.7}
+ \assume{$D$ is a design with parameters $(v,k,b,r,\lambda)$ on $P$ and $\cB$, with incidence
+  matrix $N$.}
+ \prove{\begin{pfenum}
+  \item $bk=vr$ and $r(k-1)=\lambda(v-1)$.
+  \item $k\le v$, $\lambda\ge1$ and $r\ge\lambda$; moreover $r=\lambda$ if and only if $k=v$,
+   if and only if every block contains every point.
+  \item $NN^T=(r-\lambda)I+\lambda J$ and $\Spec(NN^T)=\ms{(rk)^{1},(r-\lambda)^{v-1}}$.
+  \item If $r>\lambda$, then $b\ge v$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ These are DS1 and DS3 of \path{cgss/prerequisites.md}: double counting, and the
+ Fisher inequality of the toolkit's Theorem 7.7.
+ \step{s5dsflags}{$bk=vr$.}
+ \begin{proof}\pf\ Count the pairs $(p,B)$ with $p\in B$ by blocks and by points, with the
+  double counting of \hyperref[hc:facts:finite]{(finite counting and order)}.~\qed\end{proof}
+ \step{s5dspairs}{$r(k-1)=\lambda(v-1)$.}
+ \begin{proof}\pf\ Fix a point $p$ and count the pairs $(q,B)$ with $q\ne p$ and $p,q\in B$, by
+  blocks through $p$ and by points $q$, with the same double counting.~\qed\end{proof}
+ \step{s5dskv}{$k\le v$.}
+ \begin{proof}\pf\ A block is a subset of $P$ of size $k$; apply \path{Finset.card_le_univ}.~\qed\end{proof}
+ \step{s5dslam}{$\lambda\ge1$.}
+ \begin{proof}
+  \step{s5dslamzero}{\assume{$\lambda=0$.}\prove{\textsc{False}.}}
+  \begin{proof}\pf\ By \stepref{s5dspairs}, $r(k-1)=0$, and $k>1$ gives $r=0$. Then
+   \stepref{s5dsflags} gives $bk=0$, against $b>0$ and $k>1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $\lambda$ is a natural number and \stepref{s5dslamzero}.~\qed\end{proof}
+ \end{proof}
+ \step{s5dsrlam}{$r\ge\lambda$, with equality if and only if $k=v$.}
+ \begin{proof}\pf\ By \stepref{s5dspairs} and \stepref{s5dskv},
+  $\lambda(v-1)=r(k-1)\le r(v-1)$, with equality exactly when $k=v$, since $r\ge1$ by
+  \stepref{s5dspairs} and \stepref{s5dslam}; divide by $v-1>0$.~\qed\end{proof}
+ \step{s5dsfull}{$k=v$ if and only if every block contains every point.}
+ \begin{proof}\pf\ A block of size $k$ is a subset of $P$; apply
+  \path{Finset.eq_of_subset_of_card_le} to it and $P$.~\qed\end{proof}
+ \step{s5dsgram}{$NN^T=(r-\lambda)I+\lambda J$.}
+ \begin{proof}\pf\ $(NN^T)(p,q)$ is the number of blocks containing $p$ and $q$, which is $r$
+  for $p=q$ and $\lambda$ otherwise, by Definition~\ref{hc:def:design}.~\qed\end{proof}
+ \step{s5dsspec}{$\Spec(NN^T)=\ms{(rk)^{1},(r-\lambda)^{v-1}}$.}
+ \begin{proof}\pf\ \ST{Corollary 5.9} with $c=r-\lambda$, $t=\lambda$ and $n=v$ gives the
+  eigenvalue $r-\lambda+\lambda v$ once, and $r-\lambda+\lambda v=rk$ by
+  \stepref{s5dspairs}.~\qed\end{proof}
+ \step{s5dsfisher}{\assume{$r>\lambda$.}\prove{$b\ge v$.}}
+ \begin{proof}\pf\ \ST{Theorem 7.7} for the real zero-one $v\times b$ matrix $N$, whose row
+  sums are $r>\lambda\ge1$ and column sums $k>1$ (Definition~\ref{hc:def:matrices}), with $v>1$,
+  $\lambda>0$ by \stepref{s5dslam}, \stepref{s5dspairs}, \stepref{s5dsspec} and \asm{1}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The preceding steps are the four assertions.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(incidence and flag graphs)}\label{lem:incidence}
+ \lean{Design.incidenceGraph_isBiregularWith}\lean{Design.incidenceGraph_connected}
+ \lean{Design.incidenceGraph_isRegular_iff}\lean{Design.flagGraph_connected}
+ \lean{Design.flagGraph_isRegularOfDegree}\lean{Design.card_flagGraph}
+ \lean{Design.posSemidef_two_add_adjMatrix_flagGraph}\lean{Design.rank_two_add_adjMatrix_flagGraph}
+ \uses{def:flag,def:bipartition,hc:def:matrices,lem:design,facts:sec5,st:3.5,st:6.2,st:6.3}
+ \assume{$D$ is a design with parameters $(v,k,b,r,\lambda)$ on $P$ and $\cB$, with incidence
+  matrix $N$.}
+ \prove{\begin{pfenum}
+  \item $(P,\cB)$ is a bipartition of $I(D)$, biregular with degrees $(r,k)$, whose
+   biadjacency matrix is $N$; $I(D)$ has $vr$ edges and no isolated vertices.
+  \item $I(D)$ is connected, and it is regular if and only if $r=k$.
+  \item $F(D)$ is connected and $(r+k-2)$-regular on $vr$ vertices.
+  \item $2I+A(F(D))$ is positive semidefinite of rank $v+b-1$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will read the degrees off the definitions, and then apply the toolkit's facts on
+ line graphs and incidence matrices.
+ \step{s5igbip}{Assertion 1 holds.}
+ \begin{proof}
+  \step{s5igparts}{$(P,\cB)$ is a bipartition with biadjacency matrix $N$.}
+  \begin{proof}\pf\ Every edge of $I(D)$ joins a point to a block, by Definition~\ref{def:flag},
+   and $N(p,B)=1$ exactly when $p\in B$ (Definition~\ref{hc:def:matrices}).~\qed\end{proof}
+  \step{s5igdeg}{Points have degree $r\ge1$ and blocks have degree $k\ge2$.}
+  \begin{proof}\pf\ The neighbours of $p$ are the blocks through $p$, and those of $B$ are its
+   $k$ points; $r\ge\lambda\ge1$ by Lemma~\ref{lem:design}, and $k>1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The number of edges is the number of pairs $(p,B)$ with $p\in B$, which is
+   $vr$ by \stepref{s5igdeg} and double counting; there are no isolated vertices by
+   \stepref{s5igdeg}.~\qed\end{proof}
+ \end{proof}
+ \step{s5igconn}{$I(D)$ is connected.}
+ \begin{proof}
+  \step{s5igpoints}{Any two points are joined by a path.}
+  \begin{proof}\pf\ Two distinct points lie in $\lambda\ge1$ common blocks, by
+   Lemma~\ref{lem:design}; such a block is a common neighbour.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $P$ is nonempty since $v>1$, and every block has a neighbouring point, since
+   $k\ge2$; combine this with \stepref{s5igpoints}.~\qed\end{proof}
+ \end{proof}
+ \step{s5igreg}{$I(D)$ is regular if and only if $r=k$.}
+ \begin{proof}\pf\ Both parts are nonempty ($v>1$, $b>0$), and the degrees are $r$ and $k$ by
+  \stepref{s5igbip}.~\qed\end{proof}
+ \step{s5igflag}{Assertion 3 holds.}
+ \begin{proof}\pf\ Apply \ST{Lemma 6.3} to $I(D)$, which has an edge and no isolated vertices
+  by \stepref{s5igbip} and is connected by \stepref{s5igconn}: $F(D)$ is connected, and an edge
+  $\{p,B\}$ has degree $r+k-2$ in it. $F(D)$ has $|E(I(D))|=vr$ vertices.~\qed\end{proof}
+ \step{s5igrank}{Assertion 4 holds.}
+ \begin{proof}\pf\ Let $M$ be the incidence matrix of $I(D)$. By \ST{Theorem 6.2},
+  $M^TM=2I+A(F(D))$ and $\rk M=(v+b)-1$, since $I(D)$ is one bipartite component by
+  \stepref{s5igbip} and \stepref{s5igconn}. $M^TM$ is a Gram matrix, positive semidefinite
+  with $\rk(M^TM)=\rk M$ by \ST{Theorem 3.5}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s5igbip} to \stepref{s5igrank}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(regular graphs of large valency)}\label{lem:dense}
+ \lean{SimpleGraph.eq_top_of_isRegularOfDegree_card_sub_one}
+ \lean{SimpleGraph.nonempty_iso_cocktailParty}
+ \uses{def:CP,facts:sec5}
+ \assume{$X$ is a graph on $n$ vertices.}
+ \prove{\begin{pfenum}
+  \item If $n\ge1$ and $X$ is $(n-1)$-regular, then $X$ is complete, and $X\cong K_n$.
+  \item If $n=2m$ with $m\ge1$ and $X$ is $(2m-2)$-regular, then $X\cong CP(m)$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ The paper does not state these, but its corollaries leave them to the
+ reader (errata, Gaps 15 and 16). We will look at the non-neighbours of each vertex.
+ \step{s5dncompl}{Every vertex has $n-1-\deg(u)$ non-neighbours other than itself.}
+ \begin{proof}\pf\ \path{SimpleGraph.degree_compl}.~\qed\end{proof}
+ \step{s5dncomplete}{Assertion 1 holds.}
+ \begin{proof}\pf\ By \stepref{s5dncompl}, each vertex is adjacent to every other vertex, so
+  $X$ is the complete graph on $V(X)$; apply \path{SimpleGraph.Iso.completeGraph} to
+  \path{Fintype.equivFin}.~\qed\end{proof}
+ \step{s5dncp}{Assertion 2 holds.}
+ \begin{proof}
+  \step{s5dnpartner}{Each vertex $u$ has a unique non-neighbour $u^*\ne u$, and $u^{**}=u$.}
+  \begin{proof}\pf\ \stepref{s5dncompl} gives exactly one, and non-adjacency is
+   symmetric.~\qed\end{proof}
+  \step{s5dnenum}{\pick\ a bijection $e:V(X)\to\{1,\dots,m\}\times\{0,1\}$ such that $e(u)$ and
+   $e(u^*)$ have the same first coordinate for every $u$.}
+  \begin{proof}\pf\ The pairs $\{u,u^*\}$ partition $V(X)$ into $m$ pairs, by
+   \stepref{s5dnpartner}; number the pairs with \path{Fintype.equivFin} and the two members of
+   each pair by $0$ and $1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ For $u\ne w$, $u$ and $w$ are adjacent if and only if $w\ne u^*$, by
+   \stepref{s5dnpartner}, that is, when $e(u)$ and $e(w)$ have different first coordinates by
+   \stepref{s5dnenum}; this is adjacency in $CP(m)$.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s5dncomplete} and \stepref{s5dncp}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(connected $2$-regular graphs)}\label{lem:cycle}
+ \lean{SimpleGraph.nonempty_iso_cycleGraph}\uses{facts:sec5}
+ \assume{$X$ is a connected $2$-regular graph on $n$ vertices.}
+ \prove{$n\ge3$ and $X\cong C_n$, the cycle \path{SimpleGraph.cycleGraph n}.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ The paper leaves this to the reader in Corollaries 5.10 and 5.11 (errata,
+ Gap 16). We will walk around $X$ without turning back.
+ \step{s5cyseq}{\pick\ adjacent vertices $u_0,u_1$, and for $i\ge1$ let $u_{i+1}$ be the
+  neighbour of $u_i$ other than $u_{i-1}$.}
+ \begin{proof}\pf\ $X$ is nonempty since it is connected, and a vertex has two neighbours; each
+  $u_i$ with $i\ge1$ is adjacent to $u_{i-1}$, so it has exactly one other
+  neighbour.~\qed\end{proof}
+ \step{s5cyfirst}{\pick\ the least $j$ such that $u_j=u_i$ for some $i<j$. Then $i=0$ and
+  $j\ge3$.}
+ \begin{proof}
+  \step{s5cyexists}{Such a $j$ exists, with $j\le n$.}
+  \begin{proof}\pf\ The vertices $u_0,\dots,u_n$ are $n+1$ vertices of a set of size $n$.~\qed\end{proof}
+  \step{s5cynotlater}{\assume{$u_j=u_i$ with $1\le i<j$.}\prove{\textsc{False}.}}
+  \begin{proof}\pf\ By \stepref{s5cyseq}, $u_{i+1}\ne u_i$ and $u_{i+2}\ne u_i$, so $j\ge i+3$;
+   by the minimality of $j$, $u_{i-1}$, $u_{i+1}$ and $u_{j-1}$ are then three distinct
+   neighbours of $u_i=u_j$, against $2$-regularity.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s5cyexists} and \stepref{s5cynotlater} give $i=0$; and
+   $u_1\ne u_0$, $u_2\ne u_0$ by \stepref{s5cyseq}, so $j\ge3$.~\qed\end{proof}
+ \end{proof}
+ \step{s5cyclosed}{The set $W=\{u_0,\dots,u_{j-1}\}$ contains all neighbours of its members.}
+ \begin{proof}\pf\ For $1\le i\le j-1$ the two neighbours of $u_i$ are $u_{i-1}$ and $u_{i+1}$,
+  with $u_j=u_0$; the two neighbours of $u_0$ are $u_1$ and $u_{j-1}$, distinct since $j\ge3$,
+  by \stepref{s5cyfirst}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s5cyclosed} and connectedness, $W=V(X)$, so $j=n\ge3$. By the
+  same step, $u_i\mapsto i$ is a bijection $V(X)\to\{0,\dots,n-1\}$ under which $u_i$ and $u_{i'}$
+  are adjacent exactly when $i-i'\equiv\pm1\pmod n$; this is adjacency in
+  $C_n$ by \path{SimpleGraph.cycleGraph_adj'}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(isolated vertices)}\label{lem:isolated}
+ \lean{SimpleGraph.exists_forall_degree_pos_nonempty_iso_lineGraph}\uses{facts:sec5}
+ \assume{$Y$ is a graph.}
+ \prove{There is a graph $Y'$ without isolated vertices such that $L(Y')\cong L(Y)$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ Isolated vertices are invisible to the line graph (errata, Implicit
+ hypotheses 3 and 5). We will delete them.
+ \pflet{$W$ be the set of vertices of $Y$ of positive degree, and $Y'$ the subgraph of $Y$
+  induced on $W$.}
+ \step{s5isnone}{$Y'$ has no isolated vertices.}
+ \begin{proof}\pf\ A neighbour of $w\in W$ has positive degree, so it lies in $W$.~\qed\end{proof}
+ \step{s5isedges}{Every edge of $Y$ has both ends in $W$, so $\{u,w\}\mapsto\{u,w\}$ is a
+  bijection $E(Y')\to E(Y)$.}
+ \begin{proof}\pf\ The ends of an edge have positive degree; $Y'$ is induced.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The bijection of \stepref{s5isedges} preserves the ends of edges, so it
+  preserves adjacency in the line graphs by \path{SimpleGraph.lineGraph_adj_iff_exists}; with
+  \stepref{s5isnone} this is the claim.~\qed\end{proof}
+\end{proof}
+
+\medskip\noindent\textbf{Lemmas 5.1 to 5.5.}
+
+\begin{cgss}{Lemma}{5.1}\label{lem:5.1}
+ \lean{SimpleGraph.IsRegularOfDegree.largestEigenvalue_eq}
+ \lean{SimpleGraph.IsRegularOfDegree.multiplicity_eq_card_components}\uses{st:5.3}
+ \assume{$X$ is a $k$-regular graph on a nonempty vertex set.}
+ \prove{$\lmax(X)=k$, and $\mult_X(k)$ is the number of connected components of $X$.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The paper quotes this as well known (errata, Gap 8); the toolkit proves it
+ through the Laplacian $kI-A(X)$.
+ \qedstep
+ \begin{proof}\pf\ \ST{Theorem 5.3}.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{5.2}\label{lem:5.2}
+ \lean{SimpleGraph.isRegular_iff_sum_sq_eigenvalues}\uses{st:5.4}
+ \assume{$X$ is a graph on $n\ge1$ vertices.}
+ \prove{$X$ is regular if and only if $\sum_{\mu\in\Spec(X)}\mu^2=n\lmax(X)$, where the sum
+  counts multiplicities.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The paper quotes this as well known (errata, Gap 8); the toolkit proves it
+ from the Rayleigh quotient of $\Zj$.
+ \qedstep
+ \begin{proof}\pf\ \ST{Theorem 5.4}.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{5.3}\label{lem:5.3}
+ \lean{SimpleGraph.IsRegularOfDegree.isBipartite_iff_neg_eigenvalue}\uses{st:5.6}
+ \assume{$X$ is a connected $k$-regular graph.}
+ \prove{$-k\in\Spec(X)$ if and only if $X$ is bipartite, and then $\mult_X(-k)=1$.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The paper quotes this as well known (errata, Gap 8); the toolkit proves it
+ through the signless Laplacian $kI+A(X)$.
+ \qedstep
+ \begin{proof}\pf\ \ST{Theorem 5.6}.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{5.4}\label{lem:5.4}
+ \lean{SimpleGraph.regular_or_isBiregularWith_of_lineGraph_regular}\uses{def:bipartition,st:6.4}
+ \assume{\begin{pfenum}
+  \item $X$ is a graph without isolated vertices.
+  \item $L(X)$ is connected and regular.
+ \end{pfenum}}
+ \prove{$X$ is regular, or $X$ has a bipartition that is biregular with degrees $(k_1,k_2)$
+  for some $k_1\ne k_2$.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The paper quotes this as well known (errata, Gap 8), and it needs
+ \asm[1]{0} (errata, Implicit hypothesis 3: $K_2$ with an isolated vertex is a counterexample).
+ The toolkit proves it by counting, as its Theorem 6.4, which also assumes an edge and asserts
+ $k_1+k_2=h+2$ and $pk_1=qk_2=|E(X)|$ for the part sizes $p$, $q$. We will derive the edge and
+ $k_1\ne k_2$; the form without an edge is the one that Theorem 5.8 uses, so this lemma has its
+ own Lean name.
+ \step{s554edge}{$X$ has an edge.}
+ \begin{proof}\pf\ A connected graph is nonempty, and the vertices of $L(X)$ are the edges of
+  $X$.~\qed\end{proof}
+ \step{s554reg}{\case{$X$ is regular.}}
+ \begin{proof}\pf\ This is the first alternative.~\qed\end{proof}
+ \step{s554notreg}{\case{$X$ is not regular.}}
+ \begin{proof}\pf\ By \ST{Theorem 6.4}, with \stepref{s554edge}, \asm[1]{0} and \asm[2]{0}, $X$
+  has a bipartition that is biregular with some degrees $(k_1,k_2)$, and $k_1\ne k_2$ since $X$
+  is not regular.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The cases \stepref{s554reg} and \stepref{s554notreg} are
+  exhaustive.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{5.5}\label{lem:5.5}
+ \lean{SimpleGraph.cospectral_of_lineGraph_cospectral}
+ \uses{lem:5.1,facts:sec5,st:2.2,st:2.4,st:2.6,st:3.1,st:6.1,st:6.2,st:6.3}
+ \assume{\begin{pfenum}
+  \item $X$ and $X'$ are regular graphs, each with at least one edge.
+  \item $L(X)$ and $L(X')$ are cospectral.
+ \end{pfenum}}
+ \prove{$X$ and $X'$ are cospectral.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The paper states that the spectrum of a regular graph is determined by that
+ of its line graph; this needs an edge, since all edgeless graphs have the same line graph
+ (errata, Implicit hypothesis 3). We will follow the paper: the largest eigenvalue of the line
+ graph gives the valency, its order gives the number of vertices, and $MM^T$ and $M^TM$ have the
+ same nonzero eigenvalues.
+ \pflet{$k$, $k'$ be the valencies, $n$, $n'$ the numbers of vertices and $m$, $m'$ the numbers
+  of edges of $X$, $X'$, and $M$, $M'$ their incidence matrices.}
+ \step{s555m}{$m=m'$.}
+ \begin{proof}\pf\ The cospectral graphs $L(X)$, $L(X')$ have the same number of vertices, by
+  \ST{Proposition 2.6}.~\qed\end{proof}
+ \step{s555lk}{$L(X)$ is $(2k-2)$-regular and $L(X')$ is $(2k'-2)$-regular, with $k,k'\ge1$.}
+ \begin{proof}\pf\ An edge gives $k,k'\ge1$, so there are no isolated vertices; apply the
+  degree formula of \ST{Lemma 6.3}.~\qed\end{proof}
+ \step{s555k}{$k=k'$.}
+ \begin{proof}\pf\ By Lemma~\ref{lem:5.1} and \stepref{s555lk}, $\lmax(L(X))=2k-2$ and
+  $\lmax(L(X'))=2k'-2$; cospectral graphs have the same largest eigenvalue by
+  \ST{Proposition 2.6} and \ST{Lemma 2.4}.~\qed\end{proof}
+ \step{s555n}{$n=n'$.}
+ \begin{proof}\pf\ $nk=2m$ and $n'k'=2m'$ by \path{SimpleGraph.sum_degrees_eq_twice_card_edges};
+  use \stepref{s555m}, \stepref{s555k} and $k\ge1$.~\qed\end{proof}
+ \step{s555gram}{$MM^T=kI+A(X)$, $M^TM=2I+A(L(X))$, $M'M'^T=k'I+A(X')$ and
+  $M'^TM'=2I+A(L(X'))$.}
+ \begin{proof}\pf\ \ST{Theorem 6.2} for $X$ and for $X'$, with the degree matrices $kI$ and
+  $k'I$.~\qed\end{proof}
+ \step{s555nonzero}{$\mult_{kI+A(X)}(\mu)=\mult_{kI+A(X')}(\mu)$ for every $\mu\ne0$.}
+ \begin{proof}
+  \step{s555nzX}{$\mult_{kI+A(X)}(\mu)=\mult_{2I+A(L(X))}(\mu)$ and
+   $\mult_{k'I+A(X')}(\mu)=\mult_{2I+A(L(X'))}(\mu)$.}
+  \begin{proof}\pf\ \ST{Theorem 6.1} for $M$, $M^T$ and for $M'$, $M'^T$, with
+   \stepref{s555gram}, since $\mu\ne0$.~\qed\end{proof}
+  \step{s555nzL}{$\mult_{2I+A(L(X))}(\mu)=\mult_{2I+A(L(X'))}(\mu)$.}
+  \begin{proof}\pf\ Both equal the multiplicity of $\mu-2$ in the common spectrum of $L(X)$
+   and $L(X')$, by \ST{Theorem 3.1} and \ST{Proposition 2.6}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s555nzX} and \stepref{s555nzL}, with $k=k'$ from
+   \stepref{s555k}.~\qed\end{proof}
+ \end{proof}
+ \step{s555zero}{$\mult_{kI+A(X)}(0)=\mult_{kI+A(X')}(0)$.}
+ \begin{proof}\pf\ By \ST{Theorem 2.2}, each multiplicity at $0$ is the order $n=n'$ minus the
+  sum of the multiplicities at the nonzero eigenvalues; use \stepref{s555n} and
+  \stepref{s555nonzero}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s555nonzero}, \stepref{s555zero} and \ST{Proposition 2.6},
+  $\Spec(kI+A(X))=\Spec(kI+A(X'))$. Shifting by $-k$ with \ST{Theorem 3.1} gives
+  $\Spec(X)=\Spec(X')$, and \ST{Proposition 2.6} gives cospectrality.~\qed\end{proof}
+\end{proof}
+
+\medskip\noindent\textbf{Lemma 5.6 and Remark 5.7.}
+
+We will need the paper's analysis of a connected bipartite graph with a regular line graph
+twice, for $X_1$ and for $X_2$ in Lemma 5.6. We state it as two lemmas, so that no step is cited
+from inside another proof.
+
+\begin{namedresult}{Lemma}{(a bipartite root graph)}\label{lem:rootgraph}
+ \lean{SimpleGraph.IsBiregularWith.lineGraph_isRegularOfDegree}
+ \lean{SimpleGraph.IsBiregularWith.signlessLapMatrix_eq_fromBlocks}
+ \lean{SimpleGraph.IsBiregularWith.multiplicity_zero_signlessLapMatrix}
+ \lean{SimpleGraph.IsBiregularWith.card_eq_rank_add_one}
+ \lean{SimpleGraph.IsBiregularWith.spectrumMultiset_map_quadratic_signlessLapMatrix}
+ \uses{def:bipartition,lem:5.1,facts:sec5,hc:facts:finite,st:2.2,st:3.1,st:3.2,st:3.5,st:6.1,st:6.2,st:6.3,st:6.6}
+ \assume{\begin{pfenum}
+  \item $Z$ is a connected graph with at least one edge.
+  \item $(P,Q)$ is a bipartition of $Z$, biregular with degrees $(k_1,k_2)$, with biadjacency
+   matrix $B$.
+  \item $M$ is the incidence matrix of $Z$ and $C=MM^T$.
+ \end{pfenum}}
+ \prove{\begin{pfenum}
+  \item $Z$ has no isolated vertices, $k_1,k_2\ge1$, and $|P|k_1=|Q|k_2=|E(Z)|$.
+  \item $L(Z)$ is connected and $(k_1+k_2-2)$-regular, and $\lmax(L(Z))=k_1+k_2-2$.
+  \item In block form for $V(Z)=P\cup Q$, $C=\pmat{k_1I&B\\B^T&k_2I}$, and
+   $BB^T\Zj=k_1k_2\Zj$.
+  \item $\mult_C(0)=1$.
+  \item $|V(Z)|=\rk(2I+A(L(Z)))+1$.
+  \item Let $\rho=\rk B$, let $\Lambda$ be the multiset of positive eigenvalues of $BB^T$, and
+   let $f(z)=(z-k_1)(z-k_2)$. Then $\Lambda$ has $\rho$ members, and the image of $\Spec(C)$
+   under $f$ is $\Lambda+\Lambda+\ms{0^{|V(Z)|-2\rho}}$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ This is the first part of the paper's proof of Lemma 5.6. The kernel of $C$ is the
+ image of the eigenspace of $C$ for $k_1+k_2$ under an invertible map, and $k_1+k_2$ is a simple
+ eigenvalue since $L(Z)$ is connected.
+ \step{s5rgiso}{Assertion 1 holds.}
+ \begin{proof}
+  \step{s5rgnoiso}{$Z$ has no isolated vertices.}
+  \begin{proof}\pf\ An edge gives two vertices, so every vertex $u$ has a vertex $w\ne u$ and a
+   walk from $u$ to $w$, by \asm[1]{0}; its first edge is at $u$.~\qed\end{proof}
+  \step{s5rgdeg}{$P$ and $Q$ are nonempty and $k_1,k_2\ge1$.}
+  \begin{proof}\pf\ An edge has an end in $P$ and one in $Q$ by \asm[2]{0}; the degrees of
+   these ends are positive by \stepref{s5rgnoiso}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Each edge has exactly one end in $P$ and one in $Q$, so double counting the
+   pairs $(u,e)$ with $u\in P$ an end of $e$, and the pairs $(w,e)$ with $w\in Q$ an end of $e$,
+   gives $|P|k_1=|E(Z)|$ and $|Q|k_2=|E(Z)|$, by
+   \hyperref[hc:facts:finite]{(finite counting and order)}.~\qed\end{proof}
+ \end{proof}
+ \step{s5rgline}{Assertion 2 holds.}
+ \begin{proof}\pf\ \ST{Lemma 6.3} applies by \asm[1]{0} and \stepref{s5rgiso}; an edge has one
+  end in $P$ and one in $Q$, so its degree in $L(Z)$ is $k_1+k_2-2$. Then
+  Lemma~\ref{lem:5.1} gives $\lmax$.~\qed\end{proof}
+ \step{s5rgblock}{Assertion 3 holds.}
+ \begin{proof}
+  \step{s5rgblockC}{$C=\pmat{k_1I&B\\B^T&k_2I}$.}
+  \begin{proof}\pf\ By \ST{Theorem 6.2}, $C=D+A(Z)$ with $D$ the degree matrix, which is $k_1I$
+   on $P$ and $k_2I$ on $Q$ by \asm[2]{0}; $A(Z)$ vanishes on $P\times P$ and $Q\times Q$ by
+   \asm[2]{0}, and its $P\times Q$ block is $B$ by Definition~\ref{def:bipartition}.~\qed\end{proof}
+  \step{s5rgblockj}{$B\Zj=k_1\Zj$ and $B^T\Zj=k_2\Zj$.}
+  \begin{proof}\pf\ The row sum of $B$ at $u\in P$ is $\deg(u)=k_1$, and the column sum at $w\in
+   Q$ is $\deg(w)=k_2$, by \asm[2]{0}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ \stepref{s5rgblockC}, and $BB^T\Zj=k_2B\Zj=k_1k_2\Zj$ by
+   \stepref{s5rgblockj}.~\qed\end{proof}
+ \end{proof}
+ \step{s5rgsimple}{$\mult_C(k_1+k_2)=1$.}
+ \begin{proof}
+  \step{s5rgsimpleA}{$\mult_C(k_1+k_2)=\mult_{2I+A(L(Z))}(k_1+k_2)$.}
+  \begin{proof}\pf\ \ST{Theorem 6.1} for $M$ and $M^T$, since $k_1+k_2\ne0$, with
+   $M^TM=2I+A(L(Z))$ from \ST{Theorem 6.2}.~\qed\end{proof}
+  \step{s5rgsimpleB}{$\mult_{2I+A(L(Z))}(k_1+k_2)=\mult_{L(Z)}(k_1+k_2-2)=1$.}
+  \begin{proof}\pf\ The first equality is \ST{Theorem 3.1}; the second is Lemma~\ref{lem:5.1},
+   since $L(Z)$ is connected and $(k_1+k_2-2)$-regular by \stepref{s5rgline}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s5rgsimpleA} and \stepref{s5rgsimpleB}.~\qed\end{proof}
+ \end{proof}
+ \step{s5rgmap}{The map $\phi(\Zx,\Zy)=(-k_2\Zx,k_1\Zy)$ on $\re^P\oplus\re^Q$ is invertible and
+  carries $\ker(C-(k_1+k_2)I)$ onto $\ker C$.}
+ \begin{proof}
+  \step{s5rgeigen}{$C(\Zx,\Zy)=(k_1+k_2)(\Zx,\Zy)$ if and only if $B\Zy=k_2\Zx$ and
+   $B^T\Zx=k_1\Zy$.}
+  \begin{proof}\pf\ Block multiplication with \stepref{s5rgblock}: $C(\Zx,\Zy)=(k_1\Zx+B\Zy,
+   B^T\Zx+k_2\Zy)$.~\qed\end{proof}
+  \step{s5rgkernel}{$C\phi(\Zx,\Zy)=0$ if and only if $B\Zy=k_2\Zx$ and $B^T\Zx=k_1\Zy$.}
+  \begin{proof}\pf\ Block multiplication gives
+   $C\phi(\Zx,\Zy)=\bigl(k_1(B\Zy-k_2\Zx),\,k_2(k_1\Zy-B^T\Zx)\bigr)$, and $k_1,k_2\ge1$ by
+   \stepref{s5rgiso}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $\phi$ is invertible since $k_1,k_2\ne0$; use \stepref{s5rgeigen} and
+   \stepref{s5rgkernel}.~\qed\end{proof}
+ \end{proof}
+ \step{s5rgzero}{Assertion 4 holds.}
+ \begin{proof}\pf\ By \ST{Theorem 2.2}, $\mult_C(0)=\dim\ker C$ and
+  $\mult_C(k_1+k_2)=\dim\ker(C-(k_1+k_2)I)$; these are equal by \stepref{s5rgmap} and
+  \path{LinearEquiv.finrank_eq}, and the second is 1 by \stepref{s5rgsimple}.~\qed\end{proof}
+ \step{s5rgrank}{Assertion 5 holds.}
+ \begin{proof}\pf\ $\rk C=|V(Z)|-1$ by \ST{Theorem 3.2} and \stepref{s5rgzero}, and
+  $\rk C=\rk(MM^T)=\rk(M^TM)=\rk(2I+A(L(Z)))$ by \ST{Theorem 3.5} and
+  \ST{Theorem 6.2}.~\qed\end{proof}
+ \step{s5rgquad}{Assertion 6 holds.}
+ \begin{proof}
+  \pflet{$\mu_1,\dots,\mu_\rho$ be the members of $\Lambda$, which has $\rho$ members by
+   \ST{Theorem 6.1}, and
+   $\gamma_j^{\pm}=\frac12\bigl(k_1+k_2\pm\sqrt{(k_1-k_2)^2+4\mu_j}\bigr)$.}
+  \step{s5rgroots}{$f(\gamma_j^+)=f(\gamma_j^-)=\mu_j$ for $1\le j\le\rho$.}
+  \begin{proof}\pf\ $\gamma_j^{\pm}$ are the roots of $z^2-(k_1+k_2)z+k_1k_2-\mu_j$, by the
+   quadratic formula, and $f(z)-\mu_j$ is this polynomial.~\qed\end{proof}
+  \step{s5rgspecC}{$\Spec(C)$ consists of the $\gamma_j^{\pm}$, of $k_1$ with multiplicity
+   $|P|-\rho$ and of $k_2$ with multiplicity $|Q|-\rho$.}
+  \begin{proof}\pf\ \ST{Theorem 6.6} with $s=k_1$, $t=k_2$, and \stepref{s5rgblock}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Apply $f$ to \stepref{s5rgspecC}: by \stepref{s5rgroots} and
+   $f(k_1)=f(k_2)=0$, the image is $\Lambda+\Lambda+\ms{0^{|P|+|Q|-2\rho}}$, and
+   $|P|+|Q|=|V(Z)|$.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s5rgiso}, \stepref{s5rgline}, \stepref{s5rgblock},
+  \stepref{s5rgzero}, \stepref{s5rgrank} and \stepref{s5rgquad}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(two bipartite root graphs)}\label{lem:tworoot}
+ \lean{SimpleGraph.IsBiregularWith.eq_of_lineGraph_cospectral}
+ \uses{lem:rootgraph,facts:sec5,st:2.2,st:2.4,st:2.6,st:3.1,st:3.2,st:6.1,st:6.2}
+ \assume{\begin{pfenum}
+  \item $Z$ and $Z'$ are connected graphs, each with at least one edge.
+  \item $(P,Q)$ is a bipartition of $Z$, biregular with degrees $(k_1,k_2)$, with biadjacency
+   matrix $B$, and $|P|\le|Q|$.
+  \item $(P',Q')$ is a bipartition of $Z'$, biregular with degrees $(k_1',k_2')$, with
+   biadjacency matrix $B'$, and $|P'|\le|Q'|$.
+  \item $L(Z)$ and $L(Z')$ are cospectral.
+ \end{pfenum}}
+ \prove{$|P|=|P'|$, $|Q|=|Q'|$, $k_1=k_1'$, $k_2=k_2'$, and $\Spec(BB^T)=\Spec(B'B'^T)$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ This is the paper's claim that the spectrum of $L(X_1)$ determines $p$, $q$, $k_1$,
+ $k_2$ and $\Spec(B_1B_1^T)$. We will recover the sizes and degrees from the number of
+ edges, the valency and the rank, and then read $\Spec(BB^T)$ off $\Spec(C)$ through the
+ quadratic $f(z)=(z-k_1)(z-k_2)$.
+ \pflet{$m=|E(Z)|$, $N=|V(Z)|$, $C=MM^T$ for the incidence matrix $M$ of $Z$, and
+  $m'=|E(Z')|$, $N'=|V(Z')|$, $C'=M'M'^T$ for the incidence matrix $M'$ of $Z'$.}
+ \step{s5trm}{$m=m'$.}
+ \begin{proof}\pf\ These are the numbers of vertices of the cospectral graphs $L(Z)$, $L(Z')$;
+  apply \ST{Proposition 2.6}.~\qed\end{proof}
+ \step{s5trs}{$k_1+k_2=k_1'+k_2'$.}
+ \begin{proof}\pf\ $k_1+k_2-2$ and $k_1'+k_2'-2$ are the largest eigenvalues of $L(Z)$ and
+  $L(Z')$, by Lemma~\ref{lem:rootgraph}; cospectral graphs have the same largest eigenvalue by
+  \ST{Proposition 2.6} and \ST{Lemma 2.4}.~\qed\end{proof}
+ \step{s5trN}{$N=N'$.}
+ \begin{proof}
+  \step{s5trrank}{$\rk(2I+A(L(Z)))=\rk(2I+A(L(Z')))$.}
+  \begin{proof}\pf\ \ST{Theorem 3.2} with $f(z)=z+2$ expresses each rank through the common
+   multiplicities of the two line graphs, which agree by \ST{Proposition 2.6}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Lemma~\ref{lem:rootgraph}, assertion 5, for $Z$ and $Z'$, and
+   \stepref{s5trrank}.~\qed\end{proof}
+ \end{proof}
+ \step{s5trprod}{$k_1k_2N=m(k_1+k_2)$ and $k_1'k_2'N'=m'(k_1'+k_2')$.}
+ \begin{proof}\pf\ By Lemma~\ref{lem:rootgraph}, assertion 1, for $Z$ and for $Z'$,
+  $N=|P|+|Q|=m/k_1+m/k_2$ and $N'=m'/k_1'+m'/k_2'$; multiply by $k_1k_2$ and by
+  $k_1'k_2'$.~\qed\end{proof}
+ \step{s5trorder}{$k_1\ge k_2$ and $k_1'\ge k_2'$.}
+ \begin{proof}\pf\ By Lemma~\ref{lem:rootgraph}, assertion 1, for $Z$ and for $Z'$,
+  $|P|k_1=|Q|k_2=m>0$ and $|P'|k_1'=|Q'|k_2'=m'>0$, with $|P|\le|Q|$ and
+  $|P'|\le|Q'|$.~\qed\end{proof}
+ \step{s5trdeg}{$k_1=k_1'$ and $k_2=k_2'$.}
+ \begin{proof}\pf\ By \stepref{s5trm} to \stepref{s5trprod}, the pairs have the same sum and the
+  same product, so $(k_1-k_2)^2=(k_1'-k_2')^2$; both differences are nonnegative by
+  \stepref{s5trorder}.~\qed\end{proof}
+ \step{s5trsize}{$|P|=|P'|$ and $|Q|=|Q'|$.}
+ \begin{proof}\pf\ $|P|=m/k_1$, $|Q|=m/k_2$, $|P'|=m'/k_1'$ and $|Q'|=m'/k_2'$ by
+  Lemma~\ref{lem:rootgraph}, assertion 1, for $Z$ and $Z'$; use \stepref{s5trm} and
+  \stepref{s5trdeg}.~\qed\end{proof}
+ \step{s5trC}{$\Spec(C)=\Spec(C')$.}
+ \begin{proof}
+  \step{s5trCnz}{$\mult_C(\gamma)=\mult_{C'}(\gamma)$ for every $\gamma\ne0$.}
+  \begin{proof}\pf\ By \ST{Theorem 6.1} and \ST{Theorem 6.2}, $\mult_C(\gamma)=
+   \mult_{2I+A(L(Z))}(\gamma)$ and $\mult_{C'}(\gamma)=\mult_{2I+A(L(Z'))}(\gamma)$; these agree
+   by \ST{Theorem 3.1} and \ST{Proposition 2.6}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $\mult_C(0)=\mult_{C'}(0)=1$ by Lemma~\ref{lem:rootgraph}, assertion 4; with
+   \stepref{s5trCnz} and \ST{Proposition 2.6}.~\qed\end{proof}
+ \end{proof}
+ \pflet{$f(z)=(z-k_1)(z-k_2)$, and let $\Lambda$ and $\Lambda'$ be the multisets of positive
+  eigenvalues of $BB^T$ and $B'B'^T$, and $\rho=\rk B$ and $\rho'=\rk B'$.}
+ \step{s5trmap}{The images of $\Spec(C)$ and $\Spec(C')$ under $f$ are
+  $\Lambda+\Lambda+\ms{0^{N-2\rho}}$ and $\Lambda'+\Lambda'+\ms{0^{N-2\rho'}}$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:rootgraph}, assertion 6, for $Z$, and for $Z'$, whose
+  polynomial $(z-k_1')(z-k_2')$ is $f$ by \stepref{s5trdeg}, with $N'=N$ by
+  \stepref{s5trN}.~\qed\end{proof}
+ \step{s5trLambda}{$\Lambda=\Lambda'$.}
+ \begin{proof}\pf\ By \stepref{s5trC} the two images agree. For $\mu>0$, the count of $\mu$ in
+  them is $2\,\mathrm{count}_\Lambda(\mu)$ and $2\,\mathrm{count}_{\Lambda'}(\mu)$, by
+  \stepref{s5trmap}; and $\Lambda$, $\Lambda'$ have only positive
+  members.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \ST{Theorem 6.1}, $\Spec(BB^T)=\Lambda+\ms{0^{|P|-\rho}}$ and
+  $\Spec(B'B'^T)=\Lambda'+\ms{0^{|P'|-\rho'}}$; these agree by \stepref{s5trLambda}, which gives
+  $\rho=\rho'$, and \stepref{s5trsize}. With \stepref{s5trdeg} and \stepref{s5trsize} this is
+  the claim.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(biregular bipartitions)}\label{lem:biregular}
+ \lean{SimpleGraph.exists_isBiregularWith_of_lineGraph_regular}
+ \uses{def:bipartition,lem:5.4}
+ \assume{\begin{pfenum}
+  \item $Z$ is a bipartite graph without isolated vertices.
+  \item $L(Z)$ is connected and regular.
+ \end{pfenum}}
+ \prove{$Z$ has a bipartition $(P,Q)$ with $|P|\le|Q|$ that is biregular with some degrees
+  $(k_1,k_2)$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Lemma 5.4 gives a biregular bipartition or regularity, and in a regular bipartite
+ graph every bipartition is biregular.
+ \step{s5brget}{$Z$ has a biregular bipartition.}
+ \begin{proof}
+  \step{s5brreg}{\case{$Z$ is $k$-regular.}}
+  \begin{proof}\pf\ Any bipartition, which exists by \asm[1]{0}, is biregular with degrees
+   $(k,k)$.~\qed\end{proof}
+  \step{s5brsemi}{\case{$Z$ has a bipartition that is biregular with degrees $(k_1,k_2)$,
+   $k_1\ne k_2$.}}
+  \begin{proof}\pf\ This is the claim.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ By Lemma~\ref{lem:5.4}, with \asm[1]{0} and \asm[2]{0}, the cases
+   \stepref{s5brreg} and \stepref{s5brsemi} are exhaustive.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Exchange the two parts of the bipartition of \stepref{s5brget} if
+  necessary; this exchanges the two degrees.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{5.6}\label{lem:5.6}
+ \lean{SimpleGraph.lineGraph_cospectral_bipartite_forall_isBiregularWith}
+ \uses{def:bipartition,lem:rootgraph,lem:tworoot,lem:biregular,st:5.5,st:6.3,st:6.7}
+ \assume{\begin{pfenum}
+  \item $X_1$ is a connected bipartite graph with at least one edge, and $L(X_1)$ is
+   $h$-regular.
+  \item $X_2$ is a graph without isolated vertices.
+  \item $L(X_1)$ and $L(X_2)$ are cospectral.
+ \end{pfenum}}
+ \prove{$X_2$ is connected, and one of the following holds.
+  \begin{pfenum}
+   \item $X_2$ is bipartite, and for every bipartition $(P_1,Q_1)$ of $X_1$ with
+    $|P_1|\le|Q_1|$ that is biregular with degrees $(k_1,k_2)$ there is a bipartition
+    $(P_2,Q_2)$ of $X_2$ with $|P_2|=|P_1|$ and $|Q_2|=|Q_1|$ that is biregular with degrees
+    $(k_1,k_2)$, such that $\Spec(B_1B_1^T)=\Spec(B_2B_2^T)$ for the biadjacency matrices
+    $B_1$, $B_2$ of $X_1$, $X_2$ for these bipartitions.
+   \item $X_1$ is not regular; $X_2$ is $\kappa$-regular and not bipartite, for the natural
+    number $\kappa$ with $2\kappa=h+2$; and $|V(X_1)|=|V(X_2)|+1$.
+  \end{pfenum}}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ We need \asm[2]{0} (errata, Implicit hypothesis 5: $X_1=K_{1,3}$ and $X_2$ a
+ triangle with an isolated vertex have the same line graph). \new\ We state (i) for every
+ biregular bipartition of $X_1$, so that Theorem 5.8 can choose the points of a design as $P_1$;
+ the toolkit's Theorem 6.7 orders the parts by size instead, and so this lemma has its own Lean
+ name. We will take connectedness and (ii) from the toolkit's Theorem 6.7, which follows the
+ paper: in the nonbipartite case $M_2M_2^T$ is nonsingular by Lemma 5.3, so $X_2$ has $p+q-1$
+ vertices. For (i) we will follow the first part of the paper's proof, which is
+ Lemmas~\ref{lem:rootgraph} and~\ref{lem:tworoot}.
+ \step{s556L1}{$X_1$ has no isolated vertices, and $L(X_1)$ is connected and $h$-regular on a
+  nonempty vertex set.}
+ \begin{proof}\pf\ By \asm[1]{0} and \ST{Lemma 6.3}: a connected graph with an edge has no
+  isolated vertices, since each vertex has a walk to an end of the edge that is different from
+  it.~\qed\end{proof}
+ \step{s556L2}{$L(X_2)$ is connected and $h$-regular.}
+ \begin{proof}\pf\ \ST{Corollary 5.5}, with \stepref{s556L1} and \asm[3]{0}.~\qed\end{proof}
+ \step{s556st}{$X_2$ has an edge and is connected, and if $X_2$ is not bipartite, then $X_1$ is
+  not regular, $X_2$ is regular, and $|V(X_1)|=|V(X_2)|+1$.}
+ \begin{proof}\pf\ \ST{Theorem 6.7}, with \asm[1]{0}, \asm[2]{0} and \asm[3]{0}; $L(X_2)$ is
+  nonempty by \stepref{s556L2}, so $X_2$ has an edge.~\qed\end{proof}
+ \step{s556bip}{\case{$X_2$ is bipartite.}\prove{(i) holds.}}
+ \begin{proof}
+  \step{s556given}{\assume{$(P_1,Q_1)$ is a bipartition of $X_1$ with $|P_1|\le|Q_1|$ that is
+   biregular with degrees $(k_1,k_2)$.}
+   \prove{There is a bipartition $(P_2,Q_2)$ of $X_2$ as in (i).}}
+  \begin{proof}
+   \step{s556pick}{\pick\ a bipartition $(P_2,Q_2)$ of $X_2$ with $|P_2|\le|Q_2|$ that is
+    biregular with some degrees $(k_1',k_2')$.}
+   \begin{proof}\pf\ Lemma~\ref{lem:biregular} for $X_2$, with \asm{1}, \asm[2]{0}
+    and \stepref{s556L2}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Lemma~\ref{lem:tworoot} with $Z=X_1$, $Z'=X_2$ applies by \asm[1]{0},
+    \stepref{s556st}, \asm{2}, \stepref{s556pick} and \asm[3]{0}; it gives the sizes, the
+    degrees $k_1'=k_1$, $k_2'=k_2$ and the spectra.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ \asm{1} and \stepref{s556given} are (i).~\qed\end{proof}
+ \end{proof}
+ \step{s556nonbip}{\case{$X_2$ is not bipartite.}\prove{(ii) holds.}}
+ \begin{proof}
+  \step{s556reg}{$X_2$ is $\kappa$-regular for a natural number $\kappa\ge1$ with $2\kappa=h+2$.}
+  \begin{proof}\pf\ $X_2$ is regular by \stepref{s556st} and \asm{1}, of some valency $\kappa$;
+   $\kappa\ge1$ since $X_2$ has an edge, by \stepref{s556st}. By the degree formula of
+   \ST{Lemma 6.3}, with \asm[2]{0}, an edge of $X_2$ has degree $2\kappa-2$ in $L(X_2)$, which is
+   $h$ by \stepref{s556L2}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s556st} and \stepref{s556reg}, with \asm{1}, are
+   (ii).~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{s556st}, and the cases \stepref{s556bip} and
+  \stepref{s556nonbip}, which are exhaustive.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Remark}{5.7}\label{rem:5.7}
+ \lean{SimpleGraph.lineGraph_cospectral_bipartite_spectrum_of_not_isBipartite}
+ \uses{def:bipartition,lem:5.6,lem:rootgraph,st:6.8}
+ \assume{\begin{pfenum}
+  \item $X_1$ is a connected graph with at least one edge, and $(P,Q)$ is a bipartition of
+   $X_1$, biregular with degrees $(k_1,k_2)$ with $k_1\ne k_2$, with $p=|P|\le q=|Q|$ and
+   biadjacency matrix $B$ of rank $\rho$.
+  \item $X_2$ is a graph without isolated vertices that is not bipartite, and $L(X_1)$ and
+   $L(X_2)$ are cospectral.
+ \end{pfenum}}
+ \prove{$k_1>k_2\ge1$; $k_1k_2$ is an eigenvalue of $BB^T$ of multiplicity 1; and if
+  $\Lambda'$ is the multiset of positive eigenvalues of $BB^T$ with one copy of $k_1k_2$ removed,
+  then
+  \[
+   \Spec(X_2)=\ms{\tfrac12(k_1+k_2)}
+    +\sum_{\mu\in\Lambda'}\ms{\delta_\mu,-\delta_\mu}
+    +\ms{\bigl(\tfrac12(k_1-k_2)\bigr)^{p-\rho},\bigl(-\tfrac12(k_1-k_2)\bigr)^{q-\rho}},
+  \]
+  where $\delta_\mu=\sqrt{\mu+\frac14(k_1-k_2)^2}$.}
+ We state only the conclusion of the remark, the spectrum of $A(X_2)$. Its intermediate
+ assertions, that each $\mu$ gives the eigenvalues $\pm\sqrt\mu$ of $A(X_1)$, $\gamma$ and
+ $\gamma'$ of $C$, and $\gamma-2$ and $\gamma'-2$ of $A(L(X_1))$, have no Lean statements of
+ their own, and neither has the paper's comment that the multiplicities of $\pm\frac12(k_1-k_2)$
+ need not be equal (the statement above gives them, as $p-\rho$ and $q-\rho$). The spectrum of a
+ matrix of the form of $C$ is \path{Matrix.spectrumMultiset_fromBlocks_scalar_of_ne}.
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The paper says that each eigenvalue $\mu\ne0$ of $B_1B_1^T$ gives two
+ eigenvalues $\gamma$, $\gamma'$ of $C$, the roots of $(\gamma-k_1)(\gamma-k_2)=\mu$, and two
+ eigenvalues $\delta=\gamma-\frac12(k_1+k_2)$ and $\delta'=\gamma'-\frac12(k_1+k_2)$ of $A(X_2)$
+ (errata, Error 13, item 8, for $\delta'$), with $\delta^2=\mu+\frac14(k_1-k_2)^2$. This fails for
+ $\mu=k_1k_2$, whose roots are $k_1+k_2$ and $0$, and $0$ is not an eigenvalue of the nonsingular
+ $M_2M_2^T$; and the multiplicities of $\pm\frac12(k_1-k_2)$ are $p-\rho$ and $q-\rho$, whose
+ difference, not sum, is $q-p$ (errata, Error 14). The toolkit's Corollary 6.8 is the paper's
+ computation with these corrections, for $X_2$ connected, regular and not bipartite. We will
+ derive those hypotheses from Lemma 5.6; the form that assumes only that $X_2$ has no isolated
+ vertices is the one that Theorem 5.8 uses, so this remark has its own Lean name.
+ \step{s557deg}{$k_1>k_2\ge1$.}
+ \begin{proof}\pf\ By Lemma~\ref{lem:rootgraph}, assertion 1, $k_2\ge1$ and $pk_1=qk_2$, and
+  $p\le q$, $k_1\ne k_2$.~\qed\end{proof}
+ \step{s557ii}{$X_2$ is connected and regular, and not bipartite.}
+ \begin{proof}\pf\ Lemma~\ref{lem:5.6} applies, since $X_1$ is bipartite by \asm[1]{0} and
+  $L(X_1)$ is $(k_1+k_2-2)$-regular by Lemma~\ref{lem:rootgraph}, assertion 2; its alternative
+  (i) fails since $X_2$ is not bipartite, so (ii) holds.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \ST{Corollary 6.8}, with \asm[1]{0}, \stepref{s557deg}, \stepref{s557ii} and
+  \asm[2]{0}; its $\mu_2,\dots,\mu_\rho$ are the members of $\Lambda'$, and its
+  $\pm\sqrt{\mu_j+\frac14(k_1-k_2)^2}$ are $\pm\delta_{\mu_j}$.~\qed\end{proof}
+\end{proof}
+
+\subsection{Theorem 5.8 and its consequences}
+
+\begin{cgss}{Theorem}{5.8}\label{thm:5.8}
+ \lean{Design.flagGraph_cospectral}
+ \uses{def:flag,def:bipartition,hc:def:design,lem:design,lem:incidence,lem:dense,lem:isolated,lem:5.1,lem:5.2,lem:5.6,rem:5.7,def:CP,def:represented,thm:4.11,def:3.2,facts:sec5,st:2.6,st:3.2,st:3.4,st:3.5,st:5.1,st:5.5,st:7.7,st:7.10}
+ \assume{\begin{pfenum}
+  \item $D_1$ is a design with parameters $(v,k,b,r,\lambda)$ on $P$ and $\cB$, with incidence
+   matrix $N$, and $b\ge v$.
+  \item $X_1=F(D_1)$, and $X_2$ is a graph cospectral with $X_1$.
+ \end{pfenum}}
+ \prove{One of the following holds.
+  \begin{pfenum}
+   \item $v+b\le9$, and $X_2$ is represented in $\typ E_8$.
+   \item $X_2\cong F(D_2)$ for a design $D_2$ with the parameters $(v,k,b,r,\lambda)$.
+   \item There are integers $s\ge2$ and $t\ge1$ with $t(s+1)$ even, $s\ge2t-1$ and
+    $(s-1)\mid2t(t-1)$, such that
+    \[
+     v=\tfrac12s(s+1),\quad k=st,\quad b=\tfrac12(s+1)(s+2),\quad r=(s+2)t,\quad
+     \lambda(s-1)=2t(st-1),
+    \]
+    and $X_2\cong L(Y)$ for a connected $(s+1)t$-regular graph $Y$ on $s(s+2)$ vertices with
+    \[
+     \Spec(Y)=\ms{\bigl((s+1)t\bigr)^{1},(-t)^{s+1},(\sqrt c)^{\ell},(-\sqrt c)^{\ell}},\qquad
+     c=\frac{t(s+1)(s-t)}{s-1},\quad \ell=\tfrac12(s-1)(s+2).
+    \]
+  \end{pfenum}}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The hypothesis $b\ge v$ is the paper's remark after Theorem 5.8: by
+ Lemma~\ref{lem:design} it holds when $\lambda<r$, and otherwise every block contains every point
+ and one passes to the dual design, as Corollary 5.9 does. Without it the theorem is false
+ (errata, Error 16): the design $(10,10,6,6,6)$ has flag graph $L(K_{6,10})$, cospectral with
+ $L(T(6))$, and none of (i), (ii), (iii) holds. Here $v+b=16$; (ii) fails since the only design
+ with these parameters has flag graph $L(K_{6,10})$, and $T(6)$ is not bipartite, so Whitney's
+ theorem excludes $L(T(6))\cong L(K_{6,10})$; and $v=10$ gives $s=4$ and $t=k/s=\frac52$. The
+ details are in Error 16. We will follow the paper. The spectrum makes $X_2$
+ regular and connected with $2I+A(X_2)\succeq0$ of rank $v+b-1$, so Theorem 4.11 applies. A
+ representation in $\typ E_8$ gives (i), a cocktail party graph gives (ii), and a line graph
+ $L(Y)$ gives (ii) or (iii) according to the two cases of Lemma 5.6.
+ \step{s558X1}{$X_1$ is connected and $(r+k-2)$-regular on $vr$ vertices, and $2I+A(X_1)$ is
+  positive semidefinite of rank $v+b-1$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:incidence}, assertions 3 and 4.~\qed\end{proof}
+ \step{s558X2}{$X_2$ is connected and $(r+k-2)$-regular on $vr$ vertices, and $2I+A(X_2)$ is
+  positive semidefinite of rank $v+b-1$.}
+ \begin{proof}
+  \step{s558X2reg}{$X_2$ is connected and $(r+k-2)$-regular on $vr$ vertices.}
+  \begin{proof}\pf\ \ST{Corollary 5.5} and \ST{Proposition 2.6}, with \stepref{s558X1}; the
+   corollary is Lemma~\ref{lem:5.2} and Lemma~\ref{lem:5.1} for both graphs, as in the
+   paper.~\qed\end{proof}
+  \step{s558X2psd}{$2I+A(X_2)$ is positive semidefinite.}
+  \begin{proof}\pf\ By \ST{Corollary 3.4} and \stepref{s558X1}, every eigenvalue of $X_1$ is at
+   least $-2$; $X_2$ has the same eigenvalues by \ST{Proposition 2.6}; apply \ST{Corollary 3.4}
+   again.~\qed\end{proof}
+  \step{s558X2rank}{$\rk(2I+A(X_2))=v+b-1$.}
+  \begin{proof}\pf\ \ST{Theorem 3.2} with $f(z)=z+2$ gives the rank from the multiplicities,
+   which agree by \ST{Proposition 2.6}; use \stepref{s558X1}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s558X2reg}, \stepref{s558X2psd} and
+   \stepref{s558X2rank}.~\qed\end{proof}
+ \end{proof}
+ \step{s558hrc}{$X_2\cong L(Y)$ for some graph $Y$, or $X_2\cong CP(m)$ for some $m$, or $X_2$ is
+  represented in $\typ E_8$.}
+ \begin{proof}\pf\ Theorem~\ref{thm:4.11}, with
+  \stepref{s558X2}.~\qed\end{proof}
+ \step{s558E8}{\case{$X_2$ is represented in $\typ E_8$.}\prove{(i) holds.}}
+ \begin{proof}
+  \step{s558E8rank}{$\rk(2I+A(X_2))\le8$.}
+  \begin{proof}\pf\ $2I+A(X_2)$ is the Gram matrix of a family in $\re^8$
+   (Definition~\ref{def:3.2}), so by \ST{Theorem 3.5} its rank is the dimension of a subspace of
+   $\re^8$; apply \path{Submodule.finrank_le} and \path{finrank_euclideanSpace_fin}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $v+b-1\le8$ by \stepref{s558X2} and \stepref{s558E8rank}, and $X_2$ is
+   represented in $\typ E_8$ by \asm{1}.~\qed\end{proof}
+ \end{proof}
+ \step{s558CP}{\case{$X_2\cong CP(m)$.}\prove{(ii) holds, with $D_2=D_1$.}}
+ \begin{proof}
+  \pfsketch\ \repair\ The paper does not exclude this case of Theorem 4.11 (errata, Gap 15). The
+  errata's fill forces $v=k=b=r=2$ and hence case (i), which would also need a representation in
+  $\typ E_8$; we reach (ii) instead, since both graphs are then cocktail party graphs.
+  \step{s558CPX2}{$X_2$ is $(2m-2)$-regular on $2m$ vertices, and $m\ge1$.}
+  \begin{proof}\pf\ $CP(m)$ is, by Definition~\ref{def:CP}, and
+   $X_2$ has $vr\ge1$ vertices by \stepref{s558X2}.~\qed\end{proof}
+  \step{s558CPX1}{$X_1\cong CP(m)$.}
+  \begin{proof}\pf\ By \ST{Corollary 5.5} and \ST{Proposition 2.6}, applied to $X_2$ and its
+   cospectral mate $X_1$, $X_1$ is $(2m-2)$-regular on $2m$ vertices by \stepref{s558CPX2}; apply
+   Lemma~\ref{lem:dense}, assertion 2.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $X_2\cong CP(m)\cong X_1=F(D_1)$ by \asm{1} and
+   \stepref{s558CPX1}.~\qed\end{proof}
+ \end{proof}
+ \step{s558line}{\case{$X_2\cong L(Y)$.}\prove{(ii) or (iii) holds.}}
+ \begin{proof}
+  \step{s558Yp}{\pick\ a graph $Y'$ without isolated vertices with $X_2\cong L(Y')$.}
+  \begin{proof}\pf\ Lemma~\ref{lem:isolated} and \asm{1}.~\qed\end{proof}
+  \step{s558cosp}{$L(I(D_1))$ and $L(Y')$ are cospectral.}
+  \begin{proof}\pf\ $L(I(D_1))=X_1$ is cospectral with $X_2$ by \asm[2]{0}, and $X_2$ with
+   $L(Y')$ by \stepref{s558Yp} and \ST{Proposition 2.6}; cospectrality is equality of
+   characteristic polynomials.~\qed\end{proof}
+  \step{s558apply}{Lemma~\ref{lem:5.6} applies to $X_1'=I(D_1)$, with $h=r+k-2$, and
+   $X_2'=Y'$; in particular $Y'$ is connected.}
+  \begin{proof}\pf\ $I(D_1)$ is connected and bipartite with an edge by
+   Lemma~\ref{lem:incidence}, assertions 1 and 2, and $L(I(D_1))=X_1$ is $(r+k-2)$-regular by
+   \stepref{s558X1}; with \stepref{s558Yp} and \stepref{s558cosp}.~\qed\end{proof}
+  \step{s558bip}{\case{Alternative (i) of Lemma~\ref{lem:5.6} holds.}\prove{(ii) holds.}}
+  \begin{proof}
+   \step{s558bippick}{\pick\ a bipartition $(P_2,Q_2)$ of $Y'$ with $|P_2|=v$, $|Q_2|=b$,
+    biregular with degrees $(r,k)$, whose biadjacency matrix $B_2$ has
+    $\Spec(B_2B_2^T)=\Spec(NN^T)$.}
+   \begin{proof}\pf\ Apply (i) to the bipartition $(P,\cB)$ of $I(D_1)$, which is biregular with
+    degrees $(r,k)$ and has biadjacency matrix $N$ by Lemma~\ref{lem:incidence}, and has
+    $|P|=v\le b=|\cB|$ by \asm[1]{0}.~\qed\end{proof}
+   \step{s558bipgram}{$B_2B_2^T=(r-\lambda)I+\lambda J$.}
+   \begin{proof}\pf\ \ST{Theorem 7.7} for the zero-one $v\times b$ matrix $B_2$, whose row sums
+    are $r$ and column sums $k$ by \stepref{s558bippick}; its hypotheses $v>1$, $k>1$, $r>0$,
+    $\lambda>0$, $r(k-1)=\lambda(v-1)$ and $\Spec(B_2B_2^T)=\ms{(rk)^{1},(r-\lambda)^{v-1}}$ hold
+    by Definition~\ref{hc:def:design}, Lemma~\ref{lem:design} and
+    \stepref{s558bippick}.~\qed\end{proof}
+   \step{s558bipD2}{The rule $D_2(w)=\{u\in P_2:u\sim w\}$ for $w\in Q_2$ is a design with
+    parameters $(v,k,b,r,\lambda)$ on $P_2$ and $Q_2$.}
+   \begin{proof}\pf\ By Definition~\ref{hc:def:design}: $|P_2|=v$, $|Q_2|=b$; a block has $k$
+    points and a point lies in $r$ blocks by \stepref{s558bippick}; two points lie in
+    $(B_2B_2^T)(u,u')=\lambda$ common blocks by \stepref{s558bipgram}.~\qed\end{proof}
+   \step{s558bipiso}{$I(D_2)\cong Y'$.}
+   \begin{proof}\pf\ The map $P_2\sqcup Q_2\to V(Y')$ that is the inclusion on each part is a
+    bijection, and it carries the incidences of $D_2$ onto the edges of $Y'$, since every edge of
+    $Y'$ joins $P_2$ to $Q_2$ (Definition~\ref{def:bipartition}).~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ $F(D_2)=L(I(D_2))\cong L(Y')\cong X_2$ by \stepref{s558bipiso},
+    \path{SimpleGraph.Iso.lineGraph} and \stepref{s558Yp}.~\qed\end{proof}
+  \end{proof}
+  \step{s558nb}{\case{Alternative (ii) of Lemma~\ref{lem:5.6} holds.}\prove{(iii) holds.}}
+  \begin{proof}
+   \step{s558nbfacts}{$r>k$, and $Y'$ is connected, not bipartite and $\kappa$-regular on
+    $v+b-1$ vertices, with $vr$ edges, for the natural number $\kappa$ with $2\kappa=r+k$.}
+   \begin{proof}
+    \step{s558nbrk}{$r>k$.}
+    \begin{proof}\pf\ $I(D_1)$ is not regular by (ii), so $r\ne k$ by
+     Lemma~\ref{lem:incidence}; and $r=bk/v\ge k$ by Lemma~\ref{lem:design} and
+     \asm[1]{0}.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ By (ii), $Y'$ is not bipartite and $\kappa$-regular with
+     $2\kappa=h+2=r+k$, and $|V(Y')|=(v+b)-1$; $Y'$ is connected by \stepref{s558apply}; and
+     $|E(Y')|=|V(L(Y'))|=|V(X_2)|=vr$ by \stepref{s558Yp} and \stepref{s558X2}.~\qed\end{proof}
+   \end{proof}
+   \step{s558nbhand}{$(r+k)(v+b-1)=4vr$.}
+   \begin{proof}\pf\ \path{SimpleGraph.sum_degrees_eq_twice_card_edges} for $Y'$ gives
+    $\kappa(v+b-1)=2vr$ by \stepref{s558nbfacts}; multiply by 2.~\qed\end{proof}
+   \step{s558nbv}{$v(r-k)^2=k(r+k)$.}
+   \lean{Computations.C11.parameter_equation}
+   \begin{proof}\pf\ Multiply \stepref{s558nbhand} by $k$ and substitute $bk=vr$ from
+    Lemma~\ref{lem:design}: $(r+k)(vk+vr-k)=4vrk$, which rearranges to the claim (computation
+    C11).~\qed\end{proof}
+   \step{s558nbt}{$t=\frac12(r-k)$ is a positive integer.}
+   \lean{Computations.C11.exists_positive_half_difference}
+   \begin{proof}\pf\ $r+k=2\kappa$ is even by \stepref{s558nbfacts}, so $r-k=(r+k)-2k$ is even;
+    and $r>k$.~\qed\end{proof}
+   \step{s558nbtk}{$2t^2v=k(k+t)$ and $t(b-v)=k+t$; thus $t\mid k$.}
+   \lean{Computations.C11.two_mul_sq_mul_points}\lean{Computations.C11.mul_blocks_sub_points}
+   \lean{Computations.C11.dvd_block_size}
+   \begin{proof}\pf\ Substitute $r=k+2t$ in \stepref{s558nbv} for the first; then
+    $b-v=v(r-k)/k=2tv/k=(k+t)/t$ by $bk=vr$ (computation C11). As $t\mid k+t$, also
+    $t\mid k$.~\qed\end{proof}
+   \pflet{$s=k/t$, a positive integer by \stepref{s558nbtk}.}
+   \step{s558nbparams}{$v=\frac12s(s+1)$, $k=st$, $b=\frac12(s+1)(s+2)$ and $r=(s+2)t$.}
+   \lean{Computations.C11.parameters}
+   \begin{proof}\pf\ Substitute $k=st$ in \stepref{s558nbtk} and in $r=k+2t$ and $bk=vr$
+    (computation C11).~\qed\end{proof}
+   \step{s558nbs}{$s\ge2$.}
+   \lean{Computations.C11.two_le_parameter}
+   \begin{proof}\pf\ $\frac12s(s+1)=v>1$ by \stepref{s558nbparams}.~\qed\end{proof}
+   \step{s558nblam}{$\lambda(s-1)=2t(st-1)$ and $(s-1)\mid2t(t-1)$.}
+   \lean{Computations.C11.lambda_equation}\lean{Computations.C11.lambda_remainder}
+   \lean{Computations.C11.parameter_dvd}
+   \begin{proof}\pf\ Substituting \stepref{s558nbparams} in $r(k-1)=\lambda(v-1)$ of
+    Lemma~\ref{lem:design} gives $(s+2)t(st-1)=\frac12\lambda(s+2)(s-1)$; divide by $s+2$. Then
+    $2t(t-1)=(\lambda-2t^2)(s-1)$ (computation C11).~\qed\end{proof}
+   \step{s558nbineq}{$s\ge2t-1$.}
+   \lean{Computations.C11.two_mul_sub_one_le}
+   \begin{proof}\pf\ \repair\ The paper prints $s\le2t-1$ (errata, Error 4). By
+    Lemma~\ref{lem:design}, $k\le v$, that is $st\le\frac12s(s+1)$ by \stepref{s558nbparams};
+    divide by $s>0$.~\qed\end{proof}
+   \step{s558nbY}{$Y'$ is connected and $(s+1)t$-regular on $s(s+2)$ vertices.}
+   \begin{proof}\pf\ By \stepref{s558nbfacts} and \stepref{s558nbparams},
+    $\kappa=\frac12(r+k)=(s+1)t$ and $v+b-1=(s+1)^2-1=s(s+2)$.~\qed\end{proof}
+   \step{s558nbspec}{$\Spec(Y')=\ms{\bigl((s+1)t\bigr)^{1},(-t)^{s+1},(\sqrt c)^{\ell},
+    (-\sqrt c)^{\ell}}$.}
+   \lean{Computations.C11.spectrum_of_parameters}
+   \begin{proof}
+    \step{s558nbrem}{$\Spec(Y')=\ms{(s+1)t}+\sum_{\mu\in\Lambda'}\ms{\delta_\mu,-\delta_\mu}
+     +\ms{t^{v-\rho},(-t)^{b-\rho}}$, where $\rho=\rk N$, $\delta_\mu=\sqrt{\mu+t^2}$, and
+     $\Lambda'$ is the multiset of positive eigenvalues of $NN^T$ with one copy of $rk$ removed.}
+    \begin{proof}\pf\ Remark~\ref{rem:5.7} with $X_1=I(D_1)$ and the bipartition $(P,\cB)$,
+     biregular with degrees $(r,k)$, $r\ne k$, $v\le b$ by \asm[1]{0}, and biadjacency matrix $N$
+     (Lemma~\ref{lem:incidence}), and $X_2=Y'$ by \stepref{s558Yp}, \stepref{s558cosp} and
+     \stepref{s558nbfacts}; here $\frac12(r+k)=(s+1)t$ and $\frac12(r-k)=t$.~\qed\end{proof}
+    \step{s558nbc}{$r-\lambda+t^2=c$, $v-1=\ell$ and $b-v=s+1$.}
+    \lean{Computations.C11.nonprincipal_square}\lean{Computations.C11.spectral_parameters}
+    \begin{proof}\pf\ Substitute \stepref{s558nbparams} and \stepref{s558nblam}
+     (computation C11).~\qed\end{proof}
+    \step{s558nbfish}{\case{$r>\lambda$.}}
+    \begin{proof}
+     \step{s558nbfishrho}{$\rho=v$ and $\Lambda'=\ms{(r-\lambda)^{v-1}}$.}
+     \begin{proof}\pf\ By Lemma~\ref{lem:design}, $\Spec(NN^T)=\ms{(rk)^{1},(r-\lambda)^{v-1}}$
+      with both values positive, so $\rk(NN^T)=v$ by \ST{Theorem 3.2}, and $\rho=\rk(NN^T)$ by
+      \ST{Theorem 3.5}.~\qed\end{proof}
+     \qedstep
+     \begin{proof}\pf\ By \stepref{s558nbrem}, \stepref{s558nbfishrho} and \stepref{s558nbc},
+      the terms are $(s+1)t$, $(\pm\sqrt c)^{v-1}$ with $v-1=\ell$, $t^{0}$ and
+      $(-t)^{b-v}$ with $b-v=s+1$. (Computation C11,
+      \path{Computations.C11.spectrum_of_parameters}, is this substitution; it takes the spectrum
+      of \stepref{s558nbrem} in this form as a hypothesis, so the rank cases and
+      Remark~\ref{rem:5.7} stay with this proof.)~\qed\end{proof}
+    \end{proof}
+    \step{s558nbtriv}{\case{$r=\lambda$.}}
+    \begin{proof}
+     \step{s558nbtrivrho}{$\rho=1$ and $\Lambda'$ is empty.}
+     \begin{proof}\pf\ By Lemma~\ref{lem:design}, $\Spec(NN^T)=\ms{(rk)^{1},0^{v-1}}$ with
+      $rk>0$, so $\rk(NN^T)=1$ by \ST{Theorem 3.2}, and $\rho=\rk(NN^T)$ by
+      \ST{Theorem 3.5}.~\qed\end{proof}
+     \step{s558nbtrivc}{$c=t^2$, so $\sqrt c=t$.}
+     \begin{proof}\pf\ $c=r-\lambda+t^2$ by \stepref{s558nbc}, and $r=\lambda$.~\qed\end{proof}
+     \qedstep
+     \begin{proof}\pf\ By \stepref{s558nbrem} and \stepref{s558nbtrivrho},
+      $\Spec(Y')=\ms{(s+1)t,t^{v-1},(-t)^{b-1}}$, and $v-1=\ell$, $b-1=(s+1)+\ell$ by
+      \stepref{s558nbc}; with \stepref{s558nbtrivc} this is the claim.~\qed\end{proof}
+    \end{proof}
+    \qedstep
+    \begin{proof}\pf\ $r\ge\lambda$ by Lemma~\ref{lem:design}, so the cases
+     \stepref{s558nbfish} and \stepref{s558nbtriv} are exhaustive.~\qed\end{proof}
+   \end{proof}
+   \step{s558nbeven}{$t(s+1)$ is even.}
+   \lean{Computations.C11.even_cube_diagonal}\lean{Computations.C11.even_parameter_cube}
+   \lean{Computations.C11.even_mul_of_even_cube}
+   \begin{proof}
+    \pflet{$A=A(Y')$, $f(z)=(z+t)(z^2-c)$ and $e=t^2(s+1)(st-1)/(s-1)$.}
+    \step{s558nbhp}{$f(A)=eJ$.}
+    \lean{Computations.C11.matrix_identity}\lean{Computations.C11.hoffman_value}
+    \begin{proof}\pf\ $f$ vanishes at $-t$ and $\pm\sqrt c$, which by \stepref{s558nbspec} are
+     the eigenvalues other than $(s+1)t$; \ST{Theorem 7.10} with \stepref{s558nbY} gives
+     $f(A)=\frac{f((s+1)t)}{s(s+2)}J$, and $f((s+1)t)=s(s+2)e$ (computation C11).~\qed\end{proof}
+    \step{s558nbdiag}{$A^3(u,u)=t^3(s+1)$ for every vertex $u$.}
+    \lean{Computations.C11.cube_diagonal_eq}\lean{Computations.C11.triangle_diagonal}
+    \begin{proof}\pf\ The $(u,u)$ entry of $f(A)=A^3+tA^2-cA-ctI$ is
+     $A^3(u,u)+t^2(s+1)-ct$, since $A(u,u)=0$ and $A^2(u,u)=\deg(u)=(s+1)t$ by
+     \path{SimpleGraph.adjMatrix_mul_self_apply_self};
+     by \stepref{s558nbhp} it equals $e$, and $e+ct-t^2(s+1)=t^3(s+1)$ (computation
+     C11).~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ $Y'$ has a vertex, and $A^3(u,u)$ is twice a number of triangles by
+     \ST{Theorem 5.1}; so $t^3(s+1)$ is even by \stepref{s558nbdiag}. The difference
+     $t^3(s+1)-t(s+1)=(t-1)t(t+1)(s+1)$ is even, as a multiple of two consecutive
+     integers. (In computation C11, \path{Computations.C11.even_parameter_cube} takes the
+     integer form of \stepref{s558nbdiag} as a hypothesis; the passage from the real identity of
+     \stepref{s558nbhp} to it stays with this proof.)~\qed\end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ Take $Y=Y'$: $X_2\cong L(Y')$ by \stepref{s558Yp}; the conditions are
+    \stepref{s558nbparams} to \stepref{s558nbeven}, with $t\ge1$ by \stepref{s558nbt}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ By \stepref{s558apply}, the cases \stepref{s558bip} and \stepref{s558nb} are
+   the two alternatives of Lemma~\ref{lem:5.6}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s558hrc}, the cases \stepref{s558E8}, \stepref{s558CP} and
+  \stepref{s558line} are exhaustive.~\qed\end{proof}
+\end{proof}
+
+\medskip\noindent\textbf{Corollaries 5.9 to 5.11 and Remark 5.12.}
+
+The next two lemmas settle the small cases that the corollaries leave to the reader.
+
+\begin{namedresult}{Lemma}{(a single block)}\label{lem:oneblock}
+ \lean{Design.flagGraphCharacterized_of_b_eq_one}
+ \lean{SimpleGraph.Cospectral.nonempty_iso_of_isRegularOfDegree_card_sub_one}
+ \uses{def:flag,lem:incidence,lem:dense,st:2.6,st:5.5}
+ \prove{\begin{pfenum}
+  \item If $X$ is an $(n-1)$-regular graph on $n\ge1$ vertices, then every graph cospectral
+   with $X$ is isomorphic to $X$.
+  \item If $D$ is a design with parameters $(v,v,1,1,1)$, then $F(D)$ is characterized by its
+   spectrum.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ The paper's Corollary 5.11 omits the designs with a single block (errata,
+ Gap 16). A cospectral mate is regular of the same valency on the same number of vertices, so
+ both graphs are complete.
+ \step{s5obmate}{\assume{$X$ is an $(n-1)$-regular graph on $n\ge1$ vertices, and $X'$ is
+  cospectral with $X$.}\prove{$X'\cong X$.}}
+ \begin{proof}\pf\ $X'$ is $(n-1)$-regular on $n$ vertices by \ST{Corollary 5.5} and
+  \ST{Proposition 2.6}; both graphs are isomorphic to $K_n$ by Lemma~\ref{lem:dense},
+  assertion 1.~\qed\end{proof}
+ \step{s5obflag}{\assume{$D$ is a design with parameters $(v,v,1,1,1)$.}
+  \prove{$F(D)$ is characterized by its spectrum.}}
+ \begin{proof}
+  \step{s5obflagreg}{$F(D)$ is $(v-1)$-regular on $v$ vertices.}
+  \begin{proof}\pf\ Lemma~\ref{lem:incidence}, assertion 3, with $r+k-2=v-1$ and
+   $vr=v$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Apply \stepref{s5obmate} to $F(D)$, by \stepref{s5obflagreg}, and take
+   $D_2=D$ in Definition~\ref{def:flag}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s5obmate} and \stepref{s5obflag}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the hexagon)}\label{lem:hexagon}
+ \lean{Design.flagGraphCharacterized_of_parameters_3_2_1}
+ \uses{def:flag,lem:incidence,lem:cycle,st:2.6,st:5.5}
+ \assume{$D$ is a design with parameters $(3,2,3,2,1)$.}
+ \prove{$F(D)$ is characterized by its spectrum.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ The paper leaves this to the reader in Corollaries 5.10 and 5.11 (errata,
+ Gap 16): a cospectral mate of the hexagon is connected and $2$-regular on six vertices.
+ \step{s5hxflag}{$F(D)\cong C_6$.}
+ \begin{proof}\pf\ $F(D)$ is connected and $2$-regular on $6$ vertices by
+  Lemma~\ref{lem:incidence}, assertion 3; apply Lemma~\ref{lem:cycle}.~\qed\end{proof}
+ \step{s5hxmate}{\assume{$X_2$ is cospectral with $F(D)$.}\prove{$X_2\cong F(D)$.}}
+ \begin{proof}\pf\ $X_2$ is connected and $2$-regular on $6$ vertices by \ST{Corollary 5.5} and
+  \ST{Proposition 2.6}, so $X_2\cong C_6$ by Lemma~\ref{lem:cycle}; use
+  \stepref{s5hxflag}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{s5hxmate} with $D_2=D$ in Definition~\ref{def:flag}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(designs with full blocks)}\label{lem:fullblock}
+ \lean{Design.trivial}\lean{Design.nonempty_iso_flagGraph_lineGraph_completeBipartite}
+ \uses{def:flag,hc:def:design,lem:design,facts:sec5}
+ \assume{$m\ge1$ and $n\ge2$ are integers.}
+ \prove{\begin{pfenum}
+  \item The \emph{trivial design} $T$ on the points $\{1,\dots,n\}$ with $m$ block labels, each
+   block being the whole point set, is a design with parameters $(n,n,m,m,m)$.
+  \item If $D$ is a design with parameters $(n,n,m,m,m)$, then $F(D)\cong L(K_{m,n})$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Every point lies in every block, so the incidence graph is complete bipartite.
+ \step{s5fbT}{Assertion 1 holds.}
+ \begin{proof}\pf\ By Definition~\ref{hc:def:design}: there are $n>1$ points and $m>0$ block
+  labels, every block has $n$ points, and every point and every pair of points lies in all $m$
+  blocks.~\qed\end{proof}
+ \step{s5fbiso}{\assume{$D$ is a design with parameters $(n,n,m,m,m)$ on $P$ and
+  $\cB$.}\prove{$F(D)\cong L(K_{m,n})$.}}
+ \begin{proof}
+  \step{s5fbfull}{Every block of $D$ contains every point.}
+  \begin{proof}\pf\ Lemma~\ref{lem:design}, assertion 2, since $k=v=n$.~\qed\end{proof}
+  \step{s5fbI}{$I(D)\cong K_{m,n}$.}
+  \begin{proof}\pf\ By \stepref{s5fbfull}, every point is adjacent to every block in $I(D)$,
+   so $I(D)$ is the complete bipartite graph on $P\sqcup\cB$ (Definition~\ref{def:flag}), with
+   $|P|=n$ and $|\cB|=m$. We obtain an isomorphism with $K_{m,n}$ from \path{Equiv.sumComm},
+   \path{Fintype.equivFin} and \path{SimpleGraph.completeBipartiteGraphCongr}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $F(D)=L(I(D))$, and apply \path{SimpleGraph.Iso.lineGraph} to
+   \stepref{s5fbI}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s5fbT} and \stepref{s5fbiso}.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Corollary}{5.9}\label{cor:5.9}
+ \lean{SimpleGraph.lineGraph_completeBipartite_characterized}
+ \uses{thm:5.8,def:flag,hc:def:design,lem:design,lem:oneblock,lem:fullblock,facts:sec5,st:2.6,st:6.3,st:7.10}
+ \assume{\begin{pfenum}
+  \item $m,n\ge1$ are integers with $m+n>9$.
+  \item There is no integer $t\ge1$ with $\{m,n\}=\{2t^2+t,2t^2-t\}$ for which a symmetric
+   Hadamard matrix of order $4t^2$ with constant diagonal exists.
+  \item $X_2$ is a graph cospectral with $L(K_{m,n})$.
+ \end{pfenum}}
+ \prove{$X_2\cong L(K_{m,n})$.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The two readings of ``characterized'' agree here (errata, Implicit
+ hypothesis 6), since a design with $k=v$ is unique. \repair\ We write the exception as a
+ condition on $\{m,n\}$ (errata, Error 17): as printed, with $m=6$, $n=10$ the exception does not
+ apply, but $L(K_{6,10})$ is cospectral with $L(T(6))$ (errata, Error 14, evidence). We will follow the paper: $L(K_{m,n})$
+ is the flag graph of the trivial design, and in case (iii) of Theorem 5.8 bordering a
+ $(\pm1)$ form of $A(Y)$ gives the Hadamard matrix.
+ \step{s559ordered}{\assume{$m\ge n$, and \asm[1]{0} to \asm[3]{0}.}\prove{$X_2\cong
+  L(K_{m,n})$.}}
+ \begin{proof}
+  \step{s559one}{\case{$n=1$.}}
+  \begin{proof}\pf\ $L(K_{m,1})$ is $(m-1)$-regular on $m$ vertices by the degree formula of
+   \ST{Lemma 6.3}; apply Lemma~\ref{lem:oneblock}.~\qed\end{proof}
+  \step{s559two}{\case{$n\ge2$.}}
+  \begin{proof}
+   \pflet{$T$ be the trivial design of Lemma~\ref{lem:fullblock} on $n$ points with $m$ block
+    labels.}
+   \step{s559T}{$T$ is a design with parameters $(n,n,m,m,m)$, $b=m\ge n=v$, and
+    $F(T)\cong L(K_{m,n})$.}
+   \begin{proof}\pf\ Lemma~\ref{lem:fullblock}, both assertions, with $n\ge2$ by \asm{2} and
+    $m\ge n$ by \asm{1}.~\qed\end{proof}
+   \step{s559cases}{One of (i), (ii) and (iii) of Theorem~\ref{thm:5.8} holds for $D_1=T$ and
+    $X_2$.}
+   \begin{proof}\pf\ $X_2$ is cospectral with $F(T)$ by \asm[3]{0}, \stepref{s559T} and
+    \ST{Proposition 2.6}; apply Theorem~\ref{thm:5.8}.~\qed\end{proof}
+   \step{s559i}{\case{(i) holds.}}
+   \begin{proof}\pf\ Then $n+m=v+b\le9$, against \asm[1]{0}.~\qed\end{proof}
+   \step{s559ii}{\case{(ii) holds.}}
+   \begin{proof}\pf\ Then $X_2\cong F(D_2)$ for a design $D_2$ with parameters $(n,n,m,m,m)$,
+    and $F(D_2)\cong L(K_{m,n})$ by Lemma~\ref{lem:fullblock}, assertion 2.~\qed\end{proof}
+   \step{s559iii}{\case{(iii) holds.}\prove{\textsc{False}.}}
+   \begin{proof}
+    \pfsketch\ We will show that the exception of \asm[2]{0} occurs.
+    \step{s559st}{$s=2t-1$, $n=2t^2-t$, $m=2t^2+t$, $t\ge2$ and $c=t^2$.}
+    \lean{Computations.C12.full_block_parameters}
+    \begin{proof}\pf\ From $v=k$ in (iii), $\frac12s(s+1)=st$, so $s+1=2t$; substitute in
+     $v$, $b$ and $c$, and $2t-1=s\ge2$ (computation C12). (Computation C12 proves the whole
+     step, $t\ge2$ and $c=t^2$ included, for the integers $s\ge2$ and $t\ge1$ of (iii), with the
+     fractions evaluated over $\rats$.)~\qed\end{proof}
+    \step{s559Y}{$A=A(Y)$ satisfies $A^2=t^2(I+J)$ and $AJ=2t^2J$, on $4t^2-1$ vertices.}
+    \begin{proof}\pf\ By (iii) and \stepref{s559st}, $Y$ is connected and $2t^2$-regular on
+     $s(s+2)=4t^2-1$ vertices with eigenvalues $2t^2$ and $\pm t$. \ST{Theorem 7.10} with
+     $f(z)=z^2-t^2$ gives $A^2-t^2I=\frac{4t^4-t^2}{4t^2-1}J=t^2J$.~\qed\end{proof}
+    \pflet{$S=2A-J$ and $H=\pmat{-1&-\Zj^T\\-\Zj&S}$, of order $4t^2$.}
+    \lean{Computations.C12.core}\lean{Computations.C12.border}
+    \step{s559S}{$S$ is symmetric with entries $\pm1$ and diagonal $-1$, $S\Zj=\Zj$ and
+     $S^2=4t^2I-J$.}
+    \lean{Computations.C12.core_row_sum}\lean{Computations.C12.core_mul}
+    \begin{proof}\pf\ $A$ is a symmetric zero-one matrix with zero diagonal; by \stepref{s559Y},
+     $S\Zj=(4t^2-(4t^2-1))\Zj$ and $S^2=4A^2-2AJ-2JA+J^2=4t^2I-J$, since $J^2=(4t^2-1)J$
+     (computation C12).~\qed\end{proof}
+    \step{s559H}{$H$ is a symmetric Hadamard matrix with constant diagonal $-1$.}
+    \lean{Computations.C12.border_isHadamard}\lean{Computations.C12.hadamard_border}
+    \begin{proof}\pf\ By \stepref{s559S}, $H$ is symmetric with entries $\pm1$ and diagonal
+     $-1$, and block multiplication gives $H^2=4t^2I$: the corner is $1+(4t^2-1)$, the border
+     is $\Zj-S\Zj=0$, and the rest is $J+S^2$. This is \path{Matrix.IsHadamard} over
+     $\re$.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ \stepref{s559st} and \stepref{s559H} contradict \asm[2]{0}.~\qed\end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ By \stepref{s559cases}, the cases \stepref{s559i}, \stepref{s559ii} and
+    \stepref{s559iii} are exhaustive, and \stepref{s559i} and \stepref{s559iii} are
+    impossible.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ The cases \stepref{s559one} and \stepref{s559two} are exhaustive, since
+   $n\ge1$.~\qed\end{proof}
+ \end{proof}
+ \step{s559ge}{\case{$m\ge n$.}}
+ \begin{proof}\pf\ Step \stepref{s559ordered}.~\qed\end{proof}
+ \step{s559lt}{\case{$m<n$.}}
+ \begin{proof}
+  \step{s559swap}{$L(K_{m,n})\cong L(K_{n,m})$.}
+  \begin{proof}\pf\ \path{Equiv.sumComm} is an isomorphism $K_{m,n}\cong K_{n,m}$ by the
+   definition of the complete bipartite graph; apply \path{SimpleGraph.Iso.lineGraph}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ \asm[1]{0} and \asm[2]{0} are symmetric in $m$ and $n$, and $X_2$ is
+   cospectral with $L(K_{n,m})$ by \stepref{s559swap} and \ST{Proposition 2.6}; apply
+   \stepref{s559ordered} to $(n,m)$, and then \stepref{s559swap}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The cases \stepref{s559ge} and \stepref{s559lt} are exhaustive.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Corollary}{5.10}\label{cor:5.10}
+ \lean{Design.IsSymmetric.flagGraphCharacterized}
+ \uses{thm:5.8,def:flag,hc:def:design,lem:design,lem:hexagon}
+ \assume{\begin{pfenum}
+  \item $D_1$ is a design with parameters $(v,k,v,r,\lambda)$, that is, a symmetric design.
+  \item $k<v$ and $(v,k,\lambda)\ne(4,3,2)$.
+ \end{pfenum}}
+ \prove{$F(D_1)$ is characterized by its spectrum.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will follow the paper: case (iii) of Theorem 5.8 cannot occur, and case (i)
+ leaves only $(3,2,1)$, the hexagon, since $(4,3,2)$ is excluded.
+ \step{s5510rk}{$r=k$ and $b\ge v$.}
+ \begin{proof}\pf\ $vk=vr$ by Lemma~\ref{lem:design} with $b=v$.~\qed\end{proof}
+ \step{s5510mate}{\assume{$X_2$ is cospectral with $F(D_1)$.}
+  \prove{$X_2\cong F(D_2)$ for a design $D_2$ with the parameters of $D_1$.}}
+ \begin{proof}
+  \step{s5510i}{\case{(i) of Theorem~\ref{thm:5.8} holds.}}
+  \begin{proof}
+   \step{s5510small}{$(v,k,\lambda)=(3,2,1)$.}
+   \begin{proof}
+    \step{s5510v}{$v\in\{3,4\}$.}
+    \begin{proof}\pf\ $2v=v+b\le9$, and $v>k>1$.~\qed\end{proof}
+    \step{s5510three}{\case{$v=3$.}}
+    \begin{proof}\pf\ $k=2$, and $2\lambda=\lambda(v-1)=r(k-1)=2$ by Lemma~\ref{lem:design}
+     and \stepref{s5510rk}, so $\lambda=1$.~\qed\end{proof}
+    \step{s5510four}{\case{$v=4$.}\prove{\textsc{False}.}}
+    \begin{proof}
+     \step{s5510fourlam}{$3\lambda=k(k-1)$ and $k\in\{2,3\}$.}
+     \begin{proof}\pf\ $\lambda(v-1)=r(k-1)$ by Lemma~\ref{lem:design}, with $r=k$ by
+      \stepref{s5510rk}; and $1<k<v=4$.~\qed\end{proof}
+     \step{s5510fourtwo}{\case{$k=2$.}}
+     \begin{proof}\pf\ Then $3\lambda=2$ by \stepref{s5510fourlam}, which has no integer
+      solution.~\qed\end{proof}
+     \step{s5510fourthree}{\case{$k=3$.}}
+     \begin{proof}\pf\ Then $\lambda=2$ by \stepref{s5510fourlam}, and $(v,k,\lambda)=(4,3,2)$
+      is excluded by \asm[2]{0}.~\qed\end{proof}
+     \qedstep
+     \begin{proof}\pf\ The cases \stepref{s5510fourtwo} and \stepref{s5510fourthree} are
+      exhaustive by \stepref{s5510fourlam}.~\qed\end{proof}
+    \end{proof}
+    \qedstep
+    \begin{proof}\pf\ The cases \stepref{s5510three} and \stepref{s5510four} are exhaustive by
+     \stepref{s5510v}.~\qed\end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ Lemma~\ref{lem:hexagon} with \stepref{s5510small} and $b=v=3$,
+    $r=k=2$.~\qed\end{proof}
+  \end{proof}
+  \step{s5510ii}{\case{(ii) of Theorem~\ref{thm:5.8} holds.}}
+  \begin{proof}\pf\ This is the claim.~\qed\end{proof}
+  \step{s5510iii}{\case{(iii) of Theorem~\ref{thm:5.8} holds.}\prove{\textsc{False}.}}
+  \begin{proof}\pf\ $r=(s+2)t>st=k$ since $t\ge1$, against \stepref{s5510rk}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Theorem~\ref{thm:5.8} applies by \asm[1]{0}, \stepref{s5510rk} and
+   \asm{1}, so the cases are exhaustive.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{s5510mate} is Definition~\ref{def:flag}.~\qed\end{proof}
+\end{proof}
+
+\begin{remark}
+ \lean{Computations.C13.graph1}\lean{Computations.C13.graph2}\lean{Computations.C13.spectrum_graph1}
+ \lean{Computations.C13.spectrum_graph2}
+ \lean{Computations.C13.cospectral}\lean{Computations.C13.not_nonempty_iso}
+ \lean{Computations.C13.design}\lean{Computations.C13.nonempty_iso_flagGraph}
+ \lean{Computations.C13.representation_graph1}\lean{Computations.C13.representation_graph2}
+ \lean{Computations.C13.isRepresentedIn_E₇_graph1}\lean{Computations.C13.isRepresentedIn_E₇_graph2}
+ \lean{Computations.C13.cube}\lean{Computations.C13.cubeLineGraphIso}
+ \lean{Computations.C13.nonempty_iso_cube_lineGraph}
+ \lean{Computations.C13.not_flagGraphCharacterized}
+ The exception is genuine. The paper's two sets of 12 vectors in $\typ E_7$ give two graphs with
+ spectrum $4^1\,2^3\,0^3\,(-2)^5$: the flag graph of the $(4,3,2)$ design, which is
+ $L(Q_3)$, and a second graph, which computation C13 shows is not isomorphic to the first
+ (\path{cgss/prerequisites.md}, HR1). A design with parameters $(4,3,4,3,2)$ is unique: each of
+ its four blocks omits one point, each point is omitted by $b-r=1$ block, and so the blocks are
+ the four $3$-subsets of the points. Every flag graph of such a design is therefore isomorphic to
+ the first graph, and the second graph shows, in the sense of Definition~\ref{def:flag}, that the
+ flag graph is not characterized by its spectrum. The uniqueness of the exception (HR2) is a side
+ claim, and we do not formalize it here. Computation C13 checks the spectra, that the two graphs are
+ represented by the paper's vectors in $\typ E_7$, and that they are not isomorphic (the first
+ has no induced claw and the second has one); it identifies the first graph with the line graph
+ of the incidence graph of the design on the four $3$-subsets, built in
+ \path{LineGraphs/Computations/C13Design.lean} rather than through Definition~\ref{def:flag}.
+ It also identifies the first graph with $L(Q_3)$, by an explicit isomorphism, where $Q_3$ has
+ the eight binary triples as vertices, two of them adjacent when they differ in exactly one
+ coordinate; we do not use this identification. The non-characterization itself is
+ \path{Computations.C13.not_flagGraphCharacterized}: the second graph is cospectral with the
+ flag graph of the design and has an induced claw, while the flag graph of every design, being a
+ line graph, has none.
+\end{remark}
+
+\begin{cgss}{Corollary}{5.11}\label{cor:5.11}
+ \lean{Design.flagGraphCharacterized_of_lam_eq_one}
+ \uses{thm:5.8,def:flag,hc:def:design,lem:design,lem:oneblock,lem:hexagon}
+ \assume{$D_1$ is a design with parameters $(v,k,b,r,1)$.}
+ \prove{$F(D_1)$ is characterized by its spectrum.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The paper says that case (i) of Theorem 5.8 occurs only for $(3,2,1)$; it
+ also occurs for a single block containing every point, $(v,v,1,1,1)$ with $2\le v\le8$, whose
+ flag graph is complete (errata, Gap 16). We will treat that case first, and then follow the
+ paper.
+ \step{s5511full}{\case{$k=v$.}}
+ \begin{proof}\pf\ Then $r=\lambda=1$ by Lemma~\ref{lem:design}, and $b=vr/k=1$, so $D_1$ has
+  parameters $(v,v,1,1,1)$; apply Lemma~\ref{lem:oneblock}.~\qed\end{proof}
+ \step{s5511proper}{\case{$k<v$.}}
+ \begin{proof}
+  \step{s5511fisher}{$r>1$ and $b\ge v$.}
+  \begin{proof}\pf\ Lemma~\ref{lem:design}: $r\ge\lambda=1$ with equality only if $k=v$, and
+   then $b\ge v$ since $r>\lambda$.~\qed\end{proof}
+  \step{s5511mate}{\assume{$X_2$ is cospectral with $F(D_1)$.}
+   \prove{$X_2\cong F(D_2)$ for a design $D_2$ with the parameters of $D_1$.}}
+  \begin{proof}
+   \step{s5511i}{\case{(i) of Theorem~\ref{thm:5.8} holds.}}
+   \begin{proof}
+    \step{s5511small}{$(v,k,b,r)=(3,2,3,2)$.}
+    \begin{proof}
+     \step{s5511v}{$v\in\{3,4\}$.}
+     \begin{proof}\pf\ $2v\le v+b\le9$ by \stepref{s5511fisher}, and $v>k>1$.~\qed\end{proof}
+     \step{s5511three}{\case{$v=3$.}}
+     \begin{proof}\pf\ $k=2$, $r=\lambda(v-1)/(k-1)=2$ and $b=vr/k=3$ by
+      Lemma~\ref{lem:design}.~\qed\end{proof}
+     \step{s5511four}{\case{$v=4$.}\prove{\textsc{False}.}}
+     \begin{proof}
+      \step{s5511fourr}{$r(k-1)=3$ and $k\in\{2,3\}$.}
+      \begin{proof}\pf\ $r(k-1)=\lambda(v-1)$ by Lemma~\ref{lem:design}, with $\lambda=1$ and
+       $1<k<v=4$.~\qed\end{proof}
+      \step{s5511fourtwo}{\case{$k=2$.}}
+      \begin{proof}\pf\ Then $r=3$ by \stepref{s5511fourr}, and $b=vr/k=6$ by
+       Lemma~\ref{lem:design}, so $v+b=10>9$, against (i).~\qed\end{proof}
+      \step{s5511fourthree}{\case{$k=3$.}}
+      \begin{proof}\pf\ Then $2r=3$ by \stepref{s5511fourr}, which has no integer
+       solution.~\qed\end{proof}
+      \qedstep
+      \begin{proof}\pf\ The cases \stepref{s5511fourtwo} and \stepref{s5511fourthree} are
+       exhaustive by \stepref{s5511fourr}.~\qed\end{proof}
+     \end{proof}
+     \qedstep
+     \begin{proof}\pf\ The cases \stepref{s5511three} and \stepref{s5511four} are exhaustive by
+      \stepref{s5511v}.~\qed\end{proof}
+    \end{proof}
+    \qedstep
+    \begin{proof}\pf\ Lemma~\ref{lem:hexagon} with \stepref{s5511small}.~\qed\end{proof}
+   \end{proof}
+   \step{s5511ii}{\case{(ii) of Theorem~\ref{thm:5.8} holds.}}
+   \begin{proof}\pf\ This is the claim.~\qed\end{proof}
+   \step{s5511iii}{\case{(iii) of Theorem~\ref{thm:5.8} holds.}\prove{\textsc{False}.}}
+   \begin{proof}\pf\ Then $\lambda(s-1)=2t(st-1)\ge2(s-1)$, since $t\ge1$ and $st-1\ge s-1$, so
+    $\lambda\ge2$, as $s\ge2$; this contradicts $\lambda=1$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Theorem~\ref{thm:5.8} applies by \stepref{s5511fisher} and \asm{1}, so the
+    cases are exhaustive.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{s5511mate} is Definition~\ref{def:flag}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ $k\le v$ by Lemma~\ref{lem:design}, so the cases \stepref{s5511full} and
+  \stepref{s5511proper} are exhaustive.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Remark}{5.12}\label{rem:5.12}
+ \lean{Design.flagGraphCharacterized_of_lam_lt_nineteen}
+ \uses{thm:5.8,def:flag,hc:def:design,lem:design,hc:cor:complement}
+ \assume{$D_1$ is a design with parameters $(v,k,b,r,\lambda)$, with $k<v$ and $2<\lambda<19$.}
+ \prove{$F(D_1)$ is characterized by its spectrum.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will follow the paper. In case (iii) of Theorem 5.8,
+ $\lambda=2t^2+2t(t-1)/(s-1)$, so $t=1$ gives $\lambda=2$, $t\ge3$ gives $\lambda\ge19$, and
+ $t=2$ gives $s\in\{3,5\}$; $s=3$ is a design with $k=v$, and $s=5$ gives the parameters
+ $(15,10,21,14,9)$, whose complement $(15,5,21,7,2)$ does not exist. The paper cites Hall's book
+ for this; we use the Hall--Connor section. \new\ The paper does not mention case (i); it cannot
+ occur for $\lambda\ge3$.
+ \step{s5512fisher}{$r>\lambda$ and $b\ge v$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:design}, since $k<v$.~\qed\end{proof}
+ \step{s5512mate}{\assume{$X_2$ is cospectral with $F(D_1)$.}
+  \prove{$X_2\cong F(D_2)$ for a design $D_2$ with the parameters of $D_1$.}}
+ \begin{proof}
+  \step{s5512i}{\case{(i) of Theorem~\ref{thm:5.8} holds.}\prove{\textsc{False}.}}
+  \begin{proof}
+   \step{s5512b}{$v\in\{3,4\}$ and $b=\lambda v(v-1)/(k(k-1))$.}
+   \begin{proof}\pf\ $2v\le v+b\le9$ by \stepref{s5512fisher}, and $v>k>1$; the formula is
+    Lemma~\ref{lem:design}.~\qed\end{proof}
+   \step{s5512three}{\case{$v=3$.}}
+   \begin{proof}\pf\ $k=2$, so $b=3\lambda\ge9$ and $v+b\ge12$.~\qed\end{proof}
+   \step{s5512four}{\case{$v=4$.}}
+   \begin{proof}\pf\ $k\in\{2,3\}$, so $b\ge12\lambda/6=2\lambda\ge6$ and
+    $v+b\ge10$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ The cases \stepref{s5512three} and \stepref{s5512four} are exhaustive by
+    \stepref{s5512b}, and both contradict $v+b\le9$.~\qed\end{proof}
+  \end{proof}
+  \step{s5512ii}{\case{(ii) of Theorem~\ref{thm:5.8} holds.}}
+  \begin{proof}\pf\ This is the claim.~\qed\end{proof}
+  \step{s5512iii}{\case{(iii) of Theorem~\ref{thm:5.8} holds.}\prove{\textsc{False}.}}
+  \begin{proof}
+   \step{s5512lam}{$\lambda(s-1)=2t^2(s-1)+2t(t-1)$.}
+   \lean{Computations.C14.lambda_remainder}
+   \begin{proof}\pf\ $2t(st-1)=2t^2(s-1)+2t(t-1)$, and (iii) (computation C14).~\qed\end{proof}
+   \step{s5512t1}{\case{$t=1$.}}
+   \lean{Computations.C14.lambda_eq_two}
+   \begin{proof}\pf\ Then $\lambda=2$ by \stepref{s5512lam}, against $\lambda>2$.~\qed\end{proof}
+   \step{s5512t3}{\case{$t\ge3$.}}
+   \lean{Computations.C14.lambda_ge_nineteen}
+   \begin{proof}\pf\ Then $2t(t-1)>0$, so $\lambda>2t^2\ge18$ by \stepref{s5512lam}, against
+    $\lambda<19$.~\qed\end{proof}
+   \step{s5512t2}{\case{$t=2$.}}
+   \lean{Computations.C14.t2_parameters}
+   \begin{proof}
+    \step{s5512s}{$s\in\{3,5\}$.}
+    \lean{Computations.C14.eq_three_or_five}
+    \begin{proof}\pf\ By (iii), $(s-1)\mid4$ and $s\ge2t-1=3$ (computation C14).~\qed\end{proof}
+    \step{s5512s3}{\case{$s=3$.}}
+    \begin{proof}\pf\ Then $v=6=k$ by (iii), against $k<v$.~\qed\end{proof}
+    \step{s5512s5}{\case{$s=5$.}}
+    \begin{proof}\pf\ Then $(v,k,b,r,\lambda)=(15,10,21,14,9)$ by (iii), and
+     Corollary~\hyperref[hc:cor:complement]{(the complementary parameters)} of the Hall--Connor
+     section gives \textsc{False}.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ The cases \stepref{s5512s3} and \stepref{s5512s5} are exhaustive by
+     \stepref{s5512s}.~\qed\end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ $t\ge1$ by (iii), so the cases \stepref{s5512t1}, \stepref{s5512t3} and
+    \stepref{s5512t2} are exhaustive.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Theorem~\ref{thm:5.8} applies by \stepref{s5512fisher} and \asm{1}, so the
+   cases are exhaustive.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{s5512mate} is Definition~\ref{def:flag}.~\qed\end{proof}
+\end{proof}
+
+\begin{remark}
+ \lean{Computations.TrivialDesignException.design}
+ \lean{Computations.TrivialDesignException.incidenceSignless}
+ \lean{Computations.TrivialDesignException.completeAdjacency}
+ \lean{Computations.TrivialDesignException.incidence_spectrum_checked}
+ \lean{Computations.TrivialDesignException.complete_spectrum_checked}
+ \lean{Computations.TrivialDesignException.incidenceIndex}
+ \lean{Computations.TrivialDesignException.incidence_signless_eq}
+ \lean{Computations.TrivialDesignException.spectrum_incidence_signless}
+ \lean{Computations.TrivialDesignException.spectrum_complete}
+ \lean{Computations.TrivialDesignException.spectrum_triangular}
+ \lean{Computations.TrivialDesignException.spectrum_flagGraph}
+ \lean{Computations.TrivialDesignException.spectrum_double_lineGraph}
+ \lean{Computations.TrivialDesignException.flagGraph_cospectral_double_lineGraph}
+ \lean{Computations.TrivialDesignException.lineGraph_completeBipartite_cospectral_double_lineGraph}
+ \lean{Computations.TrivialDesignException.flagGraph_not_nonempty_iso_double_lineGraph}
+ \lean{Computations.TrivialDesignException.not_flagGraphCharacterized}
+ \lean{SimpleGraph.spectrumMultiset_lineGraph_of_card_le}
+ The paper adds that for $t=2$ and $s=3$ the parameters are those of the trivial design with
+ $(v,k,b,r)=(6,6,10,10)$, and that $L(L(K_6))$ provides an exception. The exception is genuine,
+ and we prove it in \path{LineGraphs/Computations/TrivialDesignException.lean}. Let $D_1$ be the
+ design $(6,6,10,10,10)$, whose ten blocks all equal its set of six points
+ (\path{Computations.TrivialDesignException.design}); its incidence graph is $K_{10,6}$, so
+ $F(D_1)\cong L(K_{10,6})$. For a graph $Y$ with $n$ vertices and $m\ge n$ edges, the spectrum of
+ $L(Y)$ is the spectrum of the signless Laplacian of $Y$ shifted by $-2$, together with the
+ eigenvalue $-2$ of multiplicity $m-n$
+ (\path{SimpleGraph.spectrumMultiset_lineGraph_of_card_le}). Certificates for the signless
+ Laplacian of $K_{10,6}$, of order 16, and for $A(K_6)$, of order 6, give through this identity
+ the spectrum $14^1\,8^5\,4^9\,(-2)^{45}$ for both $F(D_1)$ and $L(L(K_6))=L(T(6))$
+ (\path{Computations.TrivialDesignException.flagGraph_cospectral_double_lineGraph}). Thus
+ $L(K_{10,6})$ and $L(T(6))$ are cospectral, the pair behind Errors 14, 16 and 17 (errata). They
+ are not isomorphic, and $F(D_1)$ is not characterized by its spectrum in the sense of
+ Definition~\ref{def:flag}
+ (\path{Computations.TrivialDesignException.not_flagGraphCharacterized}): the flag graph of a
+ design with replication number 10 has a clique of 10 vertices, the flags through one point,
+ while a clique of $L(T(6))$ consists of edges of $T(6)$ through one vertex or of the three edges
+ of a triangle, and so has at most 8 vertices, since $T(6)$ is 8-regular.
+\end{remark}
+
+\medskip\noindent\textbf{Example 5.13.}
+
+\begin{cgss}{Example}{5.13}\label{ex:5.13}
+ \lean{Design.not_flagGraphCharacterized_of_resolvable}
+ \uses{def:flag,hc:def:design,hc:def:matrices,lem:design,lem:incidence,lem:rootgraph,lem:5.1,lem:5.3,thm:5.8,input:ex513,facts:sec5,st:2.2,st:2.6,st:3.1,st:3.2,st:3.5,st:6.1,st:6.2,st:6.6}
+ \assume{\begin{pfenum}
+  \item $k\ge2$ is an integer, and $D'$ is a design with parameters
+   $(k(2k-1),k,4k^2-1,2k+1,1)$ on $P'$ and $\cB'$, with incidence matrix $N'$.
+  \item $\pi:\cB'\to\{1,\dots,2k+1\}$ is a \emph{resolution} of $D'$: for each $i$, every point
+   lies in exactly one block $B$ with $\pi(B)=i$.
+  \item $H$ is the graph on $\cB'$ in which $B\ne B'$ are adjacent when $B$ and $B'$ are disjoint
+   and $\pi(B)\ne\pi(B')$.
+  \item $D_1$ is a design with parameters $(v_1,k_1,b_1,r_1,\lambda_1)=
+   (k(2k-1),(k-1)(2k-1),k(2k+1),(k-1)(2k+1),k(2k-3))$.
+ \end{pfenum}}
+ \prove{\begin{pfenum}
+  \item $H$ is connected and $\kappa$-regular on $4k^2-1$ vertices, where $\kappa=2k(k-1)$, and
+   $\Spec(H)=\ms{\kappa^{1},(-(k-1))^{2k},k^{\ell},(-k)^{\ell}}$, where $\ell=(k-1)(2k+1)$.
+   This is the spectrum of case (iii) of Theorem~\ref{thm:5.8} with $s=2k-1$ and $t=k-1$.
+  \item $L(H)$ is cospectral with $F(D_1)$.
+  \item $F(D_1)$ is not characterized by its spectrum.
+ \end{pfenum}}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ \repair\ The paper computes the spectrum of $H$ and leaves the rest to the reader;
+ ``not characterized'' is meant in the sense of Definition~\ref{def:flag} (errata, Implicit
+ hypothesis 6), and then it is EX4. We will split $\re^{\cB'}$ into four eigenspaces of $A(H)$,
+ compare the signless Laplacians of $H$ and of $I(D_1)$ as in Lemma 5.5, and then apply EX4. With
+ $s=2k-1$, $t=k-1$ we have $(s+1)t=\kappa$, $s(s+2)=4k^2-1$, $c=k^2$ and
+ $\frac12(s-1)(s+2)=\ell$ in Theorem 5.8 (iii).
+ \pflet{$c_i\in\re^{\cB'}$ be the indicator vector of $\pi^{-1}(i)$ for $1\le i\le2k+1$, $R$ the
+  $\cB'\times\cB'$ matrix with $R(B,B')=1$ when $B\ne B'$ and $\pi(B)=\pi(B')$ and $0$ otherwise,
+  and $J$ the all-ones $\cB'\times\cB'$ matrix.}
+ \step{s5exclass}{$N'c_i=\Zj$, each $\pi^{-1}(i)$ has $2k-1$ blocks, $\sum_ic_i=\Zj$ and
+  $R=\sum_ic_ic_i^T-I$.}
+ \begin{proof}\pf\ By \asm[2]{0}, the blocks of $\pi^{-1}(i)$ partition $P'$; each has $k$
+  points and $|P'|=k(2k-1)$. Every block lies in exactly one class.~\qed\end{proof}
+ \step{s5exadj}{$A(H)=J-I-R-(N'^TN'-kI)$.}
+ \begin{proof}
+  \step{s5exadjd}{$(N'^TN')(B,B')=|D'(B)\cap D'(B')|$, and $(N'^TN')(B,B)=k$.}
+  \begin{proof}\pf\ The entry is the number of points on both blocks, and every block has $k$
+   points by \asm[1]{0}.~\qed\end{proof}
+  \step{s5exadj01}{$(N'^TN')(B,B')\in\{0,1\}$ for $B\ne B'$.}
+  \begin{proof}\pf\ Two distinct points lie in exactly $\lambda=1$ common block, by \asm[1]{0},
+   so distinct blocks share at most one point; apply \stepref{s5exadjd}.~\qed\end{proof}
+  \step{s5exadjc}{$(N'^TN')(B,B')=0$ for $B\ne B'$ with $\pi(B)=\pi(B')$.}
+  \begin{proof}\pf\ The blocks of $\pi^{-1}(\pi(B))$ are disjoint by \stepref{s5exclass}; apply
+   \stepref{s5exadjd}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ By Steps \stepref{s5exadjd} to \stepref{s5exadjc}, the matrix
+   $J-I-R-(N'^TN'-kI)$ has $(B,B')$ entry $0$ when $B=B'$ or $\pi(B)=\pi(B')$, and
+   $1-|D'(B)\cap D'(B')|$ otherwise, which is $1$ exactly when $B$ and $B'$ are disjoint. Compare
+   the entries with \asm[3]{0}.~\qed\end{proof}
+ \end{proof}
+ \step{s5exgram}{$N'N'^T=2kI+J$, and $\rk N'=k(2k-1)$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:design}, assertion 3, with $r-\lambda=2k$; its spectrum is
+  positive, so $\rk(N'N'^T)=k(2k-1)$ by \ST{Theorem 3.2}, and $\rk N'=\rk(N'N'^T)$ by
+  \ST{Theorem 3.5}.~\qed\end{proof}
+ \pflet{$W_1=\{\sum_ia_ic_i:\sum_ia_i=0\}$, $W_2=\{N'^T\Zy:\Zy^T\Zj=0\}$ and
+  $W_3=\{\Zx:N'\Zx=0,\ c_i^T\Zx=0\text{ for all }i\}$.}
+ \step{s5exvalues}{$A(H)\Zj=\kappa\Zj$, and $A(H)$ acts on $W_1$, $W_2$, $W_3$ as $-(k-1)$, $-k$
+  and $k$.}
+ \begin{proof}
+  \step{s5exvj}{$A(H)\Zj=\kappa\Zj$.}
+  \begin{proof}\pf\ $J\Zj=(4k^2-1)\Zj$, $R\Zj=(2k-2)\Zj$ by \stepref{s5exclass}, and
+   $N'^TN'\Zj=(2k+1)k\Zj$ from the row and column sums of $N'$; by \stepref{s5exadj},
+   $A(H)\Zj=(4k^2-2-(2k-2)-(2k+1)k+k)\Zj=\kappa\Zj$.~\qed\end{proof}
+  \step{s5exv1}{$A(H)\Zx=-(k-1)\Zx$ for $\Zx\in W_1$.}
+  \begin{proof}\pf\ By \stepref{s5exclass}, $J\Zx=(2k-1)(\sum_ia_i)\Zj=0$,
+   $R\Zx=(2k-2)\Zx$ and $N'\Zx=(\sum_ia_i)\Zj=0$; apply \stepref{s5exadj}.~\qed\end{proof}
+  \step{s5exv2}{$A(H)\Zx=-k\Zx$ for $\Zx\in W_2$.}
+  \begin{proof}\pf\ For $\Zx=N'^T\Zy$ with $\Zy^T\Zj=0$, $c_i^T\Zx=\Zj^T\Zy=0$ by
+   \stepref{s5exclass}, so $J\Zx=0$ and $R\Zx=-\Zx$; and $N'^TN'\Zx=N'^T(2kI+J)\Zy=2k\Zx$ by
+   \stepref{s5exgram}. Apply \stepref{s5exadj}.~\qed\end{proof}
+  \step{s5exv3}{$A(H)\Zx=k\Zx$ for $\Zx\in W_3$.}
+  \begin{proof}\pf\ $J\Zx=0$ and $R\Zx=-\Zx$ by \stepref{s5exclass}, and $N'^TN'\Zx=0$; apply
+   \stepref{s5exadj}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s5exvj} to \stepref{s5exv3}.~\qed\end{proof}
+ \end{proof}
+ \step{s5exdims}{$\dim W_1=2k$ and $\dim W_2=\dim W_3=\ell$.}
+ \begin{proof}
+  \step{s5exd12}{$\dim W_1=2k$ and $\dim W_2=\ell$.}
+  \begin{proof}\pf\ By \stepref{s5exclass}, the $2k+1$ vectors $c_i$ have disjoint nonempty
+   supports, so they are independent, and $W_1$ is a hyperplane of their span. $N'^T$ is
+   injective by \stepref{s5exgram}, so $\dim W_2=k(2k-1)-1=\ell$.~\qed\end{proof}
+  \step{s5exd3}{$\dim W_3=\ell$.}
+  \begin{proof}
+   \step{s5exd3k}{$\dim\ker N'=(4k^2-1)-k(2k-1)$.}
+   \begin{proof}\pf\ $N'$ has $4k^2-1$ columns and rank $k(2k-1)$ by
+    \stepref{s5exgram}.~\qed\end{proof}
+   \step{s5exd3w}{$W_1\sbs\ker N'$.}
+   \begin{proof}\pf\ $N'\sum_ia_ic_i=(\sum_ia_i)\Zj$ by \stepref{s5exclass}.~\qed\end{proof}
+   \step{s5exd3p}{$W_3$ is the orthogonal complement of $W_1$ in $\ker N'$.}
+   \begin{proof}\pf\ A vector $\Zx$ is orthogonal to $W_1$ exactly when all $c_i^T\Zx$ are
+    equal, so $W_3$ lies in the complement. Conversely, if $\Zx\in\ker N'$ and $\Zx\perp W_1$,
+    then all $c_i^T\Zx$ are equal, and their sum is $\Zj^T\Zx=\frac1k\Zj^TN'\Zx=0$ by
+    \stepref{s5exclass}, since the column sums of $N'$ are $k$; so $\Zx\in
+    W_3$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ By Steps \stepref{s5exd3k} to \stepref{s5exd3p} and \stepref{s5exd12},
+    $\dim W_3=(4k^2-1)-k(2k-1)-2k=\ell$.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s5exd12} and \stepref{s5exd3}.~\qed\end{proof}
+ \end{proof}
+ \step{s5exspec}{Assertion 1 holds.}
+ \begin{proof}
+  \step{s5exspecH}{$\Spec(H)=\ms{\kappa^{1},(-(k-1))^{2k},k^{\ell},(-k)^{\ell}}$.}
+  \begin{proof}\pf\ The values $\kappa$, $-(k-1)$, $-k$, $k$ are distinct since $k\ge2$, so by
+   \ST{Theorem 2.2}, \stepref{s5exvalues} and \stepref{s5exdims}, their multiplicities are at
+   least $1$, $2k$, $\ell$, $\ell$. These add up to $4k^2-1$, the order of $A(H)$, so by
+   \ST{Theorem 2.2} they are the multiplicities and there is no other eigenvalue.~\qed\end{proof}
+  \step{s5exspec58}{$\Spec(H)$ is the spectrum of case (iii) of Theorem~\ref{thm:5.8} with
+   $s=2k-1$ and $t=k-1$.}
+  \begin{proof}\pf\ With these values, $(s+1)t=2k(k-1)=\kappa$, $s+1=2k$, $-t=-(k-1)$,
+   $c=t(s+1)(s-t)/(s-1)=(k-1)\cdot2k\cdot k/(2k-2)=k^2$, so $\sqrt c=k$, and
+   $\frac12(s-1)(s+2)=(k-1)(2k+1)=\ell$. Compare with \stepref{s5exspecH}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $H$ is $\kappa$-regular on $|\cB'|=4k^2-1$ vertices by \stepref{s5exvalues}, and
+   connected by Lemma~\ref{lem:5.1}, since $\mult_H(\kappa)=1$ by
+   \stepref{s5exspecH}. The spectrum is given by Steps \stepref{s5exspecH} and
+   \stepref{s5exspec58}.~\qed\end{proof}
+ \end{proof}
+ \step{s5exline}{Assertion 2 holds.}
+ \begin{proof}
+  \pflet{$M_H$ and $M_1$ be the incidence matrices of $H$ and of $I(D_1)$.}
+  \step{s5exCH}{$\Spec(M_HM_H^T)=\ms{(2\kappa)^{1},(\kappa-k+1)^{2k},(\kappa+k)^{\ell},
+   (\kappa-k)^{\ell}}$, with all members positive.}
+  \begin{proof}\pf\ $M_HM_H^T=\kappa I+A(H)$ by \ST{Theorem 6.2} and \stepref{s5exspec}; shift
+   $\Spec(H)$ by $\kappa$ with \ST{Theorem 3.1}. $\kappa-k=k(2k-3)>0$ as $k\ge2$.~\qed\end{proof}
+  \step{s5exC1}{$\Spec(M_1M_1^T)$ is $\Spec(M_HM_H^T)$ with one copy of $0$ added.}
+  \begin{proof}
+   \step{s5exC1a}{$\Spec(N_1N_1^T)=\ms{(r_1k_1)^{1},(2k-1)^{v_1-1}}$ and $\rk N_1=v_1$, for the
+    incidence matrix $N_1$ of $D_1$.}
+   \begin{proof}\pf\ Lemma~\ref{lem:design}, assertion 3, with $r_1-\lambda_1=2k-1>0$; then
+    \ST{Theorem 3.2} and \ST{Theorem 3.5}.~\qed\end{proof}
+   \step{s5exC1b}{$\Spec(M_1M_1^T)$ consists of $0$ and $r_1+k_1$, of
+    $\frac12\bigl(r_1+k_1\pm\sqrt{(r_1-k_1)^2+4(2k-1)}\bigr)$ with multiplicity $v_1-1$ each, and
+    of $k_1$ with multiplicity $b_1-v_1$.}
+   \begin{proof}\pf\ Lemma~\ref{lem:rootgraph}, assertion 3, for $Z=I(D_1)$, which applies by
+    Lemma~\ref{lem:incidence}; then \ST{Theorem 6.6} with $s=r_1$, $t=k_1$, $\rho=v_1$ and
+    \stepref{s5exC1a}. The roots for $r_1k_1$ are $0$ and $r_1+k_1$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Substitute \asm[4]{0}: $r_1+k_1=2\kappa$, $r_1-k_1=2(k-1)$, so the square
+    root is $2k$ and the pair is $\kappa\pm k$; $v_1-1=\ell$, $k_1=\kappa-k+1$ and
+    $b_1-v_1=2k$. Compare with \stepref{s5exCH}.~\qed\end{proof}
+  \end{proof}
+  \step{s5exedges}{$|E(H)|=|E(I(D_1))|=v_1r_1$.}
+  \begin{proof}\pf\ $|E(H)|=\frac12\kappa(4k^2-1)=k(k-1)(2k-1)(2k+1)$ by
+   \path{SimpleGraph.sum_degrees_eq_twice_card_edges} and \stepref{s5exspec}, and this is
+   $v_1r_1$, which is $|E(I(D_1))|$ by Lemma~\ref{lem:incidence}.~\qed\end{proof}
+  \step{s5exnz}{$\mult_{2I+A(L(H))}(\gamma)=\mult_{2I+A(F(D_1))}(\gamma)$ for every
+   $\gamma\ne0$.}
+  \begin{proof}\pf\ By \ST{Theorem 6.2}, $M_H^TM_H=2I+A(L(H))$ and $M_1^TM_1=2I+A(F(D_1))$; by
+   \ST{Theorem 6.1}, their multiplicities at $\gamma\ne0$ are those of $M_HM_H^T$ and
+   $M_1M_1^T$, which agree by \stepref{s5exC1}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Both matrices have order $v_1r_1$ by \stepref{s5exedges}, so their
+   multiplicities at $0$ agree by \ST{Theorem 2.2} and \stepref{s5exnz}. Thus
+   $\Spec(2I+A(L(H)))=\Spec(2I+A(F(D_1)))$ by \ST{Proposition 2.6}; shift by $-2$ with
+   \ST{Theorem 3.1}, and apply \ST{Proposition 2.6}.~\qed\end{proof}
+ \end{proof}
+ \step{s5exnot}{Assertion 3 holds.}
+ \begin{proof}
+  \step{s5exnonbip}{$H$ is not bipartite.}
+  \begin{proof}\pf\ $H$ is connected and $\kappa$-regular, and $-\kappa\notin\Spec(H)$ by
+   \stepref{s5exspec}, since $\kappa>k$ for $k\ge2$; apply Lemma~\ref{lem:5.3}.~\qed\end{proof}
+  \step{s5exnoiso}{\assume{$D_2$ is a design with the parameters of $D_1$, and
+   $L(H)\cong F(D_2)$.}\prove{\textsc{False}.}}
+  \begin{proof}\pf\ $F(D_2)=L(I(D_2))$, and $I(D_2)$ is bipartite without isolated vertices by
+   Lemma~\ref{lem:incidence}. $H$ is connected on $4k^2-1\ge15$ vertices by \stepref{s5exspec},
+   and not bipartite by \stepref{s5exnonbip}. This contradicts EX4 of the
+   \hyperref[input:ex513]{inputs for Example 5.13}. \new\ The Lean proof,
+   \path{Design.not_nonempty_iso_flagGraph_lineGraph_of_degree}, uses a clique bound in place of
+   EX4, so the example does not need EX4: the $r_1$ flags on a point of $D_2$ form an
+   $r_1$-clique of $F(D_2)$ (\path{Design.exists_clique_flagGraph_card_replication}), while
+   every clique of $L(H)$ has at most $\kappa$ vertices, since $H$ is $\kappa$-regular with
+   $\kappa\ge3$ (\path{SimpleGraph.card_clique_lineGraph_le}); and
+   $r_1=(k-1)(2k+1)=\kappa+k-1>\kappa=2k(k-1)\ge4$ for $k\ge2$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $L(H)$ is cospectral with $F(D_1)$ by \stepref{s5exline}, and is isomorphic
+   to no $F(D_2)$ by \stepref{s5exnoiso}; this is the negation of Definition~\ref{def:flag}
+   for $D_1$.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s5exspec}, \stepref{s5exline} and \stepref{s5exnot}.~\qed\end{proof}
+\end{proof}
+
+\begin{remark}
+ \lean{Computations.C15.flagGraph_cospectral_double_lineGraph}
+ \lean{Computations.C15.flagGraph_not_nonempty_iso_double_lineGraph}
+ \lean{Computations.C15.design}\lean{Computations.C15.petersen}
+ \lean{Computations.C15.petersenIso}\lean{Computations.C15.nonempty_iso_petersen}
+ \lean{Computations.C15.four_cliques_graph1}\lean{Computations.C15.four_cliques_graph2}
+ By EX1 and EX2, the resolvable designs of the example exist for $k=2^d$ with $d\ge1$ and for
+ $k=3$, and by EX3 the designs $D_1$ exist for $k=2$ and $k=4$, with parameters $(6,3,10,5,2)$
+ and $(28,21,36,27,20)$; for these two, the flag graph is not characterized by its spectrum. For
+ $k=2$ the paper describes $H$ as the line graph of the Petersen graph; we do not check this.
+ Computation C15 checks that the flag graph of the design $(6,3,10,5,2)$ is cospectral with
+ $L(L(\text{Petersen}))$ and not isomorphic to it; the two graphs have 30 and 15 cliques of
+ size 4. In Lean the flag graph is the line graph of the incidence graph of
+ \path{LineGraphs/Computations/C13Design.lean}, and the Petersen graph is the settled
+ \path{SimpleGraph.petersen}. The certificate is computed on \path{Computations.C15.petersen},
+ the pentagon, the pentagram and five spokes, and \path{Computations.C15.petersenIso} is an
+ explicit isomorphism from it to \path{SimpleGraph.petersen}, through which the two statements
+ are transported. For $k=3$ the parameters of $D_1$ are $(15,10,21,14,9)$, and no such design exists, by the Hall--Connor section, as in the proof of
+ Remark 5.12. Computation C23 (\path{LineGraphs/Computations/C23.lean}, with the data of
+ \path{cgss/certificates/c23_lean_data.py}) builds the designs of the instances $k=2$ and $k=4$ and proves
+ both instances, and the case $k=3$ above, in Lean; the existence of the designs of EX1 for every
+ $k=2^d$ is a citation, outside the scope.
+\end{remark}
+
+\endgroup

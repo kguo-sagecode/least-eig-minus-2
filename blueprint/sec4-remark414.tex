@@ -1,0 +1,1421 @@
+% Section 4, continued: the proof of Remark 4.14 (Seidel's seven graphs).
+% Route: cgss/prerequisites.md, Section 7.3 (decision 3 of Section 13).
+% Macros of this file, in case macros.tex does not provide them.
+% \Ecal_t: the edge set E_t of the graph \Delta_t on {1,...,8} (t = 6, 7, 8).
+\providecommand{\Ecal}{\mathcal E}
+% The 4-clique profile of a graph, as a multiset.
+\providecommand{\cprof}{\opk{prof}_4}
+% The symmetric difference of two sets.
+\providecommand{\sd}{\mathbin{\triangle}}
+
+\subsection{The proof of Remark 4.14}\label{sec:rem414}
+\begingroup
+\emergencystretch=3em
+
+We will prove Remark 4.14 by the route of \path{cgss/prerequisites.md}, Section 7.3, which
+follows the computer-free part of the proof of [BCN] Theorem 3.12.2 in the language of line
+systems, and replaces the enumeration of [BCN] Proposition 3.11.2 by three switching arguments.
+A graph $X$ as in the remark is represented by a family $(\Zx_u)$ in $\typ E_8$. We will first
+pin down its parameters (Computation C18), and then study the line system $R$ of the vectors of
+squared norm 2 in the $\ints$-span of the $\Zx_u$. It is of type $\typ E_6$, $\typ E_7$ or
+$\typ E_8$, and the vector $\Zw=\frac1{k+2}\sum_u\Zx_u$ has integral inner products with it. The
+simple roots of Computation C21 then exclude two parameter sets. In the three cases where
+$(\Zw,\Zw)=2$, $\Zw$ is a root, and $X$ is a switching of $T(5)$, of $T(6)$ with an isolated
+vertex, or of $T(8)$, by the edge set of a regular graph; Computation C22 names the result. The
+two remaining parameter sets are those of the Clebsch and the Schl\"afli graphs, which are
+unique. We will write $n$, $k$, $a$, $c$ for the parameters of a strongly regular graph, as in
+the rest of the blueprint. A result tagged \new\ departs from Section 7.3 of
+\path{cgss/prerequisites.md}, or from the prerequisite that it cites, and the departure is
+stated after the tag; the untagged results follow it.
+
+\begingroup\raggedright
+\medskip\noindent\textbf{Facts from Mathlib and the project.}\label{facts:414}
+We will use the following declarations of Mathlib (commit \path{082e2d37}):
+\path{SimpleGraph.IsSRGWith} with its fields,
+\path{SimpleGraph.IsSRGWith.matrix_eq} ($A^2=kI+aA+c\,A(\comp X)$),
+\path{SimpleGraph.one_add_adjMatrix_add_compl_adjMatrix_eq_of_one} with
+\path{SimpleGraph.compl_adjMatrix_eq_adjMatrix_compl} ($I+A+A(\comp X)=J$),
+\path{SimpleGraph.IsSRGWith.param_eq} ($k(k-a-1)=c(n-k-1)$ for $0<n$, in $\mathbb N$ with truncated
+subtraction),
+\path{SimpleGraph.IsSRGWith.compl} (the complement has parameters
+$(n,n-k-1,n-2k+c-2,n-2k+a)$),
+\path{SimpleGraph.IsSRGWith.card_neighborFinset_union_of_not_adj} ($|N(u)\cup N(w)|=2k-c$ for
+distinct non-adjacent $u,w$),
+\path{SimpleGraph.IsRegularOfDegree.compl},
+\path{SimpleGraph.sum_degrees_eq_twice_card_edges}, \path{SimpleGraph.IsNClique.map} (an
+embedding maps cliques to cliques), \path{compl_compl} ($\comp{\comp X}=X$),
+\path{Matrix.exists_mulVec_eq_zero_iff} (a square matrix is singular exactly when it has a
+nonzero null vector), \path{Matrix.inv_def} and \path{Matrix.mul_adjugate},
+\path{Matrix.det_gram_ne_zero_iff_linearIndependent},
+\path{LinearMap.IsProj.trace} with \path{LinearMap.isProj_range_iff_isIdempotentElem} (an
+idempotent has rank equal to its trace), \path{abs_real_inner_le_norm} (the Cauchy--Schwarz
+inequality), \path{exists_linearIndependent} (a spanning set contains a basis) and
+\path{Submodule.finrank_le}. From the project we use
+\path{SimpleGraph.leastEigenvalue_eq_neg_two_iff} of
+\path{LineGraphs/Spectral/Positivity.lean} ($\lambda_{\min}(X)=-2$ exactly when $2I+A$ is
+positive semidefinite and singular), the checkers \path{Computations.checkGraphIso}, \path{Computations.cliqueProfile} and
+\path{Computations.cliqueCount} with their soundness theorems
+\path{Computations.nonempty_graphOfMatrix_iso}, \path{Computations.checkNonisomorphic_sound} and
+\path{Computations.cliqueCount_sound},
+and the invariance \path{SimpleGraph.Iso.cliqueProfile_eq}, in
+\path{LineGraphs/Computations/CliqueCertificates.lean}. Finally, from the Lean of Computation
+C4 we use the transitivity on ordered stars: for $t\in\{6,7,8\}$ and roots $\Za,\Zb$ of
+$\typ E_t$ with $(\Za,\Zb)=-1$, there is a linear isometry $g$ of $\re^8$ with
+$g(\Phi(\typ E_t))=\Phi(\typ E_t)$ that carries the fixed star $(\Za_0,\Zb_0)$ of Lean to
+$(\Za,\Zb)$; this is \leancite{LineSystem.E₈.exists_isometry_star}{\texttt{LineSystem.E\ensuremath{{}_8}.exists\_isometry\_star}}
+and its analogues for $\typ E_7$ and $\typ E_6$, in
+\path{LineGraphs/Computations/C4E8Stars.lean} and its analogues, whose trees of reflections are
+checked by \texttt{decide +kernel}. It replaces LN5 of \path{cgss/prerequisites.md}.
+\par
+\endgroup
+
+\medskip
+Throughout, $\Zc=\frac12\sum_{i=1}^8\Ze_i$ is the root of model (ii) of $\typ E_8$ fixed before
+Lemma~\ref{lem:4-switch}, and for a 2-subset $P=\{i,j\}$ of $\{1,\dots,8\}$ we write
+$\Ze_P=\Ze_i+\Ze_j$. We will write $\Ecal_6$ for the set of 2-subsets of $\{1,\dots,5\}$,
+$\Ecal_7$ for the set of 2-subsets of $\{1,\dots,6\}$ together with $\varepsilon=\{7,8\}$, and
+$\Ecal_8$ for the set of all 2-subsets of $\{1,\dots,8\}$; $\Delta_t$ is the graph on
+$\{1,\dots,8\}$ with edge set $\Ecal_t$. Thus $L(\Delta_6)\cong T(5)$, $L(\Delta_7)$ is $T(6)$ together
+with the isolated vertex $\varepsilon$, and $L(\Delta_8)=T(8)$. For a graph $Z$ and a vertex $i$ we
+write $\deg_Z(i)$ for its degree, and for a set $H$ of 2-subsets we write $\deg_H(i)$ for the
+number of members of $H$ that contain $i$.
+
+\begin{namedresult}{Definition}{(switching)}\label{def:414-switch}
+ \lean{SimpleGraph.switch}
+ \uses{}
+ \assume{$X$ is a graph and $U\sbs V(X)$.}
+ \pflet{The \emph{switched graph} $X^U$ has vertex set $V(X)$, and distinct $u,w$ are adjacent
+ in $X^U$ when either they are adjacent in $X$ and both or neither lie in $U$, or they are not
+ adjacent in $X$ and exactly one of them lies in $U$. For a graph $Y$ and $H\sbs E(Y)$ we
+ write $L(Y)^H$ for the switching of the line graph $L(Y)$ with respect to $H$.}
+ This is SW1 of \path{cgss/prerequisites.md}, with $U$ in place of its $Y$, since $Y$ is a
+ graph here.
+\end{namedresult}
+
+\begin{namedresult}{Lemma}{(switching)}\label{lem:414-switch}
+ \lean{SimpleGraph.switch_compl}\lean{SimpleGraph.Iso.switch}\lean{SimpleGraph.Iso.lineGraphSwitch}
+ \uses{def:414-switch}
+ \assume{$X$ and $X'$ are graphs, $U\sbs V(X)$, $Y$ and $Y'$ are graphs and $H\sbs E(Y)$.}
+ \prove{\begin{pfenum}
+  \item $X^U=X^{V(X)\setminus U}$.
+  \item If $\sigma$ is an isomorphism from $X$ to $X'$, then $\sigma$ is an isomorphism from
+   $X^U$ to $X'^{\sigma(U)}$.
+  \item If $\sigma$ is an isomorphism from $Y$ to $Y'$, then $e\mapsto\sigma(e)$ is an
+   isomorphism from $L(Y)^H$ to $L(Y')^{\sigma(H)}$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will read each assertion off Definition~\ref{def:414-switch}.
+ \step{s414swcompl}{Assertion 1 holds.}
+ \begin{proof}\pf\ A pair has exactly one member in $U$ if and only if it has exactly one member
+  in $V(X)\setminus U$; apply Definition~\ref{def:414-switch}.~\qed\end{proof}
+ \step{s414swiso}{Assertion 2 holds.}
+ \begin{proof}\pf\ For distinct $u,w$, $\sigma$ preserves adjacency, and $u\in U$ exactly when
+  $\sigma(u)\in\sigma(U)$; so the condition of Definition~\ref{def:414-switch} for $u,w$ in $X$
+  and $U$ is that for $\sigma(u),\sigma(w)$ in $X'$ and $\sigma(U)$.~\qed\end{proof}
+ \step{s414swline}{$e\mapsto\sigma(e)$ is an isomorphism from $L(Y)$ to $L(Y')$.}
+ \begin{proof}\pf\ It is a bijection from $E(Y)$ onto $E(Y')$, since $\sigma$ is an isomorphism,
+  and $|\sigma(e)\cap\sigma(f)|=|e\cap f|$ since $\sigma$ is injective; two edges are adjacent in
+  the line graph when they are distinct and meet.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertions 1 and 2 are \stepref{s414swcompl} and \stepref{s414swiso};
+  assertion 3 is assertion 2 applied to the isomorphism of \stepref{s414swline} and the set
+  $H$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(isomorphisms and complements)}\label{lem:414-iso}
+ \lean{SimpleGraph.Iso.compl}\lean{SimpleGraph.IsSRGWith.of_iso}
+ \uses{}
+ \assume{$X$ and $X'$ are graphs, and $\sigma$ is an isomorphism from $X$ to $X'$.}
+ \prove{\begin{pfenum}
+  \item $\sigma$ is an isomorphism from $\comp X$ to $\comp{X'}$.
+  \item If $X$ is strongly regular with parameters $(n,k,a,c)$, then so is $X'$.
+ \end{pfenum}}
+ Mathlib has the complement of an embedding, \path{SimpleGraph.Embedding.complEquiv}, but neither
+ assertion.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ An isomorphism is a bijection that preserves adjacency and non-adjacency.
+ \step{s414isocompl}{Assertion 1 holds.}
+ \begin{proof}\pf\ $\sigma$ is a bijection, and for distinct $u,w$ the vertices $\sigma(u)$,
+  $\sigma(w)$ are distinct and adjacent in $X'$ exactly when $u,w$ are adjacent in $X$; distinct
+  vertices are adjacent in the complement exactly when they are not adjacent in the
+  graph.~\qed\end{proof}
+ \step{s414isosrg}{Assertion 2 holds.}
+ \begin{proof}\pf\ $|V(X')|=|V(X)|$, $\sigma$ maps the neighbours of $u$ onto those of $\sigma(u)$,
+  and the common neighbours of $u,w$ onto those of $\sigma(u),\sigma(w)$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s414isocompl} and \stepref{s414isosrg}.~\qed\end{proof}
+\end{proof}
+
+\subsubsection*{Parameters}
+
+\begin{namedresult}{Lemma}{(cocktail party parameters)}\label{lem:414-CP}
+ \lean{SimpleGraph.IsRegularOfDegree.nonempty_iso_cocktailParty}
+ \uses{def:CP,facts:414}
+ \assume{$m\ge1$, and $X$ is a $(2m-2)$-regular graph on $2m$ vertices.}
+ \prove{$X\cong CP(m)$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The complement of $X$ is a perfect matching.
+ \step{s414cpcompl}{The complement $\comp X$ is 1-regular.}
+ \begin{proof}\pf\ \path{SimpleGraph.IsRegularOfDegree.compl}: its degree is
+  $2m-1-(2m-2)=1$.~\qed\end{proof}
+ \step{s414cpmatch}{\pick\ vertices $p_1,q_1,\dots,p_m,q_m$, which are all the vertices of $X$,
+  such that the edges of $\comp X$ are the pairs $\{p_i,q_i\}$.}
+ \begin{proof}\pf\ By \stepref{s414cpcompl} each vertex lies in exactly one edge of $\comp X$, so
+  the edges of $\comp X$ partition $V(X)$ into pairs; there are $2m/2=m$ of
+  them.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The map $(i,0)\mapsto p_i$, $(i,1)\mapsto q_i$ is a bijection by
+  \stepref{s414cpmatch}. Distinct vertices are adjacent in $X$ exactly when they are not an edge
+  of $\comp X$, that is, when their indices differ; this is adjacency in $CP(m)$
+  (Definition~\ref{def:CP}).~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(strongly regular graphs with eigenvalue $-2$)}\label{lem:414-srg}
+ \lean{SimpleGraph.IsSRGWith.params_of_det_two_add_adjMatrix_eq_zero}
+ \lean{SimpleGraph.IsSRGWith.rank_two_add_adjMatrix_of_det_eq_zero}
+ \uses{facts:414}
+ \assume{\begin{pfenum}
+  \item $X$ is connected and strongly regular with parameters $(n,k,a,c)$.
+  \item $\det(2I+A)=0$, where $A=A(X)$.
+ \end{pfenum}}
+ \prove{\begin{pfenum}
+  \item $1\le k\le n-2$, $a\le k-1$ and $1\le c\le k$.
+  \item $2k-c\le n-2$.
+  \item $k-2a+c=4$.
+  \item $(a-c+4)(\rk(2I+A)-1)=2n-k-2$.
+ \end{pfenum}}
+ \new\ This is SR4 of \path{cgss/prerequisites.md}, in a form without the spectral theorem:
+ the multiplicity $m_1$ of the second eigenvalue is replaced by $\rk(2I+A)-1$, through a
+ spectral idempotent. Assertion 2 is the counting condition that the search of C18 needs
+ (\path{cgss/certificates/c18_parameter_search.sage}).
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will derive the linear relation from a null vector of $2I+A$, and then find an
+ idempotent multiple of $2I+A-\frac{k+2}nJ$.
+ \pflet{$Q=2I+A$, and let $J$ and $\Zj$ be the all-ones matrix and vector.}
+ \step{s414srgnc}{$k\ge1$, and $X$ is not complete.}
+ \begin{proof}\pf\ If $k=0$ then $Q=2I$, and if $X$ is complete then $Q=I+J$, which is positive
+  definite since $(\Zz,(I+J)\Zz)=|\Zz|^2+(\Zz,\Zj)^2$; in both cases $\det Q\ne0$, against
+  \asm[2]{0}.~\qed\end{proof}
+ \step{s414srgpairs}{There are an edge $uw$ and distinct non-adjacent vertices $u',w'$.}
+ \begin{proof}\pf\ $k\ge1$ and $X$ is not complete, by \stepref{s414srgnc}.~\qed\end{proof}
+ \step{s414srgak}{$a\le k-1$.}
+ \begin{proof}\pf\ The $a$ common neighbours of the edge $uw$ of \stepref{s414srgpairs} lie in
+  $N(u)\setminus\{w\}$, which has $k-1$ elements.~\qed\end{proof}
+ \step{s414srgck}{$c\le k$.}
+ \begin{proof}\pf\ The $c$ common neighbours of $u',w'$ of \stepref{s414srgpairs} lie in $N(u')$,
+  which has $k$ elements.~\qed\end{proof}
+ \step{s414srgunion}{$2k-c\le n-2$.}
+ \begin{proof}\pf\ $N(u')\cup N(w')$, for $u',w'$ of \stepref{s414srgpairs}, has $2k-c$ elements by
+  \path{SimpleGraph.IsSRGWith.card_neighborFinset_union_of_not_adj}, and lies in
+  $V(X)\setminus\{u',w'\}$, since $u'\not\sim w'$.~\qed\end{proof}
+ \step{s414srgkn}{$k\le n-2$.}
+ \begin{proof}\pf\ $k\le2k-c$ by \stepref{s414srgck}; apply \stepref{s414srgunion}.~\qed\end{proof}
+ \step{s414srgc}{$c\ge1$.}
+ \begin{proof}\pf\ Take non-adjacent distinct $u',w'$ (\stepref{s414srgnc}) and a shortest path
+  $u'=u_0,u_1,\dots,u_d=w'$ in the connected graph $X$, so $d\ge2$. Then $u_0$ and $u_2$ are
+  distinct and non-adjacent, by minimality, and $u_1$ is a common
+  neighbour.~\qed\end{proof}
+ \step{s414srgcompl}{$A(\comp X)=J-I-A$.}
+ \begin{proof}\raggedright\pf\ \path{SimpleGraph.one_add_adjMatrix_add_compl_adjMatrix_eq_of_one} and
+  \path{SimpleGraph.compl_adjMatrix_eq_adjMatrix_compl}.~\qed\end{proof}
+ \step{s414srgmat}{$A^2=kI+aA+c(J-I-A)$, $AJ=JA=kJ$ and $J^2=nJ$.}
+ \begin{proof}\pf\ \path{SimpleGraph.IsSRGWith.matrix_eq} gives $A^2=kI+aA+c\,A(\comp X)$; apply
+  \stepref{s414srgcompl}. $AJ=JA=kJ$ by regularity, and $J^2=nJ$ since each entry of $J^2$ is a
+  sum of $n$ ones.~\qed\end{proof}
+ \step{s414srgnull}{\pick\ $\Zz\ne0$ with $Q\Zz=0$; then $A\Zz=-2\Zz$ and $J\Zz=0$.}
+ \begin{proof}\pf\ \path{Matrix.exists_mulVec_eq_zero_iff} and \asm[2]{0} give $\Zz$. Then
+  $k(\Zj,\Zz)=(A\Zj,\Zz)=(\Zj,A\Zz)=-2(\Zj,\Zz)$ by \stepref{s414srgmat} and the symmetry of $A$,
+  so $(\Zj,\Zz)=0$, since $k+2>0$; and $J\Zz=(\Zj,\Zz)\Zj$.~\qed\end{proof}
+ \step{s414srglin}{$k-2a+c=4$.}
+ \begin{proof}\pf\ Apply both sides of \stepref{s414srgmat} to $\Zz$ of \stepref{s414srgnull}:
+  $4\Zz=k\Zz-2a\Zz+c(0-\Zz+2\Zz)=(k-2a+c)\Zz$, and $\Zz\ne0$.~\qed\end{proof}
+ \pflet{$\eta=a-c+2$.}
+ \step{s414srgtheta}{$k-c=2\eta$, $\eta\ge0$, and $(A-\eta I)Q=cJ$.}
+ \begin{proof}\pf\ The first is \stepref{s414srglin}, and $\eta\ge0$ follows with $c\le k$
+  (\stepref{s414srgck}). By \stepref{s414srgmat},
+  $(A-\eta I)(A+2I)=A^2+(2-\eta)A-2\eta I=(k-c-2\eta)I+(a-c+2-\eta)A+cJ$, and both
+  coefficients vanish.~\qed\end{proof}
+ \step{s414srgcn}{$cn=(k+2)(k-\eta)$.}
+ \begin{proof}\pf\ Apply \stepref{s414srgtheta} to $\Zj$: $Q\Zj=(k+2)\Zj$ and
+  $(A-\eta I)\Zj=(k-\eta)\Zj$ by \stepref{s414srgmat}, so
+  $(k-\eta)(k+2)\Zj=cJ\Zj=cn\Zj$.~\qed\end{proof}
+ \pflet{$E=Q-\frac{k+2}nJ$.}
+ \step{s414srgPJ}{$PJ=JP=0$, and $E=Q(I-\frac1nJ)$.}
+ \begin{proof}\pf\ $QJ=JQ=(k+2)J$ and $J^2=nJ$ by \stepref{s414srgmat}.~\qed\end{proof}
+ \step{s414srgidem}{$E^2=(\eta+2)E$.}
+ \begin{proof}\pf\
+  \[
+  \begin{split}
+   E^2&=PQ-\tfrac{k+2}nPJ=PQ=Q^2-\tfrac{(k+2)^2}nJ\\
+      &=(A-\eta I)Q+(\eta+2)Q-\tfrac{(k+2)^2}nJ
+       =(\eta+2)Q+\Bigl(c-\tfrac{(k+2)^2}n\Bigr)J\\
+      &=(\eta+2)Q-(\eta+2)\tfrac{k+2}nJ=(\eta+2)E,
+  \end{split}
+  \]
+  where the first line uses \stepref{s414srgPJ} and $JQ=(k+2)J$, the second
+  \stepref{s414srgtheta}, and the third \stepref{s414srgcn}, which gives
+  $cn-(k+2)^2=-(k+2)(\eta+2)$.~\qed\end{proof}
+ \step{s414srgrkP}{$(\eta+2)\rk E=2n-k-2$.}
+ \begin{proof}\pf\ $\eta+2\ge2$ by \stepref{s414srgtheta}, so $E/(\eta+2)$ is idempotent by
+  \stepref{s414srgidem}, and its rank is its trace (\path{LinearMap.IsProj.trace} and
+  \path{LinearMap.isProj_range_iff_isIdempotentElem}). Further $\tr E=\tr Q-\frac{k+2}n\tr J=2n-(k+2)$,
+  since $\tr A=0$.~\qed\end{proof}
+ \step{s414srgrkQ}{$\rk Q=\rk E+1$.}
+ \begin{proof}\pf\ The image of $E=Q(I-\frac1nJ)$ lies in that of $Q$, and so does
+  $\Zj=Q\Zj/(k+2)$; conversely $Q=E+\frac{k+2}nJ$ has image in $\opk{im}E+\re\Zj$. Finally
+  $\Zj\notin\opk{im}E$: $JP=0$ (\stepref{s414srgPJ}) gives $(\Zj,E\Zy)=0$ for every $\Zy$, while
+  $(\Zj,\Zj)=n>0$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is \stepref{s414srgnc}, \stepref{s414srgkn}, \stepref{s414srgak},
+  \stepref{s414srgck} and \stepref{s414srgc}, assertion 2 is \stepref{s414srgunion} and assertion 3 is
+  \stepref{s414srglin}. For assertion 4, $\eta+2=a-c+4$, and \stepref{s414srgrkP} and
+  \stepref{s414srgrkQ} give $(\eta+2)(\rk Q-1)=2n-k-2$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C18}\label{comp:C18}
+ \lean{Computations.C18.srg_parameters}
+ \uses{}
+ \assume{$n,k,a,c,\rho$ are integers with $1\le k\le n-2$, $n\le36$, $k\le16$, $0\le a\le k-1$,
+ $1\le c\le k$ and $0\le\rho\le8$, such that
+ \begin{pfenum}
+  \item $k(k-a-1)=c(n-k-1)$,
+  \item $k-2a+c=4$,
+  \item $2k-c\le n-2$, and
+  \item $(a-c+4)(\rho-1)=2n-k-2$.
+ \end{pfenum}}
+ \prove{$(n,k,a,c,\rho)$ is one of the following 15 tuples:
+ $(2m,2m-2,2m-4,2m-2,m+1)$ for $2\le m\le7$; $(9,4,1,2,5)$; $(10,6,3,4,5)$;
+ $(10,3,0,1,6)$; $(15,8,4,4,6)$; $(16,10,6,6,6)$; $(16,6,2,2,7)$; $(21,10,5,4,7)$;
+ $(27,16,10,8,7)$; and $(28,12,6,4,8)$.}
+ This is Lemma P of \path{cgss/prerequisites.md} (SR5), with $\rho=1+m_1$. The first six are
+ the parameters of $CP(m)$, the next two those of $L_2(3)$ and $T(5)$.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ This is a finite search. The Lean proof is one \texttt{Bool} search over the
+ valencies with a soundness lemma, as for the checker \path{Computations.allSRGParameters} of
+ \path{LineGraphs/Computations/BoundedSearch.lean}, whose pruning ($a<k$, $0<c\le k$, $k+1\le n$)
+ matches our bounds; \texttt{interval\_cases} would make about $1.5\cdot10^5$ goals.
+ \qedstep
+ \begin{proof}\pf\ For each $k\le16$, $a<k$ and $1\le c\le k$, condition 1 determines $n$, and
+  condition 4 determines $\rho$, since $a-c+4=0$ would give $2n=k+2$, against $k+2\le n$ and
+  $n\ge3$; the search keeps the tuples satisfying all four
+  conditions and the bounds. It finds the 15 tuples, and no other (SageMath,
+  \path{cgss/certificates/c18_parameter_search.sage}).
+  Without condition 3 the tuple $(21,16,12,12,7)$ would also survive.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(strongly regular line graphs)}\label{lem:414-linegraph}
+ \lean{SimpleGraph.IsSRGWith.nonempty_iso_lineGraph_complete_or_completeBipartite}
+ \uses{lem:4-LG1,lem:414-iso,facts:414}
+ \assume{\begin{pfenum}
+  \item $X$ is a connected graph, strongly regular with parameters $(n,k,a,c)$.
+  \item $\det(2I+A(X))=0$.
+  \item $Y$ is a graph and $X\cong L(Y)$.
+ \end{pfenum}}
+ \prove{$X\cong L(K_m)$ or $X\cong L(K_{m,m})$ for some $m\ge2$.}
+ \new\ This is the line graph case of Theorem 4.13, stated as a result so that we can cite it;
+ its argument is that of the proof of Theorem 4.13, through Lemma LG1.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will remove the isolated vertices of $Y$ and apply Lemma LG1; the eigenvalue $-2$
+ excludes complete graphs and $C_5$.
+ \pflet{$Y'$ be $Y$ with its isolated vertices removed.}
+ \step{s414lgsame}{$L(Y')=L(Y)$.}
+ \begin{proof}\pf\ Removing isolated vertices keeps the edges and their
+  intersections.~\qed\end{proof}
+ \step{s414lgedge}{$Y'$ has an edge.}
+ \begin{proof}\pf\ $X$ has a vertex, being connected, so $L(Y)\cong X$ (\asm[3]{0}) has one; it is
+  an edge of $Y$, and of $Y'$ by \stepref{s414lgsame}.~\qed\end{proof}
+ \step{s414lgconn}{$Y'$ is connected.}
+ \begin{proof}\pf\ Every vertex of $Y'$ lies on an edge, and a path in the connected graph
+  $L(Y')\cong X$ (\stepref{s414lgsame}, \asm[3]{0}) between two edges gives a walk in $Y'$ between
+  their ends.~\qed\end{proof}
+ \step{s414lgcases}{$Y'$ is a cycle, or $Y'\cong K_m$, $Y'\cong K_{q,q}$ or $Y'\cong K_{1,q}$
+  for some $m$ or $q$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:4-LG1}, with \stepref{s414lgedge} and \stepref{s414lgconn},
+  since $L(Y')$ is strongly regular by \asm[1]{0}, \asm[3]{0}, \stepref{s414lgsame} and
+  Lemma~\ref{lem:414-iso}, assertion 2.~\qed\end{proof}
+ \step{s414lgKn}{$X$ is not complete.}
+ \begin{proof}\pf\ If $X$ is complete on $n\ge1$ vertices, then $2I+A=I+J$, which is positive
+  definite since $(\Zz,(I+J)\Zz)=|\Zz|^2+(\Zz,\Zj)^2$; so its determinant is not 0, against
+  \asm[2]{0}.~\qed\end{proof}
+ \step{s414lgCfivedet}{$\det(2I+A(C_5))=4$.}
+ \begin{proof}\pf\ \texttt{decide} on the $5\times5$ integer matrix.~\qed\end{proof}
+ \step{s414lgC5}{$X\not\cong C_5$.}
+ \begin{proof}\pf\ An isomorphism $X\to C_5$ conjugates $2I+A(X)$ into $2I+A(C_5)$ by a
+  permutation matrix, which keeps the determinant; apply \stepref{s414lgCfivedet} and
+  \asm[2]{0}.~\qed\end{proof}
+ \step{s414lgCp}{$X\not\cong C_p$ for $p\ge6$.}
+ \begin{proof}\pf\ In $C_p$ with $p\ge6$ there are non-adjacent vertices at distance 2 and at
+  distance 3, with 1 and 0 common neighbours; so $C_p$ is not strongly regular, against
+  \asm[1]{0}.~\qed\end{proof}
+ \step{s414lgcycle}{\case{$Y'$ is a cycle $C_p$.}\prove{$X\cong L(K_{2,2})$.}}
+ \begin{proof}\pf\ $L(C_p)\cong C_p$, and $p\ge3$. The cases $p=3$ (complete), $p=5$ and $p\ge6$
+  are excluded by \stepref{s414lgKn}, \stepref{s414lgC5} and \stepref{s414lgCp}. So $p=4$, and
+  $C_4\cong L(C_4)=L(K_{2,2})$.~\qed\end{proof}
+ \step{s414lgstar}{\case{$Y'\cong K_{1,q}$.}\prove{This case does not occur.}}
+ \begin{proof}\pf\ Any two edges of $K_{1,q}$ meet, so $L(K_{1,q})\cong K_q$ is complete, against
+  \stepref{s414lgKn}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s414lgcases} the cases \stepref{s414lgcycle},
+  \stepref{s414lgstar}, $Y'\cong K_m$ and $Y'\cong K_{q,q}$ are exhaustive. In the last two,
+  $X\cong L(K_m)$ or $L(K_{q,q})$ by \asm[3]{0} and \stepref{s414lgsame}. Further $m\ge2$, since
+  $L(K_m)$ has no vertex for $m\le1$ while the connected graph $X$ has one; and $q\ge2$, since
+  $L(K_{0,0})$ has no vertex and $L(K_{1,1})$ is complete (\stepref{s414lgKn}).~\qed\end{proof}
+\end{proof}
+
+\subsubsection*{The root system of a representation}
+
+\begin{namedresult}{Lemma}{(the lattice roots)}\label{lem:414-lattice}
+ \lean{SimpleGraph.IsRepresentation.latticeRoots}
+ \lean{SimpleGraph.IsRepresentation.isStarClosed_latticeRoots}
+ \lean{SimpleGraph.IsRepresentation.isIndecomposable_latticeRoots}
+ \lean{SimpleGraph.IsRepresentation.span_latticeRoots}
+ \lean{SimpleGraph.IsRepresentation.isRepresentedIn_latticeRoots}
+ \uses{def:represented,def:line-system,def:indecomposable,def:2.1,lem:4-lines,lem:sec3-connected-span,facts:414}
+ \assume{$X$ is a connected graph with a representation $(\Zx_u)$ in a finite-dimensional real
+ inner product space $V$; $\Lambda$ is the $\ints$-span and $W$ the span of the $\Zx_u$; and
+ $\Phi_R=\{\Zy\in \Lambda:(\Zy,\Zy)=2\}$.}
+ \prove{\begin{pfenum}
+  \item $(\Zy,\Zz)\in\ints$ for all $\Zy,\Zz\in \Lambda$.
+  \item $\Phi_R$ is the set of vectors of a line system $R$ in $V$, which is nonempty,
+   star-closed and indecomposable and spans $W$.
+  \item $X$ is represented in $R$ by $(\Zx_u)$.
+ \end{pfenum}}
+ \new\ \path{cgss/prerequisites.md} (LN3) uses the star closure of the $\Zx_u$. The larger set
+ $\Phi_R$ is star-closed as well, and it lies in $\Lambda$ by definition, which is what the apex
+ argument needs; we do not need $R\sbs\typ E_8$.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Inner products in $\Lambda$ are integers, so norms and Cauchy--Schwarz do the rest.
+ \step{s414latint}{Assertion 1 holds.}
+ \begin{proof}\pf\ $\Zy=\sum_u y_u\Zx_u$ and $\Zz=\sum_w z_w\Zx_w$ with integers $y_u,z_w$, and
+  $(\Zy,\Zz)=\sum_{u,w}y_uz_w(\Zx_u,\Zx_w)$, where each $(\Zx_u,\Zx_w)\in\{0,1,2\}$ by
+  Definition~\ref{def:represented}.~\qed\end{proof}
+ \step{s414latvals}{$\Phi_R=-\Phi_R$, and $(\Zy,\Zz)\in\{-2,-1,0,1,2\}$ for
+  $\Zy,\Zz\in\Phi_R$.}
+ \begin{proof}\pf\ $\Lambda=-\Lambda$. By \path{abs_real_inner_le_norm},
+  $|(\Zy,\Zz)|\le|\Zy||\Zz|=2$, and $(\Zy,\Zz)$ is an integer by
+  \stepref{s414latint}.~\qed\end{proof}
+ \step{s414latmem}{$\Zx_u\in\Phi_R$ for every $u$, and $\Phi_R\sbs \Lambda\sbs W$.}
+ \begin{proof}\pf\ $(\Zx_u,\Zx_u)=2$ by Definition~\ref{def:represented}; $\Lambda\sbs W$ since integer
+  combinations are combinations.~\qed\end{proof}
+ \step{s414latbasis}{\pick\ vertices $u_1,\dots,u_\rho$ such that $\Zx_{u_1},\dots,\Zx_{u_\rho}$
+  form a basis of $W$.}
+ \begin{proof}\pf\ \path{exists_linearIndependent}, since the $\Zx_u$ span $W$ and $W$ is
+  finite-dimensional.~\qed\end{proof}
+ \step{s414latinj}{The map $\iota:\Zy\mapsto((\Zy,\Zx_{u_i}))_{i\le\rho}$ is injective on $W$.}
+ \begin{proof}\pf\ It is linear, and a vector of $W$ orthogonal to the basis of
+  \stepref{s414latbasis} is orthogonal to $W$, so to itself, and is 0.~\qed\end{proof}
+ \step{s414latfin}{$\Phi_R$ is finite.}
+ \begin{proof}\pf\ By \stepref{s414latvals} and \stepref{s414latmem}, $\iota$ maps $\Phi_R\sbs W$
+  into the finite set $\{-2,\dots,2\}^\rho$; apply \stepref{s414latinj}.~\qed\end{proof}
+ \step{s414latstar}{$\Phi_R$ is star-closed.}
+ \begin{proof}\pf\ For $\Zy,\Zz\in\Phi_R$ with $(\Zy,\Zz)=-1$, $\Zy+\Zz\in \Lambda$ and
+  $(\Zy+\Zz,\Zy+\Zz)=2-2+2=2$; this is Definition~\ref{def:2.1}.~\qed\end{proof}
+ \step{s414latspan}{$\Phi_R$ spans $W$.}
+ \begin{proof}\pf\ By \stepref{s414latmem}, $\{\Zx_u\}\sbs\Phi_R\sbs W$, and the $\Zx_u$ span
+  $W$.~\qed\end{proof}
+ \step{s414latind}{$R$ is nonempty and indecomposable.}
+ \begin{proof}\pf\ Take $B=\{\Zx_u\}$ in Lemma~\ref{lem:sec3-connected-span}: $B$ is nonempty
+  since $X$ has a vertex, it spans the span of $\Phi_R$ by \stepref{s414latspan}, and distinct
+  members of $B$ have nonzero inner product exactly when their vertices are adjacent
+  (Lemma~\ref{lem:4-lines}, assertion 1, and Definition~\ref{def:represented}), so its graph is a
+  copy of the connected graph $X$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is \stepref{s414latint}. By \stepref{s414latvals},
+  \stepref{s414latfin} and Definition~\ref{def:line-system}, $\Phi_R$ is the set of vectors of a
+  line system $R$; \stepref{s414latstar}, \stepref{s414latspan} and \stepref{s414latind} give the
+  rest of assertion 2. Assertion 3 is \stepref{s414latmem} with
+  Definition~\ref{def:represented}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the apex)}\label{lem:414-apex}
+ \lean{SimpleGraph.IsRepresentation.apex}\lean{SimpleGraph.IsRepresentation.inner_apex}
+ \lean{SimpleGraph.IsRepresentation.inner_apex_self}
+ \lean{SimpleGraph.IsRepresentation.inner_apex_mem_int}
+ \lean{SimpleGraph.IsRepresentation.apex_mem_span}
+ \uses{def:represented}
+ \assume{$X$ is a $k$-regular graph on $n\ge1$ vertices with a representation $(\Zx_u)$ in a
+ real inner product space $V$; $\Lambda$ is the $\ints$-span and $W$ the span of the $\Zx_u$; and
+ $\Zw=\frac1{k+2}\sum_u\Zx_u$.}
+ \prove{\begin{pfenum}
+  \item $(\Zw,\Zx_v)=1$ for every vertex $v$.
+  \item $(\Zw,\Zw)=n/(k+2)$.
+  \item $(\Zw,\Zy)\in\ints$ for every $\Zy\in \Lambda$.
+  \item $\Zw\in W$.
+ \end{pfenum}}
+ \new\ Step $\langle1\rangle5$ of \path{cgss/prerequisites.md}, Section 7.3, asks for integral
+ inner products with the roots of $R$ only; we prove them on the whole $\ints$-span, and add
+ assertion 4, which the switching from the apex needs.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ This is step $\langle1\rangle5$ of \path{cgss/prerequisites.md}, Section 7.3; the
+ row sums of $2I+A$ are $k+2$.
+ \step{s414apexone}{Assertion 1 holds.}
+ \begin{proof}\pf\ $(\Zw,\Zx_v)=\frac1{k+2}\sum_u(\Zx_u,\Zx_v)=\frac1{k+2}(2+k)$, since by
+  Definition~\ref{def:represented} the terms are 2 for $u=v$, 1 for the $k$ neighbours of $v$ and 0
+  otherwise.~\qed\end{proof}
+ \step{s414apextwo}{Assertion 2 holds.}
+ \begin{proof}\pf\ $(\Zw,\Zw)=\frac1{k+2}\sum_v(\Zw,\Zx_v)=\frac n{k+2}$ by
+  \stepref{s414apexone}.~\qed\end{proof}
+ \step{s414apexthree}{Assertion 3 holds.}
+ \begin{proof}\pf\ For $\Zy=\sum_vz_v\Zx_v$ with integers $z_v$, $(\Zw,\Zy)=\sum_vz_v$ by
+  \stepref{s414apexone}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s414apexone}, \stepref{s414apextwo}, \stepref{s414apexthree}, and
+  $\Zw$ is a combination of the $\Zx_u$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(integrality)}\label{lem:414-dual}
+ \lean{InnerProductSpace.det_gram_mul_inner_self_mem_int}
+ \uses{facts:414}
+ \assume{$W$ is a real inner product space with a basis $\Zb_1,\dots,\Zb_t$ whose Gram matrix
+ $B$ has integer entries, and $\Zw\in W$ has $(\Zw,\Zb_i)\in\ints$ for every $i$.}
+ \prove{$\det(B)\,(\Zw,\Zw)$ is an integer.}
+ \new\ Step $\langle1\rangle6$ of \path{cgss/prerequisites.md}, Section 7.3, writes
+ $(\Zw,\Zw)=\Za^TB^{-1}\Za$ and cites LA6, which lists tools only; we state the integrality as a
+ result and prove it with the adjugate.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will write $(\Zw,\Zw)$ with the inverse of $B$, and clear the denominator with
+ the adjugate.
+ \pflet{$\Za\in\ints^t$ with $\Za(i)=(\Zw,\Zb_i)$, and $\beta\in\re^t$ with
+ $\Zw=\sum_i\beta(i)\Zb_i$.}
+ \step{s414dualeq}{$\Za=B\beta$ and $(\Zw,\Zw)=\beta^T\Za$.}
+ \begin{proof}\pf\ $\Za(i)=\sum_j\beta(j)(\Zb_j,\Zb_i)$ and
+  $(\Zw,\Zw)=\sum_i\beta(i)(\Zw,\Zb_i)$, by bilinearity.~\qed\end{proof}
+ \step{s414dualinv}{$\det B\ne0$.}
+ \begin{proof}\raggedright\pf\ The $\Zb_i$ are linearly independent; apply
+  \path{Matrix.det_gram_ne_zero_iff_linearIndependent}.~\qed\end{proof}
+ \step{s414dualadj}{$\det(B)(\Zw,\Zw)=\Za^T\opk{adj}(B)\,\Za$.}
+ \begin{proof}\pf\
+  $\det(B)(\Zw,\Zw)=\det(B)\,\Za^T\beta=\det(B)\,\Za^TB^{-1}\Za=\Za^T\opk{adj}(B)\,\Za$, by
+  \stepref{s414dualeq}, then $\beta=B^{-1}\Za$ with \stepref{s414dualinv}, then
+  $B^{-1}=\det(B)^{-1}\opk{adj}(B)$ (\path{Matrix.inv_def}).~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The entries of $\opk{adj}(B)$ are signed minors of the integer matrix $B$, and
+  $\Za$ is integral; apply \stepref{s414dualadj}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C21}\label{comp:C21}
+ \lean{LineSystem.E₆.simpleRoot}\lean{LineSystem.E₆.simpleRoot_mem}
+ \lean{LineSystem.E₆.gram_simpleRoot}\lean{LineSystem.E₆.det_gram_simpleRoot}
+ \lean{LineSystem.E₆.simpleBasis}\lean{LineSystem.E₆.gram_simpleRoot_eq_cartan}
+ \lean{LineSystem.E₇.simpleRoot}\lean{LineSystem.E₇.simpleRoot_mem}
+ \lean{LineSystem.E₇.gram_simpleRoot}\lean{LineSystem.E₇.det_gram_simpleRoot}
+ \lean{LineSystem.E₇.simpleBasis}\lean{LineSystem.E₇.gram_simpleRoot_eq_cartan}
+ \lean{LineSystem.E₈.simpleRoot}\lean{LineSystem.E₈.simpleRoot_mem}
+ \lean{LineSystem.E₈.gram_simpleRoot}\lean{LineSystem.E₈.det_gram_simpleRoot}
+ \lean{LineSystem.E₈.simpleBasis}\lean{LineSystem.E₈.gram_simpleRoot_eq_cartan}
+ \lean{Computations.C21.e6_gram_det}\lean{Computations.C21.e7_gram_det}
+ \lean{Computations.C21.e8_gram_det}
+ \uses{def:3.2,def:3.3,lem:sec3-spans}
+ \assume{$t\in\{6,7,8\}$.}
+ \prove{There are roots $\Zs_1,\dots,\Zs_t\in\Phi(\typ E_t)$ which form a basis of the span of
+ $\Phi(\typ E_t)$, and whose Gram matrix $B_t$ has integer entries and determinant 3, 2 and 1
+ for $t=6,7,8$. Up to a relabelling, $B_t$ is Mathlib's \texttt{CartanMatrix.E}~$t$.}
+ This is LN7 of \path{cgss/prerequisites.md}.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The roots are those of the SageMath certificate. Lean checks their membership, their
+ Gram matrix and a scaled $LDL^T$ factorization of it by \texttt{decide +kernel}; see
+ \path{LineGraphs/Computations/C21E6.lean} and its analogues.
+ \qedstep
+ \begin{proof}\pf\ \leancite{LineSystem.E₆.simpleRoot_mem}{\texttt{LineSystem.E\ensuremath{{}_6}.simpleRoot\_mem}},
+  \leancite{LineSystem.E₆.gram_simpleRoot}{\texttt{E\ensuremath{{}_6}.gram\_simpleRoot}} and
+  \leancite{LineSystem.E₆.det_gram_simpleRoot}{\texttt{E\ensuremath{{}_6}.det\_gram\_simpleRoot}}
+  give the roots, their integer Gram matrix and its determinant; the Gram determinant is not 0,
+  so the $t$ roots are independent, and they span since the span has dimension $t$
+  (Lemma~\ref{lem:sec3-spans}), which is
+  \leancite{LineSystem.E₆.simpleBasis}{\texttt{E\ensuremath{{}_6}.simpleBasis}}. The same
+  declarations for $\typ E_7$, $\typ E_8$ give the other two cases.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C20 at the apex}\label{comp:414-Nc}
+ \lean{LineSystem.E₆.c_mem}\lean{LineSystem.E₇.c_mem}\lean{LineSystem.E₈.c_mem}
+ \lean{LineSystem.E₆.N_c}\lean{LineSystem.E₇.N_c}\lean{LineSystem.E₈.N_c}
+ \lean{LineSystem.E₆.card_CEdge}\lean{LineSystem.E₇.card_CEdge}\lean{LineSystem.E₈.card_CEdge}
+ \uses{def:3.2,def:3.3,comp:C20}
+ \assume{$t\in\{6,7,8\}$, and $N_\Zc=\{\Zx\in\Phi(\typ E_t):(\Zx,\Zc)=1\}$.}
+ \prove{$\Zc\in\Phi(\typ E_t)$, $N_\Zc=\{\Ze_P:P\in\Ecal_t\}\cup\{\Zc-\Ze_P:P\in\Ecal_t\}$, and
+ $|\Ecal_t|$ is 10, 16 and 28 for $t=6,7,8$.}
+ This is LN6 of \path{cgss/prerequisites.md}, at the root $\Zc$.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Lean identifies the pairs of $N_\Zc$ that Computation C20 lists with the members of
+ $\Ecal_t$, in \path{LineGraphs/Computations/C20Apex.lean}.
+ \qedstep
+ \begin{proof}\pf\ \leancite{LineSystem.E₆.c_mem}{\texttt{LineSystem.E\ensuremath{{}_6}.c\_mem}},
+  \leancite{LineSystem.E₆.N_c}{\texttt{E\ensuremath{{}_6}.N\_c}} and
+  \leancite{LineSystem.E₆.card_CEdge}{\texttt{E\ensuremath{{}_6}.card\_CEdge}}, and their analogues for
+  $\typ E_7$ and $\typ E_8$; in Lean the coordinates are numbered from 0, and $\Ecal_t$ is the
+  subtype \leancite{LineSystem.E₆.CEdge}{\texttt{E\ensuremath{{}_6}.CEdge}} of ordered pairs
+  $i<j$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(transitivity on roots)}\label{lem:414-transitive}
+ \lean{LineSystem.E₆.exists_isometry_apply_eq_c}\lean{LineSystem.E₇.exists_isometry_apply_eq_c}
+ \lean{LineSystem.E₈.exists_isometry_apply_eq_c}
+ \uses{facts:414,comp:414-Nc,comp:C4,lem:3.4,def:3.3,def:indecomposable,facts:inner}
+ \assume{$t\in\{6,7,8\}$ and $\Zr\in\Phi(\typ E_t)$.}
+ \prove{There is a linear isometry $\psi$ of $\re^8$ with $\psi(\Phi(\typ E_t))=\Phi(\typ E_t)$ and
+ $\psi(\Zr)=\Zc$.}
+ \new\ This replaces LN5 of \path{cgss/prerequisites.md}, a transitivity by reflections, by the
+ transitivity on ordered stars that the Lean of Computation C4 proves.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Both $\Zr$ and $\Zc$ lie in ordered stars, and the stars form one orbit.
+ \step{s414trr}{There is $\Zs\in\Phi(\typ E_t)$ with $(\Zr,\Zs)=-1$.}
+ \begin{proof}\pf\ $\typ E_t$ is indecomposable (Computation~\ref{comp:C4}) and has more than one
+  line (Lemma~\ref{lem:3.4}). If every root other than $\pm\Zr$ were orthogonal to $\Zr$, then
+  $\{\pm\Zr\}$ and the other roots would split $\Phi(\typ E_t)$ orthogonally into nonempty parts
+  (the definition of indecomposability). So $(\Zr,\Zs')\ne0$ for some $\Zs'\ne\pm\Zr$, and then
+  $(\Zr,\Zs')=\pm1$ by \eqref{eq:endpoints}; take $\Zs=\mp\Zs'$.~\qed\end{proof}
+ \step{s414trc}{$\Zc$ and $-\Ze_1-\Ze_2$ lie in $\Phi(\typ E_t)$, and
+  $(\Zc,-\Ze_1-\Ze_2)=-1$.}
+ \begin{proof}\pf\ $\Zc\in\Phi(\typ E_t)$ by Computation~\ref{comp:414-Nc}; $-\Ze_1-\Ze_2$ lies in
+  $\Phi(\typ D_8)$ and has $x_6=x_7=x_8=0$, so it lies in $\Phi(\typ E_6)\sbs\Phi(\typ E_7)$ by
+  Definition~\ref{def:3.3}; and $(\Zc,\Ze_1+\Ze_2)=\frac12+\frac12$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The transitivity on ordered stars of Computation~\ref{comp:C4} (in
+  Lean; see the facts at the start of this section), applied to the star
+  $(\Zr,\Zs)$ of \stepref{s414trr} and to the star $(\Zc,-\Ze_1-\Ze_2)$ of \stepref{s414trc},
+  gives isometries $g_1,g_2$ preserving $\Phi(\typ E_t)$ with $g_1(\Za_0)=\Zr$ and
+  $g_2(\Za_0)=\Zc$; take $\psi=g_2g_1^{-1}$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(switching from the apex)}\label{lem:414-transversal}
+ \lean{SimpleGraph.IsRepresentation.nonempty_iso_lineGraph_switch}
+ \uses{def:represented,def:414-switch,def:2.2,thm:3.6,lem:4-lines,lem:4-transport,lem:414-lattice,lem:414-apex,lem:414-transitive,comp:414-Nc,facts:414}
+ \assume{\begin{pfenum}
+  \item $X$ is a connected $k$-regular graph on $n$ vertices with a representation $(\Zx_u)$ in a
+   finite-dimensional real inner product space $V$.
+  \item $\Lambda$, $W$ and $R$ are as in Lemma~\ref{lem:414-lattice}, and $\Zw$ is as in
+   Lemma~\ref{lem:414-apex}.
+  \item $t\in\{6,7,8\}$, and $f:\Phi(R)\to\Phi(\typ E_t)$ is a bijection that preserves inner
+   products.
+  \item $(\Zw,\Zw)=2$ and $n=|\Ecal_t|$.
+ \end{pfenum}}
+ \prove{There are a bijection $\pi:V(X)\to\Ecal_t$ and a set $H\sbs\Ecal_t$ such that $\pi$ is
+ an isomorphism from $X$ to $L(\Delta_t)^H$.}
+ \new\ These are steps $\langle1\rangle7$ to $\langle1\rangle9$ of
+ \path{cgss/prerequisites.md}, Section 7.3; we read the switched graph off the inner products
+ directly, without SW4.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The apex is a root, the $\Zx_u$ are a transversal of the pairs of $N_\Zw$, and an
+ isometry takes $\Zw$ to $\Zc$, where the pairs are indexed by $\Ecal_t$.
+ \step{s414trmax}{$R$ is maximal in $W$.}
+ \begin{proof}\pf\ $R$ is nonempty and indecomposable and spans $W$ (Lemma~\ref{lem:414-lattice});
+  it is isomorphic to $\typ E_t$ by \asm[3]{0}, which is in the list of
+  Theorem~\ref{thm:3.6}.~\qed\end{proof}
+ \step{s414trw}{$\Zw\in\Phi(R)$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-apex} applies, since $n=|\Ecal_t|\ge1$ by \asm[4]{0} and
+  Computation~\ref{comp:414-Nc}; so $\Zw\in W$, and $(\Zw,\Zw)=2$ by \asm[4]{0}. For
+  $\Zy\in\Phi(R)\sbs \Lambda$, $(\Zw,\Zy)$ is an integer (Lemma~\ref{lem:414-apex}) with
+  $|(\Zw,\Zy)|\le|\Zw||\Zy|=2$ (\path{abs_real_inner_le_norm}); apply \stepref{s414trmax} and
+  Definition~\ref{def:2.2}.~\qed\end{proof}
+ \step{s414trg}{There is a bijection $g:\Phi(R)\to\Phi(\typ E_t)$ that preserves inner products,
+  with $g(\Zw)=\Zc$.}
+ \begin{proof}\pf\ $f(\Zw)\in\Phi(\typ E_t)$ by \stepref{s414trw}; Lemma~\ref{lem:414-transitive}
+  gives $\psi$ with $\psi(f(\Zw))=\Zc$, and $g=\psi\circ f$ will do.~\qed\end{proof}
+ \pflet{$\Zy_u=g(\Zx_u)$.}
+ \step{s414trrep}{$(\Zy_u)$ represents $X$ in $\typ E_t$, and $(\Zy_u,\Zc)=1$ for every $u$.}
+ \begin{proof}\pf\ $X$ is represented in $R$ by $(\Zx_u)$ (Lemma~\ref{lem:414-lattice}); apply
+  Lemma~\ref{lem:4-transport} to $g$. Further
+  $(\Zy_u,\Zc)=(g(\Zx_u),g(\Zw))=(\Zx_u,\Zw)=1$ by Lemma~\ref{lem:414-apex}.~\qed\end{proof}
+ \step{s414trpick}{\pick\ $\pi(u)\in\Ecal_t$ for each $u$, and $D\sbs V(X)$, such that
+  $\Zy_u=\Zc-\Ze_{\pi(u)}$ for $u\in D$ and $\Zy_u=\Ze_{\pi(u)}$ for $u\notin D$.}
+ \begin{proof}\pf\ $\Zy_u\in N_\Zc$ by \stepref{s414trrep}; apply
+  Computation~\ref{comp:414-Nc}.~\qed\end{proof}
+ \step{s414trip}{For $P,P'\in\Ecal_t$, $(\Ze_P,\Ze_{P'})=(\Zc-\Ze_P,\Zc-\Ze_{P'})=|P\cap P'|$
+  and $(\Ze_P,\Zc-\Ze_{P'})=1-|P\cap P'|$.}
+ \begin{proof}\pf\ Expand, with $(\Zc,\Zc)=2$, $(\Zc,\Ze_i)=\frac12$ and
+  $(\Ze_i,\Ze_j)=[i=j]$.~\qed\end{proof}
+ \step{s414trinj}{$\pi$ is injective.}
+ \begin{proof}\pf\ If $u\ne v$ and $\pi(u)=\pi(v)=P$, then $\Zy_u\ne\Zy_v$
+  (Lemma~\ref{lem:4-lines}, assertion 1), so one is $\Ze_P$ and the other $\Zc-\Ze_P$, and their
+  inner product is $1-2=-1$ by \stepref{s414trip}; this is against
+  Definition~\ref{def:represented} and \stepref{s414trrep}.~\qed\end{proof}
+ \step{s414trbij}{$\pi$ is a bijection.}
+ \begin{proof}\pf\ \stepref{s414trinj}, and $|V(X)|=n=|\Ecal_t|$ by \asm[4]{0}.~\qed\end{proof}
+ \pflet{$H=\pi(D)$.}
+ \step{s414tradj}{Distinct $u,v$ are adjacent in $X$ if and only if $\pi(u)$ and $\pi(v)$ are
+  adjacent in $L(\Delta_t)^H$.}
+ \begin{proof}\pf\ By \stepref{s414trinj}, $|\pi(u)\cap\pi(v)|\le1$, and $u\in D$ exactly when
+  $\pi(u)\in H$. By \stepref{s414trrep} and \stepref{s414trip}, $(\Zy_u,\Zy_v)=1$ exactly when
+  $\pi(u),\pi(v)$ meet and both or neither lie in $H$, or are disjoint and exactly one lies in
+  $H$; this is adjacency in $L(\Delta_t)^H$ (Definition~\ref{def:414-switch}).~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s414trbij} and \stepref{s414tradj}.~\qed\end{proof}
+\end{proof}
+
+\subsubsection*{Regular switchings}
+
+\begin{namedresult}{Lemma}{(degrees in a switched line graph)}\label{lem:414-degree}
+ \lean{SimpleGraph.card_adj_lineGraph_switch_of_complete}
+ \uses{def:414-switch}
+ \assume{\begin{pfenum}
+  \item $Y$ is a graph, $M\sbs V(Y)$ has $m\ge2$ elements, and every 2-subset of $M$ is an edge
+   of $Y$; $K$ is the set of these edges.
+  \item $H\sbs E(Y)$, $h=|H\cap K|$, and $\deg_{H\cap K}$ is taken on $M$.
+  \item $e=\{i,j\}\in K$ and $s=\deg_{H\cap K}(i)+\deg_{H\cap K}(j)$.
+ \end{pfenum}}
+ \prove{The number of neighbours of $e$ in $L(Y)^H$ that lie in $K$ is
+ $2s-h-3+\binom{m-2}2$ if $e\in H$, and $2(m-2)+h-2s$ if $e\notin H$.}
+ \new\ This replaces SW3 of \path{cgss/prerequisites.md} in step $\langle1\rangle10$ of its
+ Section 7.3 by a direct count.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will count the members of $K$ that meet $e$ and those that miss it, inside and
+ outside $H$.
+ \step{s414degmeet}{The members of $H\cap K$ other than $e$ that meet $e$ number $s-2$ if $e\in H$
+  and $s$ if $e\notin H$.}
+ \begin{proof}\pf\ No member of $K$ other than $e$ contains both $i$ and $j$, so the members of
+  $H\cap K$ meeting $e$ number $\deg_{H\cap K}(i)+\deg_{H\cap K}(j)$, counting $e$ twice when
+  $e\in H$.~\qed\end{proof}
+ \step{s414degall}{The members of $K$ other than $e$ that meet $e$ number $2(m-2)$, and those
+  disjoint from $e$ number $\binom{m-2}2$.}
+ \begin{proof}\pf\ They are $\{i,l\}$ and $\{j,l\}$ with $l\in M\setminus e$, and the 2-subsets
+  of $M\setminus e$.~\qed\end{proof}
+ \step{s414degin}{\case{$e\in H$.}\prove{The count is $2s-h-3+\binom{m-2}2$.}}
+ \begin{proof}\pf\ By Definition~\ref{def:414-switch}, the neighbours of $e$ in $K$ are the
+  $f\in H\cap K$ that meet $e$, $s-2$ of them by \stepref{s414degmeet}, and the $f\in K\setminus H$
+  disjoint from $e$. Of the $\binom{m-2}2$ members of $K$ disjoint from $e$
+  (\stepref{s414degall}), $h-1-(s-2)$ lie in $H$. The total is
+  $(s-2)+\binom{m-2}2-(h-s+1)$.~\qed\end{proof}
+ \step{s414degout}{\case{$e\notin H$.}\prove{The count is $2(m-2)+h-2s$.}}
+ \begin{proof}\pf\ By Definition~\ref{def:414-switch}, the neighbours are the $f\in K\setminus H$
+  with $f\ne e$ that meet $e$, which number $2(m-2)-s$ by \stepref{s414degmeet} and
+  \stepref{s414degall}, and the $f\in H\cap K$ disjoint from $e$, which number
+  $h-s$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The two cases are exhaustive.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(constant pair sums)}\label{lem:414-constsum}
+ \lean{Finset.two_mul_eq_of_forall_add_eq}
+ \uses{}
+ \assume{$M$ is a finite set with at least 3 elements, $d:M\to\ints$ and $\sigma\in\ints$, and
+ $d(i)+d(j)=\sigma$ for all distinct $i,j\in M$.}
+ \prove{$2d(i)=\sigma$ for every $i\in M$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Compare two pairs with a common member.
+ \step{s414csconst}{$d(i)=d(j)$ for all $i,j\in M$.}
+ \begin{proof}\pf\ For $i\ne j$ pick $l\in M\setminus\{i,j\}$; then
+  $d(i)+d(l)=\sigma=d(j)+d(l)$ by \asm{0}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ For $i\in M$ pick $j\ne i$; then $\sigma=d(i)+d(j)=2d(i)$ by
+  \stepref{s414csconst}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Theorem}{(SE4: regular graphs on 8 vertices)}\label{res:414-SE4}
+ \lean{SimpleGraph.IsRegularOfDegree.nonempty_iso_cycle}
+ \lean{SimpleGraph.IsRegularOfDegree.eq_bot_of_zero}
+ \lean{SimpleGraph.IsRegularOfDegree.nonempty_iso_fourK2}
+ \lean{SimpleGraph.IsRegularOfDegree.nonempty_iso_of_two_of_card_eq_eight}
+ \lean{SimpleGraph.IsRegularOfDegree.nonempty_iso_of_three_of_card_eq_eight}
+ \uses{}
+ \assume{$Z$ is a finite graph.}
+ \prove{\begin{pfenum}
+  \item If $Z$ is connected and 2-regular, then $Z$ is a cycle.
+  \item If $Z$ is $d$-regular on 8 vertices with $d\le3$, then $Z$ is isomorphic to one of the
+   following eleven graphs: for $d=0$, $\comp{K_8}$; for $d=1$, $4K_2$; for $d=2$, $C_8$,
+   $C_3+C_5$ or $2C_4$; for $d=3$, $2K_4$, the cube $Q_3$, the Wagner graph $M_8$, or the graphs
+   $Y_1$, $Y_2$, $Y_4$ of \path{cgss/proofs/reg8/reg8.tex}, Definition~1.1.
+ \end{pfenum}}
+ This is an input, proved in \path{cgss/proofs/reg8/reg8.tex} (Lemma~2.1 and Theorem~1.2); in Lean its
+ graphs are \texttt{SimpleGraph.fourK2}, \texttt{cycleThreeFive}, \texttt{twoC4}, \texttt{twoK4},
+ \texttt{cubeGraph}, \texttt{wagnerGraph}, \texttt{truncatedK33Graph},
+ \texttt{twiceTruncatedK4Graph} and \texttt{twoDiamondsGraph} on \texttt{Fin 8}. Its vertex $i$ is our vertex $i+1$.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We cite the structured case split of \path{cgss/proofs/reg8/reg8.tex}.
+ \qedstep
+ \begin{proof}\pf\ Lemma~2.1 of \path{cgss/proofs/reg8/reg8.tex} for assertion 1, and its Theorem~1.2
+  for assertion 2.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(2-regular graphs on 5 and 6 vertices)}\label{lem:414-tworeg}
+ \lean{SimpleGraph.IsRegularOfDegree.nonempty_iso_cycle_of_two_of_card_eq_five}
+ \lean{SimpleGraph.IsRegularOfDegree.nonempty_iso_of_two_of_card_eq_six}
+ \uses{res:414-SE4}
+ \assume{$Z$ is a 2-regular graph on $p\in\{5,6\}$ vertices.}
+ \prove{If $p=5$ then $Z\cong C_5$; if $p=6$ then $Z\cong C_6$ or $Z\cong C_3+C_3$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The components are cycles of length at least 3.
+ \step{s414twocomp}{Each component of $Z$ is a connected 2-regular graph with at least 3
+  vertices.}
+ \begin{proof}\pf\ The neighbours of a vertex lie in its component, so the component is
+  2-regular; a vertex and its two neighbours are three vertices.~\qed\end{proof}
+ \step{s414twocyc}{Each component of $Z$ is a cycle.}
+ \begin{proof}\pf\ Theorem~\ref{res:414-SE4}, assertion 1, with
+  \stepref{s414twocomp}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s414twocomp} the orders of the components are at least 3 and add up
+  to $p$: for $p=5$ this is $5$ alone, and for $p=6$ it is $6$ or $3+3$. Apply
+  \stepref{s414twocyc}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C22}\label{comp:C22}
+ \lean{Computations.C22.e6_switch_cycle5}\lean{Computations.C22.e7_switch_cycle6}
+ \lean{Computations.C22.e7_switch_twoC3}\lean{Computations.C22.e8_switch_fourK2}
+ \lean{Computations.C22.e8_switch_twoC4}\lean{Computations.C22.e8_switch_cube}
+ \lean{Computations.C22.e8_switch_twoDiamonds}\lean{Computations.C22.e8_switch_cycle8}
+ \lean{Computations.C22.e8_switch_wagner}\lean{Computations.C22.e8_switch_twiceTruncatedK4}
+ \lean{Computations.C22.e8_switch_cycleThreeFive}\lean{Computations.C22.e8_switch_truncatedK33}
+ \lean{Computations.C22.e8_switch_twoK4}\lean{Computations.C22.e8_switch_empty}
+ \lean{Computations.C22.cliqueProfile_t8}\lean{Computations.C22.cliqueProfile_changI}
+ \lean{Computations.C22.cliqueProfile_changII}\lean{Computations.C22.cliqueProfile_changIII}
+ \lean{Computations.C22.cliqueCount_shrikhande}
+ \lean{Computations.C22.cliqueCount_lineGraph_completeBipartite}
+ \uses{ex:4.5,ex:4.7,ex:4.9,def:414-switch,res:414-SE4,facts:414}
+ \assume{$H_5$ is the edge set of the 5-cycle $1,2,3,4,5$; $H_6$ that of the 6-cycle
+ $1,\dots,6$; $H_{3,3}=\{12,13,23,45,46,56\}$; the graphs of Theorem~\ref{res:414-SE4},
+ assertion 2, are placed on $\{1,\dots,8\}$; and $\cprof(Z)$ is the multiset of the numbers of
+ 4-cliques of $Z$ through its vertices.}
+ \prove{\begin{pfenum}
+  \item $L(\Delta_6)^{H_5}$ is isomorphic to the Petersen graph of Example~\ref{ex:4.9}.
+  \item $L(\Delta_7)^{H_6}$ is isomorphic to the Shrikhande graph of Example~\ref{ex:4.7}, and
+   $L(\Delta_7)^{H_{3,3}}$ to $L(K_{4,4})$.
+  \item For the graphs $Z$ of Theorem~\ref{res:414-SE4}, assertion 2, $L(\Delta_8)^{E(Z)}$ is
+   isomorphic to $T(8)$ for $Z=\comp{K_8},2K_4$; to the Chang graph I of Example~\ref{ex:4.5}
+   for $Z=4K_2,2C_4,Q_3,Y_4$; to the Chang graph II for $Z=C_8,M_8,Y_2$; and to the Chang graph
+   III for $Z=C_3+C_5,Y_1$.
+  \item $\cprof(T(8))=\ms{40^{28}}$, and $\cprof$ of the Chang graphs I, II and III is
+   $\ms{32^4,36^{24}}$, $\ms{34^{24},36^4}$ and $\ms{33^{10},35^{18}}$.
+  \item The Shrikhande graph has no 4-clique, and $L(K_{4,4})$ has 8.
+ \end{pfenum}}
+ These are SE5 and the part of SE6 that we need (\path{cgss/prerequisites.md}), with the
+ 4-clique profile in place of the maximal cliques (\path{cgss/certificates/README.md}, C22).
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Each isomorphism is an explicit permutation of at most 28 vertices, found by
+ SageMath (\path{cgss/certificates/c22_switching.sage}, certificates in
+ \path{cgss/certificates/data/c22.json}); Lean checks it by \path{Computations.checkGraphIso} and
+ \texttt{decide +kernel}. The profiles are evaluated by \path{Computations.cliqueProfile}, which
+ enumerates only the 4-subsets that are cliques.
+ \step{s414c22iso}{Assertions 1 to 3 hold.}
+ \begin{proof}\raggedright\pf\ For each of the fourteen switched graphs, the adjacency table and
+  the certificate permutation pass \path{Computations.checkGraphIso}; apply
+  \path{Computations.nonempty_graphOfMatrix_iso}. For $Z=\comp{K_8}$ the permutation is the
+  identity, since $L(\Delta_8)^{\varnothing}=T(8)$.~\qed\end{proof}
+ \step{s414c22prof}{Assertions 4 and 5 hold.}
+ \begin{proof}\raggedright\pf\ \path{Computations.cliqueProfile} and \path{Computations.cliqueCount} on the
+  adjacency tables, with their soundness theorems; the profiles of assertion 4 are those of
+  \path{Computations.Examples.t8_clique_profile} in
+  \path{LineGraphs/Computations/CliqueBenchmarkT8.lean} and of its analogues for the Chang graphs in
+  \path{LineGraphs/Computations/CliqueBenchmarkChangI.lean},
+  \path{LineGraphs/Computations/CliqueBenchmarkChangII.lean} and
+  \path{LineGraphs/Computations/CliqueBenchmarkChangIII.lean}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s414c22iso} and \stepref{s414c22prof}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(regular switchings of $T(5)$)}\label{lem:414-E6}
+ \lean{SimpleGraph.nonempty_iso_petersen_of_switch_triangular5}
+ \uses{def:414-switch,lem:414-switch,lem:414-degree,lem:414-constsum,lem:414-tworeg,comp:C22,ex:4.9,facts:414}
+ \assume{$H$ is a subset of $\Ecal_6$, and the graph $L(\Delta_6)^H$ is 3-regular.}
+ \prove{$L(\Delta_6)^H$ is isomorphic to the Petersen graph of Example~\ref{ex:4.9}.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The degree count forces $H$ to be the edge set of a 2-regular graph on
+ $\{1,\dots,5\}$, which is a 5-cycle.
+ \pflet{$h=|H|$ and $M=\{1,\dots,5\}$.}
+ \step{s414esixsum}{$2(\deg_H(i)+\deg_H(j))=h+3$ for all distinct $i,j\in M$.}
+ \begin{proof}\pf\ Every vertex of $L(\Delta_6)$ lies in $K=\Ecal_6$. Lemma~\ref{lem:414-degree} with
+  $m=5$, $\binom32=3$ and $2(m-2)=6$ gives degree $2s-h$ if $\{i,j\}\in H$ and $6+h-2s$ if not;
+  both equal 3 by \asm{0}.~\qed\end{proof}
+ \step{s414esixreg}{$4\deg_H(i)=h+3$ for every $i\in M$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-constsum}, applied to $d=2\deg_H$ on $M$ with $\sigma=h+3$,
+  and \stepref{s414esixsum}: $2\cdot2\deg_H(i)=h+3$.~\qed\end{proof}
+ \step{s414esixtwo}{$(M,H)$ is 2-regular.}
+ \begin{proof}\pf\ Summing \stepref{s414esixreg} over $M$, with $\sum_i\deg_H(i)=2h$
+  (\path{SimpleGraph.sum_degrees_eq_twice_card_edges}), gives $8h=5(h+3)$, so $h=5$ and
+  $\deg_H(i)=2$.~\qed\end{proof}
+ \step{s414esixrelabel}{$L(\Delta_6)^H\cong L(\Delta_6)^{H_5}$.}
+ \begin{proof}\pf\ By \stepref{s414esixtwo} and Lemma~\ref{lem:414-tworeg}, some bijection $\sigma$ of
+  $M$ carries $H$ onto $H_5$; extended by fixing 6, 7, 8, it is an automorphism of $\Delta_6$. Apply
+  Lemma~\ref{lem:414-switch}, assertion 3.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s414esixrelabel} and Computation~\ref{comp:C22}, assertion
+  1.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(regular switchings of $T(6)$ with an isolated vertex)}\label{lem:414-E7}
+ \lean{SimpleGraph.nonempty_iso_shrikhande_or_lineGraph_completeBipartite_of_switch_triangular6AddOne}
+ \uses{def:414-switch,lem:414-switch,lem:414-degree,lem:414-constsum,lem:414-tworeg,comp:C22,ex:4.7}
+ \assume{$H$ is a subset of $\Ecal_7$, and the graph $L(\Delta_7)^H$ is 6-regular.}
+ \prove{$L(\Delta_7)^H$ is isomorphic to the Shrikhande graph of Example~\ref{ex:4.7} or to
+ $L(K_{4,4})$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ After complementing $H$ we may assume that $\varepsilon\notin H$; then the degree
+ of $\varepsilon$ gives $|H|=6$, and the degree count makes $H$ 2-regular on
+ $\{1,\dots,6\}$.
+ \pflet{$M=\{1,\dots,6\}$, $K=\Ecal_7\setminus\{\varepsilon\}$, and $H^*=H$ if
+ $\varepsilon\notin H$, $H^*=\Ecal_7\setminus H$ if $\varepsilon\in H$.}
+ \step{s414esevcompl}{$\varepsilon\notin H^*$, $H^*\sbs K$, and $L(\Delta_7)^H=L(\Delta_7)^{H^*}$.}
+ \begin{proof}\pf\ The definition of $H^*$, and Lemma~\ref{lem:414-switch}, assertion 1, when
+  $H^*=\Ecal_7\setminus H$.~\qed\end{proof}
+ \step{s414esevsix}{$|H^*|=6$.}
+ \begin{proof}\pf\ $\varepsilon$ is disjoint from every other member of $\Ecal_7$, so it is
+  isolated in $L(\Delta_7)$; by Definition~\ref{def:414-switch} and \stepref{s414esevcompl} its
+  neighbours in $L(\Delta_7)^{H^*}$ are the members of $H^*$. Its degree is 6 by \asm{0} and
+  \stepref{s414esevcompl}.~\qed\end{proof}
+ \step{s414esevsum}{$\deg_{H^*}(i)+\deg_{H^*}(j)=4$ for all distinct $i,j\in M$.}
+ \begin{proof}\pf\ Let $e=\{i,j\}$ and $s=\deg_{H^*}(i)+\deg_{H^*}(j)$. By
+  Lemma~\ref{lem:414-degree} with $m=6$, $\binom42=6$, $2(m-2)=8$ and $h=6$
+  (\stepref{s414esevsix}), $e$ has $2s-3$ neighbours in $K$ if $e\in H^*$ and $14-2s$ if not. By
+  Definition~\ref{def:414-switch}, $\varepsilon$ is a further neighbour exactly when $e\in H^*$.
+  So the degree is $2s-2$ or $14-2s$, and it is 6.~\qed\end{proof}
+ \step{s414esevtwo}{$(M,H^*)$ is 2-regular.}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-constsum} with $\sigma=4$ and
+  \stepref{s414esevsum}.~\qed\end{proof}
+ \step{s414esevrelabel}{$L(\Delta_7)^{H^*}\cong L(\Delta_7)^{H_6}$ or $L(\Delta_7)^{H^*}\cong
+  L(\Delta_7)^{H_{3,3}}$.}
+ \begin{proof}\pf\ By \stepref{s414esevtwo} and Lemma~\ref{lem:414-tworeg}, some bijection
+  $\sigma$ of $M$ carries $H^*$ onto $H_6$ or onto $H_{3,3}$; extended by fixing 7 and 8, it is
+  an automorphism of $\Delta_7$. Apply Lemma~\ref{lem:414-switch}, assertion 3.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s414esevcompl}, \stepref{s414esevrelabel} and
+  Computation~\ref{comp:C22}, assertion 2.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(regular switchings of $T(8)$)}\label{lem:414-E8}
+ \lean{SimpleGraph.nonempty_iso_triangular8_or_chang_of_switch_triangular8}
+ \uses{def:414-switch,lem:414-switch,lem:414-degree,lem:414-constsum,res:414-SE4,comp:C22,ex:4.5,facts:414}
+ \assume{$H$ is a subset of $\Ecal_8$, and the graph $L(\Delta_8)^H$ is 12-regular.}
+ \prove{$L(\Delta_8)^H$ is isomorphic to $T(8)$ or to one of the Chang graphs I, II and III of
+ Example~\ref{ex:4.5}.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Here the degree count says only that $H$ is regular; after complementing, its valency
+ is at most 3, and SE4 leaves eleven graphs.
+ \pflet{$h=|H|$ and $M=\{1,\dots,8\}$.}
+ \step{s414eeightsum}{$2(\deg_H(i)+\deg_H(j))=h$ for all distinct $i,j\in M$.}
+ \begin{proof}\pf\ Every vertex of $L(\Delta_8)$ lies in $K=\Ecal_8$. Lemma~\ref{lem:414-degree} with
+  $m=8$, $\binom62=15$ and $2(m-2)=12$ gives degree $2s-h+12$ if $\{i,j\}\in H$ and $12+h-2s$ if
+  not; both equal 12 by \asm{0}.~\qed\end{proof}
+ \step{s414eeightreg}{$(M,H)$ is regular of some valency $d\le7$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-constsum}, applied to $d'=2\deg_H$ on $M$ with $\sigma=h$, and
+  \stepref{s414eeightsum} give $4\deg_H(i)=h$ for every $i\in M$; so $d=h/4$, and $d\le7$ since
+  $|M|=8$.~\qed\end{proof}
+ \pflet{$H^*=H$ if $d\le3$, and $H^*=\Ecal_8\setminus H$ if $d\ge4$.}
+ \step{s414eeightcompl}{$(M,H^*)$ is regular of valency at most 3, and
+  $L(\Delta_8)^H=L(\Delta_8)^{H^*}$.}
+ \begin{proof}\pf\ $\Ecal_8\setminus H$ is the edge set of the complement of $(M,H)$, which is
+  $(7-d)$-regular (\path{SimpleGraph.IsRegularOfDegree.compl}); apply
+  Lemma~\ref{lem:414-switch}, assertion 1.~\qed\end{proof}
+ \step{s414eeightrelabel}{$L(\Delta_8)^{H^*}\cong L(\Delta_8)^{E(Z)}$ for one of the eleven graphs $Z$ of
+  Theorem~\ref{res:414-SE4}, assertion 2, placed on $M$.}
+ \begin{proof}\pf\ By \stepref{s414eeightcompl} and Theorem~\ref{res:414-SE4}, some bijection
+  $\sigma$ of $M$ is an isomorphism from $(M,H^*)$ to such a $Z$; it is an automorphism of
+  $\Delta_8=K_8$. Apply Lemma~\ref{lem:414-switch}, assertion 3.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s414eeightcompl}, \stepref{s414eeightrelabel} and
+  Computation~\ref{comp:C22}, assertion 3.~\qed\end{proof}
+\end{proof}
+
+\subsubsection*{The Schl\"afli and Clebsch graphs}
+
+\begin{namedresult}{Lemma}{(the triangle property from the parameters, GQ1)}\label{lem:414-GQ1}
+ \lean{SimpleGraph.IsSRGWith.hasTriangleProperty}
+ \uses{def:triangle-property}
+ \assume{$Z$ is strongly regular with parameters $(n,k,1,c)$, and $n+3=3k$.}
+ \prove{$Z$ has the triangle property.}
+ \new\ This is the converse half of GQ1 of \path{cgss/prerequisites.md}, with the triangle
+ property of Section 2 in place of a generalized quadrangle whose lines are the triangles;
+ [BCN] Lemma 1.15.1 says only ``Straightforward''. The hypothesis is $n-3=3(k-2)$, written
+ without subtraction as in Lean.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The edges leaving a triangle reach every other vertex exactly once.
+ \step{s414gqone}{Every edge $xy$ has exactly one common neighbour $z$.}
+ \begin{proof}\pf\ The parameter $a=1$.~\qed\end{proof}
+ \step{s414gqmost}{A vertex $v\notin\{x,y,z\}$ is adjacent to at most one of $x,y,z$.}
+ \begin{proof}\pf\ If $v$ were adjacent to two of them, say to $x$ and $y$, then $v$ and $z$ would
+  be two common neighbours of the edge $xy$, against \stepref{s414gqone}; the other pairs are
+  edges of the triangle as well.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Each of $x,y,z$ has $k-2$ neighbours outside $\{x,y,z\}$, so there are
+  $3(k-2)=n-3$ edges from the triangle to the other $n-3$ vertices, by \asm{0}; by
+  \stepref{s414gqmost} no vertex receives two, so every vertex receives exactly one. With
+  \stepref{s414gqone}, this is Definition~\ref{def:triangle-property}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Definition}{(the folded 5-cube)}\label{def:414-folded}
+ \lean{SimpleGraph.foldedFiveCube}\lean{SimpleGraph.compl_foldedFiveCube_adj_iff}
+ \uses{}
+ \assume{$\Omega_5=\{1,\dots,5\}$, and $V_{16}$ is the set of the subsets of $\Omega_5$ of even
+ size.}
+ \pflet{The \emph{folded 5-cube} $\square_5$ is the graph on $V_{16}$ in which $s\sim t$ when
+ $|s\sd t|=4$.}
+ This is Definition 1.1 of \path{cgss/proofs/clebsch/clebsch.tex}. $V_{16}$ consists of $\varnothing$,
+ the ten 2-subsets and the five 4-subsets of $\Omega_5$. In Lean the vertex type is
+ \texttt{$\{$s : Finset (Fin 5) // Even s.card$\}$}, whose \texttt{i} is our $i+1$. In the complement, distinct $s,t$ are adjacent
+ exactly when $|s\sd t|=2$, since $|s\sd t|$ is even and at most 5.
+\end{namedresult}
+
+\begin{namedresult}{Definition}{(the double-six graph)}\label{def:414-gq24}
+ \lean{SimpleGraph.gq24}\lean{SimpleGraph.compl_gq24_adj_iff}
+ \uses{}
+ \assume{$\Omega_6=\{1,\dots,6\}$, and $V_{27}$ is the set of the 27 symbols $a_i$, $b_i$
+ ($i\in\Omega_6$) and $c_{ij}=c_{ji}$ ($i\ne j$ in $\Omega_6$).}
+ \pflet{$Q_{27}$ be the graph on $V_{27}$ in which $a_i\sim b_j$ for $i\ne j$; $a_i\sim c_{jl}$ and
+ $b_i\sim c_{jl}$ for $i\in\{j,l\}$; $c_{ij}\sim c_{lm}$ when $\{i,j\}\cap\{l,m\}=\varnothing$;
+ and there are no other edges.}
+ This is the graph $Q$ of \path{cgss/proofs/clebsch/clebsch.tex}, Definition 1.2, the collinearity
+ graph of the generalized quadrangle of order $(2,4)$; we write $Q_{27}$, since $Q$ is $2I+A$ in
+ this section. In Lean the vertex type is \texttt{Fin 2} $\times$ \texttt{Fin 6} $\oplus$
+ \texttt{T} with \texttt{T = $\{$s : Finset (Fin 6) // s.card = 2$\}$}; $(0,i)$ is $a_{i+1}$, $(1,i)$
+ is $b_{i+1}$, and $\{i,j\}$ is $c_{i+1,j+1}$. The second Lean name spells out adjacency in
+ $\comp{Q_{27}}$ by the same cases.
+\end{namedresult}
+
+\begin{namedresult}{Computation}{(the models of SE2 and SE3)}\label{comp:414-models}
+ \lean{SimpleGraph.foldedFiveCube_isSRGWith}\lean{SimpleGraph.gq24_isSRGWith}
+ \uses{def:414-folded,def:414-gq24,comp:C9,ex:4.6,ex:4.8}
+ \assume{$X_{\mathrm{Cl}}$ and $X_{\mathrm{Sch}}$ are the Clebsch and Schl\"afli graphs of
+ Examples~\ref{ex:4.8} and~\ref{ex:4.6}, that is, the graphs of the vectors of their
+ representations (Computation~\ref{comp:C9}).}
+ \prove{\begin{pfenum}
+  \item $\square_5$ is strongly regular with parameters $(16,5,0,2)$, and $Q_{27}$ with
+   parameters $(27,10,1,5)$.
+  \item $X_{\mathrm{Cl}}\cong\comp{\square_5}$ and $X_{\mathrm{Sch}}\cong\comp{Q_{27}}$.
+ \end{pfenum}}
+ The Clebsch and Schl\"afli graphs stay the graphs of the vectors; $\square_5$ and $Q_{27}$ are
+ the combinatorial models of \path{cgss/proofs/clebsch/clebsch.tex}. The isomorphisms of assertion 2
+ are the certificates of Computation~\ref{comp:C9}, which carry their Lean names there; we
+ repeat them here beside the parameters.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ These are finite checks on at most 27 vertices, as for Computation C9.
+ \step{s414modpar}{Assertion 1 holds.}
+ \begin{proof}\pf\ In Lean, \texttt{decide} counts the neighbours of every vertex and the common
+  neighbours of every pair, at most $27^3$ triples. By hand, Lemmas 3.1 and 4.2 of
+  \path{cgss/proofs/clebsch/clebsch.tex} count them at one vertex of each orbit of an automorphism
+  group.~\qed\end{proof}
+ \step{s414modiso}{Assertion 2 holds.}
+ \begin{proof}\pf\ Computation~\ref{comp:C9}, its last sentence.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ \stepref{s414modpar} and \stepref{s414modiso}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the double-six graph from its parameters)}\label{lem:414-gq24iso}
+ \lean{SimpleGraph.IsSRGWith.nonempty_iso_gq24}
+ \uses{lem:414-GQ1,lem:triangle-iso,def:414-gq24,comp:414-models}
+ \assume{$Z$ is a strongly regular graph with parameters $(27,10,1,5)$.}
+ \prove{$Z\cong Q_{27}$.}
+ \new\ SE3 of \path{cgss/prerequisites.md} identifies $Z$ by GQ2, the classification of the
+ generalized quadrangles of order $(2,4)$; we use instead the isomorphism from the order of
+ Section 2, as in Theorem 1.4 of \path{cgss/proofs/clebsch/clebsch.tex}.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Both graphs have the triangle property, and Section 2 shows that such a graph is
+ determined by its order.
+ \step{s414gqtri}{$Z$ and $Q_{27}$ have the triangle property.}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-GQ1}, with \asm{0} and Computation~\ref{comp:414-models},
+  assertion 1, since $27+3=3\cdot10$.~\qed\end{proof}
+ \step{s414gqedge}{$Z$ and $Q_{27}$ have 27 vertices each, an edge, and no vertex adjacent to
+  every other vertex.}
+ \begin{proof}\pf\ Both are 10-regular on 27 vertices, by \asm{0} and
+  Computation~\ref{comp:414-models}, assertion 1, and $0<10<26$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Lemma~\ref{lem:triangle-iso}, with \stepref{s414gqtri} and
+  \stepref{s414gqedge}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(SE3: the Schl\"afli graph)}\label{lem:414-SE3}
+ \lean{SimpleGraph.IsSRGWith.nonempty_iso_schlafli}
+ \uses{lem:414-iso,lem:414-gq24iso,comp:414-models,ex:4.6,facts:414}
+ \assume{$X$ is a strongly regular graph with parameters $(27,16,10,8)$.}
+ \prove{$X$ is isomorphic to the Schl\"afli graph of Example~\ref{ex:4.6}.}
+ \new\ SE3 of \path{cgss/prerequisites.md} goes through GQ1 and GQ2; we go through
+ Lemma~\ref{lem:414-gq24iso} and the certificate of Computation~\ref{comp:414-models}.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will pass to the complement, which is the double-six graph.
+ \pflet{$X_{\mathrm{Sch}}$ be the Schl\"afli graph of Example~\ref{ex:4.6}.}
+ \step{s414sthreecompl}{$\comp X$ is strongly regular with parameters $(27,10,1,5)$.}
+ \begin{proof}\pf\ \path{SimpleGraph.IsSRGWith.compl}: $(27,27-16-1,27-(32-8)-2,27-(32-10))$, with no
+  truncated subtraction.~\qed\end{proof}
+ \step{s414sthreeiso}{$\comp X\cong Q_{27}$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-gq24iso} with \stepref{s414sthreecompl}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Lemma~\ref{lem:414-iso}, assertion 1 (\texttt{SimpleGraph.Iso.compl}), applied
+  to \stepref{s414sthreeiso}, with \path{compl_compl}, gives $X\cong\comp{Q_{27}}$; and
+  $\comp{Q_{27}}\cong X_{\mathrm{Sch}}$ by Computation~\ref{comp:414-models},
+  assertion 2.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the folded 5-cube from its parameters)}\label{lem:414-foldiso}
+ \lean{SimpleGraph.IsSRGWith.nonempty_iso_foldedFiveCube}
+ \uses{def:414-folded}
+ \assume{$Z$ is a strongly regular graph with parameters $(16,5,0,2)$.}
+ \prove{$Z\cong\square_5$.}
+ This is the first half of SE2 of \path{cgss/prerequisites.md}, after [C17] Theorem 2.2, and
+ Theorem 1.3 of \path{cgss/proofs/clebsch/clebsch.tex}. [BCN] 3.11 (iii) prints these parameters as
+ $(16,5,0,1)$; they are $(16,5,0,2)$.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The non-neighbours of a vertex $u$ correspond to the 2-subsets of its
+ neighbourhood, and adjacency among them is disjointness.
+ \pflet{$u$ be a vertex of $Z$, $N$ its neighbourhood and $O=V(Z)\setminus(\{u\}\cup N)$.}
+ \step{s414foldcocl}{$N$ is a coclique of 5 vertices, and $|O|=10$.}
+ \begin{proof}\pf\ $|N|=5$ and $|O|=16-1-5$. Two adjacent vertices of $N$ would have the common
+  neighbour $u$, against $a=0$.~\qed\end{proof}
+ \step{s414foldphi}{For $w\in O$, $\phi(w)=N(w)\cap N$ has exactly two elements.}
+ \begin{proof}\pf\ $w\ne u$ and $w\not\sim u$, so they have $c=2$ common neighbours, which are
+  the members of $N(w)\cap N$.~\qed\end{proof}
+ \step{s414foldbij}{$\phi$ is a bijection from $O$ onto $\binom N2$.}
+ \begin{proof}\pf\ If $w\ne w'$ in $O$ had $\phi(w)=\phi(w')=\{x,y\}$, the distinct non-adjacent
+  vertices $x,y$ (\stepref{s414foldcocl}) would have the three common neighbours $u,w,w'$,
+  against $c=2$. So $\phi$ is injective, and $|O|=10=\binom52$.~\qed\end{proof}
+ \step{s414foldmeet}{\assume{$w,w'\in O$ and $\phi(w)\cap\phi(w')\ne\varnothing$.}
+  \prove{$w\not\sim w'$.}}
+ \begin{proof}\pf\ Take $x\in\phi(w)\cap\phi(w')$ by \asm{1}; an edge $ww'$ would have the common
+  neighbour $x$, against $a=0$.~\qed\end{proof}
+ \step{s414foldO}{Each $w\in O$ has exactly 3 neighbours in $O$.}
+ \begin{proof}\pf\ $w$ has 5 neighbours; two lie in $N$ (\stepref{s414foldphi}), and $u$ is not
+  one.~\qed\end{proof}
+ \step{s414folddisj}{Distinct $w,w'\in O$ are adjacent if and only if $\phi(w)$ and $\phi(w')$
+  are disjoint.}
+ \begin{proof}\pf\ Exactly $\binom32=3$ members of $\binom N2$ are disjoint from $\phi(w)$, so by
+  \stepref{s414foldbij} exactly 3 vertices $w'\in O$ have $\phi(w')$ disjoint from $\phi(w)$. By
+  \stepref{s414foldmeet} the 3 neighbours of $w$ in $O$ (\stepref{s414foldO}) are among them;
+  so they are all of them.~\qed\end{proof}
+ \pflet{$\beta:N\to\Omega_5$ be a bijection, and $f:V(Z)\to V_{16}$ the map with $f(u)=\varnothing$,
+ $f(x)=\Omega_5\setminus\{\beta(x)\}$ for $x\in N$ and $f(w)=\beta(\phi(w))$ for $w\in O$.}
+ \step{s414foldf}{$f$ is a bijection.}
+ \begin{proof}\pf\ $f$ maps $u$ to $\varnothing$, $N$ onto the five 4-subsets, since $\beta$ is a
+  bijection, and $O$ onto the ten 2-subsets, by \stepref{s414foldbij}; these are all of $V_{16}$
+  (Definition~\ref{def:414-folded}).~\qed\end{proof}
+ \step{s414foldsd}{For $i\in\Omega_5$ and 2-subsets $P\ne P'$ of $\Omega_5$,
+  $|(\Omega_5\setminus\{i\})\sd P|$ is 4 if $i\in P$ and 2 if $i\notin P$, and
+  $|P\sd P'|=4-2|P\cap P'|$.}
+ \begin{proof}\pf\ $|s\sd s'|=|s|+|s'|-2|s\cap s'|$, and $(\Omega_5\setminus\{i\})\cap P$ has 1
+  element if $i\in P$ and 2 if not.~\qed\end{proof}
+ \step{s414foldadj}{Distinct vertices $p,q$ of $Z$ are adjacent if and only if
+  $|f(p)\sd f(q)|=4$.}
+ \begin{proof}
+  \step{s414foldcaseone}{\case{$p=u$ and $q=x\in N$.}\prove{Both hold.}}
+  \begin{proof}\pf\ $u\sim x$, and $|\varnothing\sd(\Omega_5\setminus\{\beta(x)\})|=4$.~\qed\end{proof}
+  \step{s414foldcasetwo}{\case{$p=u$ and $q=w\in O$.}\prove{Neither holds.}}
+  \begin{proof}\pf\ $w\notin N$, and $|\varnothing\sd f(w)|=|f(w)|=2$.~\qed\end{proof}
+  \step{s414foldcasethree}{\case{$p=x$ and $q=y$ lie in $N$.}\prove{Neither holds.}}
+  \begin{proof}\pf\ $x\not\sim y$ by \stepref{s414foldcocl}, and
+   $|f(x)\sd f(y)|=|\{\beta(x),\beta(y)\}|=2$.~\qed\end{proof}
+  \step{s414foldcasefour}{\case{$p=x\in N$ and $q=w\in O$.}\prove{The two conditions agree.}}
+  \begin{proof}\pf\ $x\sim w$ exactly when $x\in\phi(w)$, that is, when $\beta(x)\in f(w)$, and
+   by \stepref{s414foldsd} this is when $|f(x)\sd f(w)|=4$.~\qed\end{proof}
+  \step{s414foldcasefive}{\case{$p=w$ and $q=w'$ lie in $O$.}\prove{The two conditions
+   agree.}}
+  \begin{proof}\pf\ $w\sim w'$ exactly when $f(w)\cap f(w')=\varnothing$, by
+   \stepref{s414folddisj} and the injectivity of $\beta$, and by \stepref{s414foldsd} this is
+   when $|f(w)\sd f(w')|=4$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $V(Z)$ is the disjoint union of $\{u\}$, $N$ and $O$, so up to the order of
+   $p$ and $q$ the five cases are exhaustive.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s414foldf} and \stepref{s414foldadj}, $f$ is an isomorphism from
+  $Z$ to $\square_5$ (Definition~\ref{def:414-folded}).~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(SE2: the Clebsch graph)}\label{lem:414-SE2}
+ \lean{SimpleGraph.IsSRGWith.nonempty_iso_clebsch}
+ \uses{lem:414-iso,lem:414-foldiso,comp:414-models,ex:4.8,facts:414}
+ \assume{$X$ is a strongly regular graph with parameters $(16,10,6,6)$.}
+ \prove{$X$ is isomorphic to the Clebsch graph of Example~\ref{ex:4.8}.}
+ This is SE2 of \path{cgss/prerequisites.md}.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will pass to the complement, which is the folded 5-cube.
+ \pflet{$X_{\mathrm{Cl}}$ be the Clebsch graph of Example~\ref{ex:4.8}.}
+ \step{s414stwocompl}{$\comp X$ is strongly regular with parameters $(16,5,0,2)$.}
+ \begin{proof}\pf\ \path{SimpleGraph.IsSRGWith.compl}: $(16,16-10-1,16-(20-6)-2,16-(20-6))$, with no
+  truncated subtraction.~\qed\end{proof}
+ \step{s414stwofold}{$\comp X\cong\square_5$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-foldiso} with \stepref{s414stwocompl}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Lemma~\ref{lem:414-iso}, assertion 1 (\texttt{SimpleGraph.Iso.compl}), applied
+  to \stepref{s414stwofold}, with \path{compl_compl}, gives $X\cong\comp{\square_5}$; and
+  $\comp{\square_5}\cong X_{\mathrm{Cl}}$ by Computation~\ref{comp:414-models},
+  assertion 2.~\qed\end{proof}
+\end{proof}
+
+\subsubsection*{The seven graphs}
+
+\begin{namedresult}{Proposition}{(the seven graphs)}\label{prop:414-seven}
+ \lean{SimpleGraph.seidel_seven_properties}\lean{SimpleGraph.seidel_seven_pairwise_not_iso}
+ \uses{def:CP,def:represented,lem:4-gram,comp:C9,comp:C22,ex:4.5,ex:4.6,ex:4.7,ex:4.8,ex:4.9,facts:414}
+ \assume{$\cS$ is the list of the seven graphs of Examples 4.5 to 4.9: the Chang graphs I, II
+ and III, the Schl\"afli graph, the Shrikhande graph, the Clebsch graph and the Petersen
+ graph.}
+ \prove{\begin{pfenum}
+  \item Each $Z\in\cS$ is connected and strongly regular, has $\lambda_{\min}(Z)=-2$, and is
+   represented in $\typ E_8$.
+  \item No $Z\in\cS$ is isomorphic to $L(K_m)$, to $L(K_{m,m})$ or to $CP(m)$, for any $m$.
+  \item No two graphs of $\cS$ are isomorphic.
+ \end{pfenum}}
+ \repair\ ``The seven graphs'' presupposes that the three Chang graphs are pairwise
+ non-isomorphic, which the paper does not show (errata, Gap 12). We will separate them by their
+ 4-clique profiles (Computation C22), which the kernel can evaluate by extending cliques one
+ vertex at a time; their numbers of maximal cliques, used in SE6 of
+ \path{cgss/prerequisites.md}, can be enumerated in the same way, but every clique found must
+ then be checked for maximality, which costs the kernel much more.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The parameters separate all pairs except the ones sharing $(n,k)$, and C22 separates
+ those.
+ \step{s414sevparams}{Each $Z\in\cS$ is represented in $\typ E_8$, and is strongly regular with
+  parameters $(28,12,6,4)$ (Chang), $(27,16,10,8)$, $(16,6,2,2)$, $(16,10,6,6)$ and $(10,3,0,1)$.}
+ \begin{proof}\pf\ Examples~\ref{ex:4.5} to~\ref{ex:4.9}, and
+  Computation~\ref{comp:C9}.~\qed\end{proof}
+ \step{s414sevconn}{Each $Z\in\cS$ is connected.}
+ \begin{proof}\pf\ In each case $c\ge1$ by \stepref{s414sevparams}, so any two distinct
+  non-adjacent vertices have a common neighbour.~\qed\end{proof}
+ \step{s414sevlmin}{$\lambda_{\min}(Z)=-2$ for each $Z\in\cS$.}
+ \begin{proof}\pf\ $Z$ is represented in $\Phi(\typ E_8)\sbs\re^8$ (\stepref{s414sevparams}), a
+  space of dimension $8<10\le|V(Z)|$; apply Lemma~\ref{lem:4-gram}, assertion
+  2.~\qed\end{proof}
+ \step{s414sevpar}{$L(K_m)$ has $\binom m2$ vertices and valency $2(m-2)$, $L(K_{m,m})$ has $m^2$
+  vertices and valency $2(m-1)$, and $CP(m)$ has $2m$ vertices and valency $2m-2$.}
+ \begin{proof}\pf\ An edge $\{i,j\}$ of $K_m$ meets the $2(m-2)$ edges $\{i,l\}$, $\{j,l\}$; an
+  edge of $K_{m,m}$ meets $m-1$ others at each end; and Definition~\ref{def:CP}.~\qed\end{proof}
+ \step{s414sevnum}{The Schl\"afli, Clebsch and Petersen graphs are isomorphic to none of $L(K_m)$,
+  $L(K_{m,m})$, $CP(m)$, and the Chang and Shrikhande graphs to no $CP(m)$.}
+ \begin{proof}\pf\ Compare \stepref{s414sevparams} with \stepref{s414sevpar}. For 27 vertices,
+  $\binom m2=27$, $m^2=27$ and $2m=27$ have no solution. For 16 vertices, $\binom m2=16$ has none,
+  and $m^2=16$, $2m=16$ give valencies 6 and 14, not 10. For 10 vertices, $\binom m2=10$ gives
+  valency 6, $m^2=10$ has no solution and $2m=10$ gives 8, not 3. Finally $2m=28$ and $2m=16$
+  give valencies 26 and 14, not 12 and 6.~\qed\end{proof}
+ \step{s414sevchang}{The Chang graphs I, II and III and $T(8)$ are pairwise non-isomorphic.}
+ \begin{proof}\pf\ Their 4-clique profiles differ (Computation~\ref{comp:C22}, assertion 4), and
+  an isomorphism preserves the profile (\path{SimpleGraph.Iso.cliqueProfile_eq}).~\qed\end{proof}
+ \step{s414sevshr}{The Shrikhande graph is not isomorphic to $L(K_{4,4})$.}
+ \begin{proof}\pf\ By Computation~\ref{comp:C22}, assertion 5, $L(K_{4,4})$ has a 4-clique; an
+  isomorphism from $L(K_{4,4})$ to the Shrikhande graph would map it to a 4-clique
+  (\path{SimpleGraph.IsNClique.map}), which the Shrikhande graph does not have.~\qed\end{proof}
+ \step{s414sevlk}{No Chang graph is isomorphic to $L(K_{m,m})$ or to $L(K_m)$ with $m\ne8$, and the
+  Shrikhande graph is isomorphic to no $L(K_m)$ and to no $L(K_{m,m})$ with $m\ne4$.}
+ \begin{proof}\pf\ By \stepref{s414sevparams} and \stepref{s414sevpar}: $m^2=28$ has no solution,
+  $\binom m2=28$ only $m=8$, $\binom m2=16$ none, and $m^2=16$ only $m=4$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Assertion 1 is \stepref{s414sevparams}, \stepref{s414sevconn} and
+  \stepref{s414sevlmin}; assertion 2 is \stepref{s414sevnum}, \stepref{s414sevlk},
+  \stepref{s414sevchang} and \stepref{s414sevshr}. For assertion 3, an isomorphism preserves
+  $(n,k)$, and by \stepref{s414sevparams} only the Chang graphs share it; apply
+  \stepref{s414sevchang}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Corollary}{(the seven graphs are not line graphs)}\label{cor:414-notline}
+ \lean{SimpleGraph.seidelSeven_not_iso_lineGraph}
+ \uses{prop:414-seven,lem:414-linegraph}
+ \assume{$\cS$ is the list of the seven graphs of Proposition~\ref{prop:414-seven}, and $Y$ is a
+ graph, possibly infinite or with isolated vertices.}
+ \prove{No $Z\in\cS$ is isomorphic to $L(Y)$.}
+ This is the claim of the paper, before Example 4.5, that these strongly regular graphs are not
+ line graphs.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will apply Lemma~\ref{lem:414-linegraph}; assertion 2 of
+ Proposition~\ref{prop:414-seven} excludes both of its alternatives.
+ \step{s414nlcase}{\assume{$Z\in\cS$ and $Z\cong L(Y)$.}\prove{A contradiction.}}
+ \begin{proof}
+  \step{s414nldet}{$Z$ is connected and strongly regular, and $\det(2I+A(Z))=0$.}
+  \begin{proof}\pf\ Proposition~\ref{prop:414-seven}, assertion 1, with $Z\in\cS$ by \asm{1};
+   since $\lambda_{\min}(Z)=-2$ is an eigenvalue of $A(Z)$, the matrix $2I+A(Z)$ is
+   singular.~\qed\end{proof}
+  \step{s414nllg}{$Z\cong L(K_m)$ or $Z\cong L(K_{m,m})$ for some $m\ge2$.}
+  \begin{proof}\pf\ Lemma~\ref{lem:414-linegraph}, with \stepref{s414nldet} and
+   \asm{1}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Proposition~\ref{prop:414-seven}, assertion 2, excludes both alternatives
+   of \stepref{s414nllg}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{s414nlcase} applies to every $Z\in\cS$.~\qed\end{proof}
+\end{proof}
+
+\subsubsection*{The classification}
+
+\begin{namedresult}{Remark}{4.14, restated}\label{rem:414-proof}
+ \lean{SimpleGraph.seidel_seven_classification}
+ \uses{rem:4.14,def:represented,def:CP,def:3.2,def:3.3,lem:4-gramfactor,lem:4-transport,lem:4-regglg,thm:4.1,thm:4.2,thm:4.4,thm:3.5,lem:sec3-transport,lem:sec3-spans,lem:414-CP,lem:414-srg,comp:C18,lem:414-linegraph,lem:414-lattice,lem:414-apex,lem:414-dual,comp:C21,comp:414-Nc,lem:414-transversal,lem:414-E6,lem:414-E7,lem:414-E8,lem:414-SE2,lem:414-SE3,comp:414-models,prop:414-seven,facts:414}
+ \assume{\begin{pfenum}
+  \item $X$ is a connected graph, strongly regular with parameters $(n,k,a,c)$.
+  \item $\lambda_{\min}(X)=-2$.
+  \item $X$ is represented in $\typ E_8$ by $(\Zx_u)$.
+  \item For no $m$ is $X$ isomorphic to $L(K_m)$, to $L(K_{m,m})$ or to $CP(m)$.
+ \end{pfenum}}
+ \prove{\begin{pfenum}
+  \item $X$ is isomorphic to exactly one of the Chang graphs I, II and III, the Schl\"afli graph,
+   the Shrikhande graph, the Clebsch graph and the Petersen graph.
+  \item These seven graphs satisfy hypotheses 1 to 4.
+ \end{pfenum}}
+ \new\ The paper cites Seidel [19] and gives no proof. We follow the route of
+ \path{cgss/prerequisites.md}, Section 7.3 (decision 3 of its Section 13); the departures are
+ tagged in the lemmas above. \repair\ The proof fills Gap 12 (errata): it proves the
+ classification, and ``exactly one'' is the non-isomorphism of Proposition~\ref{prop:414-seven}.
+ In Lean, the statement \texttt{seidel\_seven} of Remark~\ref{rem:4.14} is the
+ conjunction of \texttt{seidel\_seven\_classification}, of
+ \texttt{seidel\_seven\_pairwise\_not\_iso} and of \texttt{seidel\_seven\_properties}
+ (Proposition~\ref{prop:414-seven}), all four in the namespace \texttt{SimpleGraph}; Lean
+ names are unique, so the two results carry different ones.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will pin down the parameters, find the type of the lattice roots $R$, exclude the
+ types $\typ A$ and $\typ D$ by the line graph theorems, exclude two parameter sets by the
+ integrality of the apex, and identify the remaining five cases by switching and by uniqueness.
+ \pflet{$A=A(X)$, $Q=2I+A$, $\rho=\rk Q$, and let $\Lambda$, $W$, $R$ be as in
+ Lemma~\ref{lem:414-lattice} and $\Zw$ as in Lemma~\ref{lem:414-apex} for $(\Zx_u)$.}
+ \step{s414mdet}{$n\ge1$ and $\det Q=0$.}
+ \begin{proof}\pf\ A connected graph has a vertex; \asm[2]{0} and
+  \path{SimpleGraph.leastEigenvalue_eq_neg_two_iff}.~\qed\end{proof}
+ \step{s414mbounds}{$n\le28$ and $k\le16$.}
+ \begin{proof}\pf\ Theorem~\ref{thm:4.4}, with \asm[1]{0}, \asm[3]{0} and
+  \stepref{s414mdet}.~\qed\end{proof}
+ \step{s414mrank}{$\rho=\dim W\le8$.}
+ \begin{proof}\pf\ $Q$ is the Gram matrix of $(\Zx_u)$, so $\rho=\dim W$ by
+  Lemma~\ref{lem:4-gramfactor}, assertion 1; and $W\sbs\re^8$
+  (\path{Submodule.finrank_le}).~\qed\end{proof}
+ \step{s414msrg}{$1\le k\le n-2$, $a\le k-1$, $1\le c\le k$, and conditions 2 to 4 of
+  Computation~\ref{comp:C18} hold.}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-srg} with \asm[1]{0} and \stepref{s414mdet}.~\qed\end{proof}
+ \step{s414mparam}{$k(k-a-1)=c(n-k-1)$, condition 1 of Computation~\ref{comp:C18}.}
+ \begin{proof}\pf\ \path{SimpleGraph.IsSRGWith.param_eq}, which needs $0<n$ (\stepref{s414mdet});
+  it is stated in $\mathbb N$ with truncated subtraction, and by \stepref{s414msrg} neither
+  $k-a-1$ nor $n-k-1$ is truncated.~\qed\end{proof}
+ \step{s414mCeighteen}{$(n,k,a,c,\rho)$ is one of the 15 tuples of Computation C18.}
+ \begin{proof}\pf\ Computation~\ref{comp:C18}: its hypotheses are \stepref{s414msrg},
+  \stepref{s414mparam}, and $n\le28\le36$, $k\le16$ and $\rho\le8$ from \stepref{s414mbounds} and
+  \stepref{s414mrank}.~\qed\end{proof}
+ \step{s414mnotCP}{$(n,k,a,c)\ne(2m,2m-2,2m-4,2m-2)$ for every $m$.}
+ \begin{proof}\pf\ Otherwise $X$ is $(2m-2)$-regular on $2m$ vertices, and $X\cong CP(m)$ by
+  Lemma~\ref{lem:414-CP}, against \asm[4]{0}.~\qed\end{proof}
+ \step{s414mR}{$R$ is a nonempty, indecomposable, star-closed line system spanning $W$, and $X$
+  is represented in $R$ by $(\Zx_u)$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-lattice}, with \asm[1]{0} and \asm[3]{0}.~\qed\end{proof}
+ \step{s414mtype}{\pick\ a type $\tau$ among $\typ A_\ell$ ($\ell\ge1$), $\typ D_\ell$
+  ($\ell\ge4$), $\typ E_6$, $\typ E_7$, $\typ E_8$, and a bijection $f:\Phi(R)\to\Phi(\tau)$
+  preserving inner products.}
+ \begin{proof}\pf\ Theorem~\ref{thm:3.5} with \stepref{s414mR}.~\qed\end{proof}
+ \step{s414mspan}{\pick\ a linear isometry $F$ from $W$ onto $\opk{span}\Phi(\tau)$ that extends
+  $f$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:sec3-transport} with \stepref{s414mtype}, since $\Phi(R)$ spans
+  $W$ (\stepref{s414mR}).~\qed\end{proof}
+ \step{s414mrk}{The rank of $\tau$ is $\rho$.}
+ \begin{proof}\pf\ $F$ of \stepref{s414mspan} is an isometry onto $\opk{span}\Phi(\tau)$, and
+  $\dim W=\rho$ by \stepref{s414mrank}.~\qed\end{proof}
+ \step{s414mAD}{\assume{$\tau$ is $\typ A_\ell$ or $\typ D_\ell$.}\prove{A contradiction.}}
+ \begin{proof}
+  \step{s414mA}{\case{$\tau=\typ A_\ell$.}\prove{$X\cong L(Y)$ for some graph $Y$.}}
+  \begin{proof}\pf\ $X$ is represented in $\typ A_\ell$ by Lemma~\ref{lem:4-transport} with $f$
+   and \stepref{s414mR}; apply Theorem~\ref{thm:4.1}.~\qed\end{proof}
+  \step{s414mD}{\case{$\tau=\typ D_\ell$.}\prove{$X\cong L(Y)$ for some graph $Y$, or $X\cong
+   CP(b)$ for some $b$.}}
+  \begin{proof}\pf\ $X$ is represented in $\typ D_\ell$ by Lemma~\ref{lem:4-transport} with $f$
+   and \stepref{s414mR}, so it is a generalized line graph by Theorem~\ref{thm:4.2}, assertion 1;
+   it is connected and regular by \asm[1]{0}, so apply
+   Lemma~\ref{lem:4-regglg}.~\qed\end{proof}
+  \step{s414mnotL}{$X\not\cong L(Y)$ for every graph $Y$.}
+  \begin{proof}\pf\ Otherwise Lemma~\ref{lem:414-linegraph}, with \asm[1]{0} and
+   \stepref{s414mdet}, gives $X\cong L(K_m)$ or $L(K_{m,m})$, against \asm[4]{0}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ In both cases \stepref{s414mA}, \stepref{s414mD}, the conclusion contradicts
+   \stepref{s414mnotL} or \asm[4]{0}.~\qed\end{proof}
+ \end{proof}
+ \step{s414mE}{$\tau=\typ E_t$ with $t=\rho\in\{6,7,8\}$, and $(n,k,a,c)$ is one of
+  $(10,3,0,1)$, $(15,8,4,4)$, $(16,10,6,6)$ (for $t=6$), $(16,6,2,2)$, $(21,10,5,4)$,
+  $(27,16,10,8)$ (for $t=7$) and $(28,12,6,4)$ (for $t=8$).}
+ \begin{proof}\pf\ By \stepref{s414mAD}, $\tau$ is one of $\typ E_6$, $\typ E_7$, $\typ E_8$, of
+  ranks 6, 7, 8 (Lemma~\ref{lem:sec3-spans}), so $t=\rho$ by \stepref{s414mrk}. Of the 15
+  tuples of \stepref{s414mCeighteen}, \stepref{s414mnotCP} removes six, and $\rho\in\{6,7,8\}$
+  removes $(9,4,1,2,5)$ and $(10,6,3,4,5)$.~\qed\end{proof}
+ \step{s414mint}{$\det(B_t)\,n/(k+2)$ is an integer, where $\det B_t$ is 3, 2, 1 for $t=6,7,8$.}
+ \begin{proof}
+  \step{s414mbasis}{\pick\ $\Zb_i=F^{-1}(\Zs_i)$, $1\le i\le t$, with the roots $\Zs_i$ of
+   Computation C21; they lie in $\Phi(R)$ and form a basis of $W$ with Gram matrix $B_t$.}
+  \begin{proof}\pf\ Computation~\ref{comp:C21} gives the $\Zs_i$, a basis of
+   $\opk{span}\Phi(\typ E_t)$; $F^{-1}$ is a surjective linear isometry onto $W$ that maps
+   $\Phi(\typ E_t)$ onto $\Phi(R)$ (\stepref{s414mtype} and
+   \stepref{s414mspan}).~\qed\end{proof}
+  \step{s414mwb}{$\Zw\in W$, $(\Zw,\Zb_i)\in\ints$ for every $i$, and $(\Zw,\Zw)=n/(k+2)$.}
+  \begin{proof}\pf\ Lemma~\ref{lem:414-apex}, with \asm[1]{0} and \stepref{s414mdet}; the $\Zb_i$
+   lie in $\Phi(R)\sbs \Lambda$ by \stepref{s414mbasis}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Lemma~\ref{lem:414-dual}, with \stepref{s414mbasis} and \stepref{s414mwb};
+   the determinants are those of Computation~\ref{comp:C21}.~\qed\end{proof}
+ \end{proof}
+ \step{s414mexcl}{$(n,k,a,c)$ is neither $(15,8,4,4)$ nor $(21,10,5,4)$.}
+ \begin{proof}\pf\ These have $t=6$ and $t=7$ by \stepref{s414mE}, and
+  $3\cdot\frac{15}{10}=\frac92$ and $2\cdot\frac{21}{12}=\frac72$ are not integers, against
+  \stepref{s414mint}.~\qed\end{proof}
+ \step{s414mclebsch}{\case{$(n,k,a,c)=(16,10,6,6)$.}\prove{$X$ is isomorphic to the Clebsch
+  graph.}}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-SE2} with \asm[1]{0}.~\qed\end{proof}
+ \step{s414mschlafli}{\case{$(n,k,a,c)=(27,16,10,8)$.}\prove{$X$ is isomorphic to the Schl\"afli
+  graph.}}
+ \begin{proof}\pf\ Lemma~\ref{lem:414-SE3} with \asm[1]{0}.~\qed\end{proof}
+ \step{s414mpet}{\case{$(n,k,a,c)=(10,3,0,1)$.}\prove{$X$ is isomorphic to the Petersen graph.}}
+ \begin{proof}
+  \step{s414mpetsw}{$X\cong L(\Delta_6)^H$ for some $H\sbs\Ecal_6$.}
+  \begin{proof}\pf\ $t=6$ by \stepref{s414mE}, $(\Zw,\Zw)=10/5=2$ by Lemma~\ref{lem:414-apex}, and
+   $n=10=|\Ecal_6|$ by Computation~\ref{comp:414-Nc}; apply Lemma~\ref{lem:414-transversal} with
+   \asm[1]{0} and $f$ of \stepref{s414mtype}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $L(\Delta_6)^H\cong X$ is 3-regular by \stepref{s414mpetsw}; apply
+   Lemma~\ref{lem:414-E6}.~\qed\end{proof}
+ \end{proof}
+ \step{s414mshr}{\case{$(n,k,a,c)=(16,6,2,2)$.}\prove{$X$ is isomorphic to the Shrikhande
+  graph.}}
+ \begin{proof}
+  \step{s414mshrsw}{$X\cong L(\Delta_7)^H$ for some $H\sbs\Ecal_7$.}
+  \begin{proof}\pf\ $t=7$ by \stepref{s414mE}, $(\Zw,\Zw)=16/8=2$ by Lemma~\ref{lem:414-apex},
+   and $n=16=|\Ecal_7|$ by Computation~\ref{comp:414-Nc}; apply Lemma~\ref{lem:414-transversal}
+   with \asm[1]{0} and $f$ of \stepref{s414mtype}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $L(\Delta_7)^H\cong X$ is 6-regular by \stepref{s414mshrsw}, so it is the
+   Shrikhande graph or $L(K_{4,4})$ by Lemma~\ref{lem:414-E7}; the latter is excluded by
+   \asm[4]{0}.~\qed\end{proof}
+ \end{proof}
+ \step{s414mchang}{\case{$(n,k,a,c)=(28,12,6,4)$.}\prove{$X$ is isomorphic to one of the Chang
+  graphs.}}
+ \begin{proof}
+  \step{s414mchangsw}{$X\cong L(\Delta_8)^H$ for some $H\sbs\Ecal_8$.}
+  \begin{proof}\pf\ $t=8$ by \stepref{s414mE}, $(\Zw,\Zw)=28/14=2$ by Lemma~\ref{lem:414-apex},
+   and $n=28=|\Ecal_8|$ by Computation~\ref{comp:414-Nc}; apply Lemma~\ref{lem:414-transversal}
+   with \asm[1]{0} and $f$ of \stepref{s414mtype}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $L(\Delta_8)^H\cong X$ is 12-regular by \stepref{s414mchangsw}, so it is $T(8)$ or
+   a Chang graph by Lemma~\ref{lem:414-E8}; $T(8)=L(K_8)$ is excluded by
+   \asm[4]{0}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s414mE} and \stepref{s414mexcl}, the cases \stepref{s414mclebsch},
+  \stepref{s414mschlafli}, \stepref{s414mpet}, \stepref{s414mshr} and \stepref{s414mchang} are
+  exhaustive, and each gives one of the seven graphs; it is only one of them by
+  Proposition~\ref{prop:414-seven}, assertion 3. Assertion 2 is
+  Proposition~\ref{prop:414-seven}, assertions 1 and 2.~\qed\end{proof}
+\end{proof}
+
+\medskip\noindent\textbf{What the proof relies on.}
+Besides Sections 2 to 4, the proof uses the computations C4 (with its transitivity on ordered
+stars),
+C9 (with its two certificate isomorphisms), C18, C20 (at the apex), C21 and C22, and the classification SE4 of
+\path{cgss/proofs/reg8/reg8.tex}. All of it is in the Lean formalization
+(\path{LineGraphs/Seidel/}, \path{LineGraphs/Computations/C18.lean}, \path{LineGraphs/Computations/C22.lean} and its data files): C18 as a
+checked search, C22's fourteen isomorphism certificates with the clique profiles and counts, SE4
+by a case split with checked certificates, and the restated remark as
+\path{SimpleGraph.seidel_seven_classification} and \path{SimpleGraph.seidel_seven}.
+
+\endgroup

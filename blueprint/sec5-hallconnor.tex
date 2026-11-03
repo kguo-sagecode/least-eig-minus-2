@@ -1,0 +1,2194 @@
+\subsection{The Hall--Connor nonexistence theorem}\label{hc:sec:main}
+\begin{mergedproofsection}
+\raggedbottom
+
+We will follow the ordinary proof of
+\path{cgss/proofs/hallconnor/hallconnor.tex}. The argument proves the
+nonexistence assertion used in Remark 5.12 and Example 5.13 of
+\cite{CGSS}, together with its complementary parameters. We use
+Hall and Connor's argument \cite{HC}, including proofs of the instances
+they take from Connor. We have not consulted Connor's paper directly.
+We omit the two comparison remarks of the ordinary proof, which the
+argument does not use.
+
+We follow the blueprint conventions and Lamport \cite{L95}:
+\textsc{Assume} introduces hypotheses, \textsc{Prove} the conclusion,
+\textsc{Let} a definition, and \textsc{Pick} a witness.
+Each numbered step has a proof. A reference $\langle0\rangle{:}i$
+means hypothesis $i$ of the result; $\langle k\rangle$ means the
+assumption of the enclosing level-$k$ step. Closing \textsc{Qed}
+steps state why the preceding steps suffice. The tags \new\ and
+\repair\ mark a change of argument and a filled gap, respectively.
+The no-op commands \verb|\lean| and \verb|\uses| record the Lean
+declarations and the direct dependencies.
+
+We use the notation of \path{cgss/notation.md}, Sections 7 and 10:
+\texttt{Design P B v k b r lam}, \path{D.incMatrix}, and \path{D.compl}.
+The Hall--Connor names not listed individually there retain the names
+of the ordinary proof, following the namespace and
+naming rules of Section 10. Points and block labels are separate finite
+types with decidable equality. All sets used in counts are finite sets;
+their cardinalities are natural numbers. Moment identities and
+subtractions in weighted sums are evaluated in $\ints$ or $\rats$,
+never by truncated natural subtraction. Matrix entries are $M(u,w)$.
+We write $I_U$ for the identity, $J_{U,V}$ for the all-ones matrix,
+and $\Zj_U$ for the all-ones vector. Omitted index types are determined
+by the products. All ranks are over $\rats$.
+
+\subsubsection{Definitions and Mathlib inputs}
+
+\begin{namedresult}{Definition}{(labelled designs)}\label{hc:def:design}
+ \lean{Design}\lean{Design.IsSymmetric}\uses{}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $v,k,b,r,\lambda\in\nn$, with $v>1$, $k>1$, and $b>0$.
+ \end{pfenum}}
+ A design $D$ with these parameters consists of a function
+ $B\mapsto D(B)\subseteq P$ such that
+ \[
+ \begin{gathered}
+ |P|=v,\quad |\cB|=b,\quad |D(B)|=k\quad(B\in\cB),\\
+ |\{B:p\in D(B)\}|=r\quad(p\in P),\\
+ |\{B:p,q\in D(B)\}|=\lambda\quad(p,q\in P,\ p\ne q).
+ \end{gathered}
+ \]
+ We write $p\in B$ for $p\in D(B)$; the map $D$ need not be injective.
+ The predicate $D.\mathrm{IsSymmetric}$ means $v=b$.
+ In Lean the parameter names are \texttt{v k b r lam}; any positivity
+ fields of the shared interface are satisfied by the parameters here.
+\end{namedresult}
+
+\begin{namedresult}{Definition}{(incidence and block matrices)}\label{hc:def:matrices}
+ \lean{Design.incMatrix}\lean{Design.G}\lean{Design.C}\uses{hc:def:design}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(v,k,b,r,\lambda)$.
+ \end{pfenum}}
+ \pflet{$N\triangleq D.\mathrm{incMatrix}\in\mat{P}{\cB}{\ints}$, where}
+ \[
+ N(p,B)\triangleq\begin{cases}1,&p\in B,\\0,&p\notin B.\end{cases}
+ \]
+ Write $N_{\rats}$ for its entrywise rational cast. Put
+ $G\triangleq N_{\rats}^TN_{\rats}$ and
+ $C\triangleq35I_{\cB}-7G+10J_{\cB}$, both over $\rats$.
+ A product containing $G$ or $C$ uses $N_{\rats}$; we abbreviate it
+ by $N$ in rational calculations. Products asserted integral use the
+ original $N$.
+\end{namedresult}
+
+\begin{namedresult}{Definition}{(the block graph and all six-cliques)}\label{hc:def:graph}
+ \lean{Design.Z}\lean{Design.sixCliques}\uses{hc:def:design}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(v,k,b,r,\lambda)$.
+ \end{pfenum}}
+ \pflet{$Z$ be the simple graph on $\cB$ with}
+ \[
+ B\sim B'\quad\Longleftrightarrow\quad B\ne B'\ \text{and}\ |B\cap B'|=1.
+ \]
+ Here $B\cap B'$ means $D(B)\cap D(B')$.
+ Put $\Gamma(B)\triangleq\{B':B\sim B'\}$ and
+ \[
+ \cS\triangleq D.\mathrm{sixCliques}
+   \triangleq\{S\subseteq\cB:|S|=6\ \text{and}\
+      \forall X,Y\in S,\ X\ne Y\Rightarrow X\sim Y\}.
+ \]
+ Thus $\cS$ is the finite set of \emph{all} six-cliques, not a choice
+ of local cliques. Its members form a finite subtype when used as indices.
+\end{namedresult}
+
+\begingroup\raggedright
+\paragraph{Finite counting and order.}\factlabel{F1}{hc:facts:finite}
+\uses{}
+All declarations below were checked in Mathlib at commit
+\path{082e2d37} (4 September 2026), the version pinned in
+\path{lake-manifest.json}; paths are relative to \path{Mathlib/}. Finite double counting is
+interchange of indicator sums, followed by grouping fibres:
+\begin{itemize}
+ \item \path{Finset.sum_comm}, in
+ \path{Algebra/BigOperators/Group/Finset/Sigma.lean};
+ \item \path{Finset.card_eq_sum_card_fiberwise}, in
+ \path{Algebra/BigOperators/Group/Finset/Basic.lean};
+ \item \path{Finset.card_sdiff_of_subset},
+ \path{Finset.card_union_add_card_inter},
+ \path{Finset.eq_of_subset_of_card_le}, \path{Finset.card_pos}, and
+ \path{Finset.card_le_one}, \path{Finset.card_eq_one},
+ \path{Finset.card_eq_two}, \path{Finset.card_eq_three}, and
+ \path{Finset.card_image_of_injective}, in \path{Data/Finset/Card.lean};
+ \item \path{Fintype.bijective_iff_injective_and_card} and
+ \path{Fintype.equivFin}, in \path{Data/Fintype/EquivFin.lean};
+ \item \path{Fintype.card_sum}, in \path{Data/Fintype/Sum.lean},
+ and \path{Fintype.card_option}, in \path{Data/Fintype/Option.lean};
+ \item \path{Fintype.sum_sum_type} and \path{Fintype.sum_option}, in
+ \path{Data/Fintype/BigOperators.lean};
+ \item \path{Finset.sum_eq_zero_iff_of_nonneg}, in
+ \path{Algebra/Order/BigOperators/Group/Finset.lean}.
+\end{itemize}
+The last declaration says that a sum of nonnegative terms is zero
+exactly when every term is zero. The equal-cardinality theorem turns
+an injection between finite types of equal size into a bijection.
+An enumeration of a finite subset is an equivalence to its subtype;
+its inclusion in the ambient type is injective. Integer and rational
+identities below use ring arithmetic, nonnegative squares, and finite
+sum distributivity. Small numerical tables are explicit computations.
+
+\paragraph{Matrix operations and reindexing.}\factlabel{F2}{hc:facts:matrix}
+\uses{}
+We use \path{Matrix.mul_apply}, \path{Matrix.mul_assoc},
+\path{Matrix.transpose_mul}, \path{Matrix.dotProduct_mulVec},
+\path{Matrix.mulVec_mulVec}, \path{Matrix.map_mul}, and
+\path{Matrix.submatrix_mul_equiv}, all in \path{Data/Matrix/Mul.lean}.
+The last identity says that, for
+an equivalence $e$ of the summed index type,
+\[
+ (A\mathbin{\mathrm{submatrix}}f\,e)
+ (B\mathbin{\mathrm{submatrix}}e\,g)
+       =(AB)\mathbin{\mathrm{submatrix}}f\,g.
+\]
+We also use \path{Matrix.transpose_map} and
+\path{Matrix.transpose_submatrix}, in
+\path{LinearAlgebra/Matrix/Defs.lean}, and \path{Matrix.map_one}, in
+\path{Data/Matrix/Diagonal.lean}. Applied to the ring homomorphism
+$\ints\to\rats$, these transport products, transposes, and $I$.
+The cast of $J$ is $J$ entrywise because $1$ maps to $1$; addition
+and scalar multiplication commute with the cast entrywise.
+
+\paragraph{Ranks and determinants.}\factlabel{F3}{hc:facts:rank}
+\uses{}
+The following declarations are in
+\path{LinearAlgebra/Matrix/Rank.lean}:
+\path{Matrix.rank_self_mul_transpose}, \path{Matrix.rank_transpose},
+\path{Matrix.rank_of_isUnit}, \path{Matrix.rank_of_det_ne_zero},
+\path{Matrix.rank_add_rank_le_card_of_mul_eq_zero}, and
+\path{Matrix.rank_submatrix_le}.
+The identity $\operatorname{rk}(NN^T)=\operatorname{rk}N$ applies over
+the linearly ordered field $\rats$; rank under transpose applies over
+a field. A nonzero determinant gives full rank. If $AB=0$, the sum
+of their ranks is at most the size of the shared index type.
+\path{Matrix.isUnit_iff_isUnit_det}, in
+\path{LinearAlgebra/Matrix/NonsingularInverse.lean}, turns a nonzero
+rational determinant into an invertible matrix.
+
+\paragraph{Determinant arithmetic.}\factlabel{F4}{hc:facts:det}
+\uses{}
+We use \path{Matrix.det_mul}, \path{Matrix.det_transpose},
+\path{Matrix.det_smul}, \path{Matrix.det_one}, and \path{Int.cast_det}, in
+\path{LinearAlgebra/Matrix/Determinant/Basic.lean}.
+We use the matrix determinant lemma
+\path{Matrix.det_one_add_replicateCol_mul_replicateRow}, in
+\path{LinearAlgebra/Matrix/SchurComplement.lean}, in the form
+$\det(I+\Zu\Zv^T)=1+\Zv^T\Zu$ (the shared singleton index is
+\texttt{Unit}). These give multiplicativity, scalar homogeneity,
+and compatibility with the cast $\ints\to\rats$. In particular, the
+determinant over $\rats$ of an integral matrix is the cast of its
+integer determinant. We do not use the analytic
+positive-semidefinite determinant theorem, whose scalar hypotheses
+do not include $\rats$.
+
+\paragraph{Integer divisibility.}\factlabel{F5}{hc:facts:prime}
+\uses{}
+We use \path{Prime.dvd_of_dvd_pow}, in \path{Algebra/Prime/Defs.lean},
+\path{Int.prime_iff_natAbs_prime}, in \path{RingTheory/Int/Basic.lean},
+and \path{Nat.prime_five}, in \path{Data/Nat/Prime/Defs.lean}.
+The last two prove that $5$ is prime in $\ints$; the first gives
+$5\mid d^2\Rightarrow5\mid d$ for $d\in\ints$.
+
+\par\endgroup
+
+\subsubsection{Counts and intersections}
+
+\begin{namedresult}{Lemma}{(the forced parameters)}\label{hc:lem:parameters}
+ \lean{Design.exists_of_pair_counts_15_5_2}
+ \uses{hc:def:design,hc:facts:finite}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality and $|P|=15$.
+  \item $F:\cB\to\operatorname{Finset}(P)$ has $|F(B)|=5$ for every $B$.
+  \item Each pair of distinct points lies in exactly two labelled blocks of $F$.
+ \end{pfenum}}
+ \prove{Every point is in seven labels, $|\cB|=21$, and
+ \[
+ \exists D:\texttt{Design P B 15 5 21 7 2},\
+       \forall B\in\cB,\ D.\mathrm{block}(B)=F(B).
+ \]
+ Here the Lean type variable \texttt{B} denotes $\cB$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will count first through one point, then over all points.
+ \step{hcParPoint}{\assume{$p\in P$.}
+  \prove{$r_p\triangleq|\{B:p\in F(B)\}|=7$.}}
+ \begin{proof}
+  \step{hcParBlocks}{The set of pairs $(q,B)$ with $q\ne p$ and
+   $p,q\in F(B)$ has size $4r_p$.}
+  \begin{proof}\pf\ For each of the $r_p$ labels, deleting $p$ from
+   its five points leaves four choices, by \asm[2]{0} and
+   the fibre count in \ref{hc:facts:finite}.~\qed\end{proof}
+  \step{hcParPairs}{The same set has size $28$.}
+  \begin{proof}\pf\ There are $15-1=14$ choices of $q$ and two labels
+   for each, by \asm[1]{0}, \asm[3]{0} and
+   \ref{hc:facts:finite}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The equality $4r_p=28$ from
+   \stepref{hcParBlocks} and \stepref{hcParPairs} gives $r_p=7$.~\qed\end{proof}
+ \end{proof}
+ \step{hcParTotal}{$5|\cB|=105$ and $|\cB|=21$.}
+ \begin{proof}\pf\ Count $(p,B)$ with $p\in F(B)$ by blocks and by
+  points, using \asm[1]{0}, \asm[2]{0}, \stepref{hcParPoint}, and
+  \ref{hc:facts:finite}: $5|\cB|=15\cdot7$. Division by five gives
+  the second assertion.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcParPoint} and \stepref{hcParTotal},
+  with \asm[1]{0}, \asm[2]{0}, and \asm[3]{0}, give every field of
+  Definition~\ref{hc:def:design}. Choose the structure with block
+  function $F$; its block equality is reflexivity, and
+  $15>1$, $5>1$, $21>0$ are numerical.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(incidence identities)}\label{hc:lem:incidence}
+ \lean{Design.incMatrix_mul_transpose_15_5_2}
+ \lean{Design.incMatrix_row_sum_15_5_2}\lean{Design.incMatrix_col_sum_15_5_2}
+ \lean{Design.G_apply}\lean{Design.G_mul_G}\lean{Design.G_mul_J}
+ \uses{hc:def:design,hc:def:matrices,hc:facts:finite,hc:facts:matrix}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{The integral incidence matrix has
+ \[
+ NN^T=5I_P+2J_P,\quad N\Zj_{\cB}=7\Zj_P,\quad
+ N^T\Zj_P=5\Zj_{\cB}.
+ \]
+ Over $\rats$, $G(B,B')=|B\cap B'|$, $G^T=G$, and
+ \[
+ G^2=5G+50J_{\cB},\quad GJ_{\cB}=J_{\cB}G=35J_{\cB},\quad
+ J_{\cB}^2=21J_{\cB}.
+ \]}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The matrix entries count points or labels; associativity
+ then gives the identities for $G$.
+ \step{hcIncDiag}{$(NN^T)(p,p)=7$ for every $p\in P$.}
+ \begin{proof}\pf\ By Definitions~\ref{hc:def:matrices} and
+  \ref{hc:def:design}, the entry is the sum of the squares of the
+  seven incidence indicators equal to one; use \ref{hc:facts:matrix}.~\qed\end{proof}
+ \step{hcIncOff}{\assume{$p,q\in P$ and $p\ne q$.}
+  \prove{$(NN^T)(p,q)=2$.}}
+ \begin{proof}\pf\ The product of the two indicators is one exactly
+  on labels containing $p,q$, of which there are two by
+  Definition~\ref{hc:def:design}; expand by \ref{hc:facts:matrix}.~\qed\end{proof}
+ \step{hcIncNN}{$NN^T=5I_P+2J_P$.}
+ \begin{proof}\pf\ Steps \stepref{hcIncDiag} and \stepref{hcIncOff}
+  treat the exhaustive alternatives $p=q$ and $p\ne q$.~\qed\end{proof}
+ \step{hcIncRow}{$N\Zj_{\cB}=7\Zj_P$.}
+ \begin{proof}\pf\ The row sum counts the seven labels on $p$,
+  by Definition~\ref{hc:def:design} and \ref{hc:facts:matrix}.~\qed\end{proof}
+ \step{hcIncCol}{$N^T\Zj_P=5\Zj_{\cB}$.}
+ \begin{proof}\pf\ The column sum counts the five points of a block,
+  by Definition~\ref{hc:def:design} and \ref{hc:facts:matrix}.~\qed\end{proof}
+ \step{hcIncG}{$G(B,B')=|B\cap B'|$ and $G^T=G$.}
+ \begin{proof}\pf\ In Definition~\ref{hc:def:matrices}, the summand
+  $N(p,B)N(p,B')$ is the intersection indicator. Its symmetry in
+  $B,B'$ gives symmetry of $G$, by \ref{hc:facts:matrix}.~\qed\end{proof}
+ \step{hcIncSquare}{$G^2=5G+50J_{\cB}$.}
+ \begin{proof}
+  \pf\ Cast \stepref{hcIncNN} and \stepref{hcIncCol} entrywise
+  using the product, transpose, and constant-matrix rules of
+  \ref{hc:facts:matrix}. Then
+  \begin{align*}
+   G^2&=N^T(NN^T)N &&\text{[\ref{hc:facts:matrix}]}\\
+      &=5G+2N^TJ_PN &&\text{[\stepref{hcIncNN}]}\\
+      &=5G+50J_{\cB} &&\text{[\stepref{hcIncCol}, $5\cdot5=25$].}
+  \end{align*}\qed
+ \end{proof}
+ \step{hcIncGJ}{$GJ_{\cB}=35J_{\cB}$.}
+ \begin{proof}\pf\ Steps \stepref{hcIncRow} and \stepref{hcIncCol}
+  give $G\Zj_{\cB}=N^T(7\Zj_P)=35\Zj_{\cB}$;
+  each column of $J$ is $\Zj$, by \ref{hc:facts:matrix}.~\qed\end{proof}
+ \step{hcIncJG}{$J_{\cB}G=35J_{\cB}$.}
+ \begin{proof}\pf\ Transpose \stepref{hcIncGJ}, using the symmetry
+  in \stepref{hcIncG} and \ref{hc:facts:matrix}.~\qed\end{proof}
+ \step{hcIncJJ}{$J_{\cB}^2=21J_{\cB}$.}
+ \begin{proof}\pf\ Each entry sums $|\cB|=21$ ones, by
+  Definition~\ref{hc:def:design} and \ref{hc:facts:matrix}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcIncNN}--\stepref{hcIncJJ}
+  give every asserted identity.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(intersection moments)}\label{hc:lem:moments}
+ \lean{Design.intersection_moments_15_5_2}
+ \uses{hc:def:design,hc:facts:finite}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality and
+  $D$ is a design with parameters $(15,5,21,7,2)$.
+  \item $B\in\cB$ and $n_i\triangleq|\{B'\ne B:|B\cap B'|=i\}|$ for $0\le i\le5$.
+ \end{pfenum}}
+ \prove{Over $\ints$,
+ $\sum_{i=0}^5n_i=20$, $\sum_{i=0}^5in_i=30$, and
+ $\sum_{i=0}^5i(i-1)n_i=20$.
+ In particular $\sum_{B'\ne B}|B\cap B'|=30$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will count labels, incidences, and ordered pairs of
+ distinct points. The moment statements will be cited outside this proof.
+ \step{hcMomZero}{$\sum_{i=0}^5n_i=20$.}
+ \begin{proof}\pf\ Intersection size is between zero and five;
+  the fibres partition the $21-1$ other labels, by
+  Definition~\ref{hc:def:design} and \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcMomOne}{$\sum_{i=0}^5in_i=30$ and
+  $\sum_{B'\ne B}|B\cap B'|=30$.}
+ \begin{proof}\pf\ Count $(p,B')$ with $p\in B\cap B'$ and $B'\ne B$.
+  For each of five points, six of its seven labels remain.
+  Grouping by $B'$ and then by $i$ gives both sums, using
+  Definition~\ref{hc:def:design} and \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcMomTwo}{$\sum_{i=0}^5i(i-1)n_i=20$.}
+ \begin{proof}\pf\ Count $(p,q,B')$ with $p,q\in B\cap B'$, $p\ne q$,
+  $B'\ne B$. Each of $5\cdot4$ ordered pairs in $B$ has exactly
+  one further label; a label with intersection size $i$ contributes
+  $i(i-1)$, using Definition~\ref{hc:def:design} and
+  \ref{hc:facts:finite}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcMomZero}, \stepref{hcMomOne},
+  and \stepref{hcMomTwo} prove the four assertions.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(block intersections)}\label{hc:lem:intersections}
+ \textup{[\cite{HC}, Lemma 4.1 at $k=5$.]}
+ \lean{Design.inter_card_eq_one_or_two}\lean{Design.card_neighbors}
+ \lean{Design.card_filter_inter_card_eq_two}
+ \uses{hc:def:design,hc:def:graph,hc:lem:moments,hc:facts:finite}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{Distinct labels meet in one or two points. Every block has
+ exactly ten other labels of each kind; in particular $|\Gamma(B)|=10$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ A nonnegative linear combination of the moments excludes
+ intersection sizes other than one and two.
+ \step{hcInterBlock}{\assume{$B\in\cB$, with $n_i$ as in
+  Lemma~\ref{hc:lem:moments}.}
+  \prove{Every other label meets $B$ in one or two points,
+  and exactly ten labels have each intersection size.}}
+ \begin{proof}
+  \step{hcInterPolynomial}{$\sum_{i=0}^5(i-1)(i-2)n_i=0$.}
+  \begin{proof}\pf\ The polynomial equals $i(i-1)-2i+2$;
+   Lemma~\ref{hc:lem:moments} gives $20-2\cdot30+2\cdot20=0$.~\qed\end{proof}
+  \step{hcInterSupport}{$n_0=n_3=n_4=n_5=0$.}
+  \begin{proof}
+   \step{hcInterCoeffs}{The coefficients $(i-1)(i-2)$, in order
+    $i=0,1,2,3,4,5$, are $2,0,0,2,6,12$.}
+   \begin{proof}\pf\ Direct integer substitution in the polynomial
+    of \stepref{hcInterPolynomial}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ The $n_i$ are nonnegative cardinalities.
+    Apply the zero-sum criterion of \ref{hc:facts:finite} to
+    \stepref{hcInterPolynomial} and \stepref{hcInterCoeffs}; the
+    four indicated coefficients are positive.~\qed\end{proof}
+  \end{proof}
+  \step{hcInterCounts}{$n_1=n_2=10$.}
+  \begin{proof}\pf\ Lemma~\ref{hc:lem:moments} and
+   \stepref{hcInterSupport} give $n_1+n_2=20$ and $n_1+2n_2=30$.
+   Subtract the equations.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The zero fibres of \stepref{hcInterSupport}
+   exclude the other intersection sizes; \stepref{hcInterCounts}
+   and Definition~\ref{hc:def:graph} give the multiplicities and degree.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{hcInterBlock} applies to every $B$;
+  Definition~\ref{hc:def:graph} identifies its ten one-point
+  intersections with $\Gamma(B)$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(common-neighbour counts)}\label{hc:lem:common}
+ \textup{[\cite{HC}, Lemma 4.2 at $k=5$.]}
+ \lean{Design.intersection_pair_counts}\lean{Design.card_commonNeighbors}
+ \uses{hc:def:design,hc:def:matrices,hc:def:graph,hc:lem:incidence,
+ hc:lem:moments,hc:lem:intersections,hc:facts:finite,hc:facts:matrix}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality and
+  $D$ is a design with parameters $(15,5,21,7,2)$.
+  \item $B_1\ne B_2$ are block labels, $s\triangleq|B_1\cap B_2|$, and
+  $x_{ij}\triangleq|\{B\notin\{B_1,B_2\}:|B_1\cap B|=i,\ |B_2\cap B|=j\}|$.
+ \end{pfenum}}
+ \prove{The four counts are
+ \[
+ \begin{array}{c|rrrr}
+ s&x_{11}&x_{12}&x_{21}&x_{22}\\\hline
+ 1&5&4&4&6\\2&4&6&6&3
+ \end{array}.
+ \]
+ Thus adjacent vertices have five common neighbours and distinct
+ nonadjacent vertices have four.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will expose the four filtered-sum equations, including
+ both terms removed from the entry of $G^2$, before solving them.
+ \step{hcCommonTotal}{The four fibres partition
+  $\cB\diff\{B_1,B_2\}$, and $x_{11}+x_{12}+x_{21}+x_{22}=19$.}
+ \begin{proof}\pf\ Lemma~\ref{hc:lem:intersections} partitions the
+  $21-2$ remaining labels into the four disjoint fibres; use
+  \asm[2]{0}, \ref{hc:facts:finite}, and
+  Definition~\ref{hc:def:design}.~\qed\end{proof}
+ \step{hcCommonFirst}{$x_{11}+x_{12}+2x_{21}+2x_{22}=30-s$.}
+ \begin{proof}\pf\ From the last conclusion of Lemma~\ref{hc:lem:moments}
+  for $B_1$, remove the term $B_2$ of size $s$. The four fibres have
+  first weights $1,1,2,2$, using \stepref{hcCommonTotal},
+  Lemma~\ref{hc:lem:intersections}, \asm[2]{0}, and \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcCommonSecond}{$x_{11}+2x_{12}+x_{21}+2x_{22}=30-s$.}
+ \begin{proof}\pf\ Apply Lemma~\ref{hc:lem:moments} to $B_2$ and remove
+  the term $B_1$ of size $s$. The second weights are $1,2,1,2$,
+  using \stepref{hcCommonTotal}, Lemma~\ref{hc:lem:intersections},
+  \asm[2]{0}, and \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcCommonProduct}{$x_{11}+2x_{12}+2x_{21}+4x_{22}=50-5s$.}
+ \begin{proof}
+  \step{hcCommonEntry}{$(G^2)(B_1,B_2)=5s+50$.}
+  \begin{proof}\pf\ Substitute $G(B_1,B_2)=s$ into the identity
+   $G^2=5G+50J$ of Lemma~\ref{hc:lem:incidence}.~\qed\end{proof}
+  \step{hcCommonRemoved}{The terms indexed by $B_1$ and $B_2$ in
+   $(G^2)(B_1,B_2)$ are each $5s$.}
+  \begin{proof}\pf\ The products are $G(B_1,B_1)G(B_1,B_2)$ and
+   $G(B_1,B_2)G(B_2,B_2)$; both diagonals equal five by
+   Definition~\ref{hc:def:design} and Lemma~\ref{hc:lem:incidence}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Expand the matrix entry using \ref{hc:facts:matrix},
+   remove the two distinct terms of \stepref{hcCommonRemoved} from
+   \stepref{hcCommonEntry}, then group the remaining terms by their
+   weights $ij$ using \stepref{hcCommonTotal},
+   Lemma~\ref{hc:lem:intersections}, \asm[2]{0}, and
+   \ref{hc:facts:finite}. This gives
+   $(5s+50)-10s=50-5s$.~\qed\end{proof}
+ \end{proof}
+ \step{hcCommonSolve}{$x_{22}=9-3s$, $x_{12}=x_{21}=2+2s$, and $x_{11}=6-s$.}
+ \begin{proof}\pf\ Subtract \stepref{hcCommonFirst} and
+  \stepref{hcCommonSecond} from \stepref{hcCommonProduct}, then add
+  \stepref{hcCommonTotal}, to get $x_{22}=9-3s$.
+  Subtract \stepref{hcCommonTotal} and this value from each weighted
+  marginal, then use the total for $x_{11}$.~\qed\end{proof}
+ \step{hcCommonOne}{\case{$s=1$.} The count vector is $(5,4,4,6)$.}
+ \begin{proof}\pf\ Substitute \asm{1} in \stepref{hcCommonSolve}.~\qed\end{proof}
+ \step{hcCommonTwo}{\case{$s=2$.} The count vector is $(4,6,6,3)$.}
+ \begin{proof}\pf\ Substitute \asm{1} in \stepref{hcCommonSolve}.~\qed\end{proof}
+ \step{hcCommonNeighbours}{$\Gamma(B_1)\cap\Gamma(B_2)$ is exactly
+  the $x_{11}$ fibre; $B_1\sim B_2$ if and only if $s=1$.}
+ \begin{proof}\pf\ By Definition~\ref{hc:def:graph}, membership
+  in both neighbourhoods is intersection size one with each block;
+  irreflexivity excludes $B_1,B_2$. Conversely the fibre excludes
+  these two labels and gives both adjacencies. For the pair itself,
+  \asm[2]{0} and Lemma~\ref{hc:lem:intersections} leave precisely
+  $s=1$ for adjacency and $s=2$ for nonadjacency.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Lemma~\ref{hc:lem:intersections} makes the cases
+  \stepref{hcCommonOne}, \stepref{hcCommonTwo} exhaustive.
+  Step \stepref{hcCommonNeighbours} identifies their $x_{11}$
+  counts with the asserted common-neighbour counts.~\qed\end{proof}
+\end{proof}
+
+\subsubsection{Connor's matrix and its rank}
+
+\begin{namedresult}{Lemma}{(a scalar matrix plus a constant matrix)}\label{hc:lem:det}
+ \lean{Matrix.det_smul_one_add_smul_J}
+ \uses{hc:facts:det}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $U$ is a finite type with decidable equality, $n=|U|\ge1$.
+  \item $\alpha,\beta\in\rats$ and $\alpha\ne0$.
+ \end{pfenum}}
+ \prove{$\det(\alpha I_U+\beta J_U)=\alpha^{n-1}(\alpha+n\beta)$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Factor out the nonzero scalar and apply the matrix
+ determinant lemma from \ref{hc:facts:det} to a rank-one product.
+ \step{hcDetFactor}{$\alpha I+\beta J=
+  \alpha\bigl(I+(\tfrac\beta\alpha\Zj_U)\Zj_U^T\bigr)$.}
+ \begin{proof}\pf\ Every entry of $\Zj_U\Zj_U^T$ is one.
+  Distribute $\alpha$ and cancel $\alpha\ne0$ from \asm[2]{0}.~\qed\end{proof}
+ \step{hcDetRankOne}{\new\ $\det\bigl(I+(\tfrac\beta\alpha\Zj_U)\Zj_U^T\bigr)
+  =1+n\tfrac\beta\alpha$.}
+ \begin{proof}\pf\ Apply
+  \path{Matrix.det_one_add_replicateCol_mul_replicateRow}
+  from \ref{hc:facts:det}, with singleton index \texttt{Unit},
+  $\Zu=\tfrac\beta\alpha\Zj_U$, and $\Zv=\Zj_U$.
+  The dot product sums $n$ copies of $\beta/\alpha$.~\qed\end{proof}
+ \step{hcDetScale}{$\det(\alpha I+\beta J)=\alpha^{n-1}(\alpha+n\beta)$.}
+ \begin{proof}\pf\ By \path{Matrix.det_smul} in \ref{hc:facts:det},
+  steps \stepref{hcDetFactor} and \stepref{hcDetRankOne} give
+  $\alpha^n(1+n\beta/\alpha)$.
+  Use $n=(n-1)+1$ from \asm[1]{0} and cancel $\alpha\ne0$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{hcDetScale}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(Connor identities and entries)}\label{hc:lem:Connor}
+ \lean{Design.C_transpose}\lean{Design.C_apply}
+ \lean{Design.C_mul_C}\lean{Design.C_mul_incMatrix_transpose}
+ \uses{hc:def:design,hc:def:matrices,hc:def:graph,hc:lem:incidence,
+ hc:lem:intersections,hc:facts:matrix}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{Over $\rats$, $C^T=C$, $C^2=35C$, $CN^T=0$, and
+ \[
+ C(B,B')=\begin{cases}
+ 10,&B=B',\\3,&B\sim B',\\-4,&B\ne B'\text{ and }B\not\sim B'.
+ \end{cases}
+ \]}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will substitute the identities for $G$ into
+ $C=35I-7G+10J$ and check its three entry types separately.
+ \step{hcCSym}{$C^T=C$.}
+ \begin{proof}\pf\ $I,J,G$ are symmetric by
+  Lemma~\ref{hc:lem:incidence}; transpose the defining linear
+  combination in Definition~\ref{hc:def:matrices}.~\qed\end{proof}
+ \step{hcCDiag}{\assume{$B=B'$.}\prove{$C(B,B')=10$.}}
+ \begin{proof}\pf\ Lemma~\ref{hc:lem:incidence} and
+  Definition~\ref{hc:def:design} give $G(B,B)=5$, so
+  Definition~\ref{hc:def:matrices} gives $35-7\cdot5+10=10$.~\qed\end{proof}
+ \step{hcCAdj}{\assume{$B\sim B'$.}\prove{$C(B,B')=3$.}}
+ \begin{proof}\pf\ Definition~\ref{hc:def:graph} gives distinct
+  labels and intersection size one. Definition~\ref{hc:def:matrices}
+  and Lemma~\ref{hc:lem:incidence} give $0-7\cdot1+10=3$.~\qed\end{proof}
+ \step{hcCNonadj}{\assume{$B\ne B'$ and $B\not\sim B'$.}
+  \prove{$C(B,B')=-4$.}}
+ \begin{proof}\pf\ Lemma~\ref{hc:lem:intersections} and
+  Definition~\ref{hc:def:graph} force intersection size two.
+  Definition~\ref{hc:def:matrices} gives $0-7\cdot2+10=-4$.~\qed\end{proof}
+ \step{hcCSquare}{$C^2=35C$.}
+ \begin{proof}
+  \pf\ In the following calculation $I,G,J$ are indexed by $\cB$:
+  \begin{align*}
+   C^2&=1225I+49G^2+100J^2-490G+700J-140GJ
+     &&\text{[\ref{hc:lem:incidence}, $GJ=JG$]}\\
+   &=1225I+49(5G+50J)-490G-2100J
+     &&\text{[\ref{hc:lem:incidence}, arithmetic]}\\
+   &=1225I-245G+350J &&\text{[ring arithmetic]}\\
+   &=35C &&\text{[\ref{hc:def:matrices}].}
+  \end{align*}\qed
+ \end{proof}
+ \step{hcCZero}{$CN^T=0$.}
+ \begin{proof}
+  \step{hcCOnes}{$N^TJ_P=5J_{\cB,P}$ and $J_{\cB}N^T=7J_{\cB,P}$.}
+  \begin{proof}\pf\ Each entry in the first product is a column
+   sum of $N$, and each in the second a row sum; apply
+   Lemma~\ref{hc:lem:incidence} and \ref{hc:facts:matrix}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ By associativity from \ref{hc:facts:matrix},
+   \begin{align*}
+    CN^T&=35N^T-7N^T(NN^T)+10J_{\cB}N^T
+      &&\text{[\ref{hc:def:matrices}]}\\
+    &=35N^T-7N^T(5I_P+2J_P)+70J_{\cB,P}
+      &&\text{[\ref{hc:lem:incidence}, \stepref{hcCOnes}]}\\
+    &=0 &&\text{[\stepref{hcCOnes}, ring arithmetic].}
+   \end{align*}\qed
+  \end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcCDiag}, \stepref{hcCAdj},
+  \stepref{hcCNonadj} cover every pair of indices.
+  Steps \stepref{hcCSym}, \stepref{hcCSquare}, \stepref{hcCZero}
+  give the other conclusions.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(quadratic inequality and rank bound)}\label{hc:lem:rank}
+ \lean{Design.C_quadratic_nonneg}\lean{Design.rank_C_le_six}
+ \uses{hc:def:design,hc:def:matrices,hc:lem:incidence,hc:lem:Connor,
+ hc:lem:det,hc:facts:matrix,hc:facts:rank}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{For every $\Zx\in\rats^{\cB}$,
+ $35\Zx^TC\Zx=(C\Zx)^T(C\Zx)\ge0$, so $\Zx^TC\Zx\ge0$;
+ also $\operatorname{rk}C\le6$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The equation $C^2=35C$ gives a sum of squares. The
+ equation $CN^T=0$ gives the rank bound after proving $N$ has rank fifteen.
+ \step{hcRankQuad}{For every $\Zx$, $35\Zx^TC\Zx=(C\Zx)^T(C\Zx)\ge0$.}
+ \begin{proof}\pf\ Lemma~\ref{hc:lem:Connor} gives $35C=C^TC$.
+  Multiply by $\Zx^T,\Zx$, using \ref{hc:facts:matrix}; the resulting
+  value is a sum of rational squares.~\qed\end{proof}
+ \step{hcRankNonneg}{For every $\Zx$, $\Zx^TC\Zx\ge0$.}
+ \begin{proof}\pf\ Divide \stepref{hcRankQuad} by $35>0$.~\qed\end{proof}
+ \step{hcRankDet}{$\det(NN^T)=5^{14}\cdot35\ne0$.}
+ \begin{proof}\pf\ First cast Lemma~\ref{hc:lem:incidence} to $\rats$
+  by \ref{hc:facts:matrix}. Apply Lemma~\ref{hc:lem:det}.
+  Definition~\ref{hc:def:design} gives
+  $|P|=15$; take $\alpha=5\ne0$ and $\beta=2$.~\qed\end{proof}
+ \step{hcRankN}{$\operatorname{rk}N=\operatorname{rk}N^T=15$.}
+ \begin{proof}
+  \step{hcRankFull}{$\operatorname{rk}(NN^T)=15$.}
+  \begin{proof}\pf\ The determinant in \stepref{hcRankDet} is a
+   unit in $\rats$. The unit determinant and full-rank criteria of
+   \ref{hc:facts:rank} give rank $|P|=15$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Apply the two transpose-rank identities of
+   \ref{hc:facts:rank} over $\rats$ to \stepref{hcRankFull}.~\qed\end{proof}
+ \end{proof}
+ \step{hcRankBound}{$\operatorname{rk}C\le6$.}
+ \begin{proof}\pf\ By $CN^T=0$ in Lemma~\ref{hc:lem:Connor} and
+  the zero-product inequality of \ref{hc:facts:rank},
+  $\operatorname{rk}C+\operatorname{rk}N^T\le|\cB|=21$.
+  Substitute \stepref{hcRankN} and subtract fifteen.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcRankQuad}, \stepref{hcRankNonneg},
+  and \stepref{hcRankBound}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(principal matrices on labelled subsets)}\label{hc:lem:principal}
+ \lean{Design.C_submatrix_quadratic_nonneg}
+ \lean{Design.rank_C_submatrix_le_six}\lean{Design.det_C_submatrix_eq_zero}
+ \uses{hc:def:design,hc:def:matrices,hc:lem:rank,hc:facts:finite,
+ hc:facts:matrix,hc:facts:rank}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB,U$ are finite types with decidable equality and
+  $D$ is a design with parameters $(15,5,21,7,2)$.
+  \item $e:U\to\cB$ is injective, and $C_e(u,w)\triangleq C(e(u),e(w))$.
+ \end{pfenum}}
+ \prove{For all $\Zx\in\rats^U$, $\Zx^TC_e\Zx\ge0$;
+ $\operatorname{rk}C_e\le6$; if $|U|\ge7$, then $\det C_e=0$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will extend vectors by zero along the injection.
+ Rank monotonicity also applies to the specified submatrix, so later
+ enumerations need no unstated transport of singularity.
+ \step{hcPrinExtension}{For $\Zx\in\rats^U$, define
+  $\widehat\Zx(e(u))=\Zx(u)$ and $\widehat\Zx(B)=0$ off the image.
+  This defines $\widehat\Zx\in\rats^{\cB}$.}
+ \begin{proof}\pf\ Injectivity in \asm[2]{0} gives at most one
+  preimage; the two domains partition $\cB$.~\qed\end{proof}
+ \step{hcPrinValue}{$\widehat\Zx^TC\widehat\Zx=\Zx^TC_e\Zx\ge0$.}
+ \begin{proof}\pf\ Expand the quadratic sum using \ref{hc:facts:matrix}.
+  Terms off the image vanish by \stepref{hcPrinExtension}; change both
+  finite indices along $e$ using \ref{hc:facts:finite}. Apply
+  Lemma~\ref{hc:lem:rank} to $\widehat\Zx$.~\qed\end{proof}
+ \step{hcPrinRank}{$\operatorname{rk}C_e\le6$.}
+ \begin{proof}\pf\ Rank monotonicity for submatrices in
+  \ref{hc:facts:rank} bounds this rank by $\operatorname{rk}C$;
+  use Lemma~\ref{hc:lem:rank}.~\qed\end{proof}
+ \step{hcPrinSingular}{\assume{$|U|\ge7$.}\prove{$\det C_e=0$.}}
+ \begin{proof}\pf\ If the determinant were nonzero, the full-rank
+  criterion in \ref{hc:facts:rank} would give
+  $\operatorname{rk}C_e=|U|\ge7$, contradicting \stepref{hcPrinRank}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcPrinValue}, \stepref{hcPrinRank},
+  and \stepref{hcPrinSingular}.~\qed\end{proof}
+\end{proof}
+
+\subsubsection{Finite certificates and local restrictions}
+
+\begin{namedresult}{Definition}{(the C19 matrices)}\label{hc:def:certificates}
+ \lean{Computations.C19.clawMatrix}\lean{Computations.C19.fiveBlockMatrix}
+ \lean{Computations.C19.Q1}\lean{Computations.C19.Q2}
+ \lean{Computations.C19.K1}\lean{Computations.C19.K2}\uses{}
+ The following matrices have integer entries; their rational casts
+ are denoted by the same letters. Indices in the displays run from
+ $1$ to the indicated order, corresponding to Lean's
+ $\mathrm{Fin}\,n$ in increasing order.
+
+\[
+ Q_{\rm claw}=
+% BEGIN MATRIX claw
+ \begin{pmatrix}
+ 10&3&3&3\\3&10&-4&-4\\3&-4&10&-4\\3&-4&-4&10
+ \end{pmatrix}
+% END MATRIX claw
+\]
+
+\[
+ Q_{\rm five}=
+% BEGIN MATRIX five
+ \begin{pmatrix}
+ 10&3&3&3&-4\\3&10&3&-4&3\\3&3&10&-4&3\\
+ 3&-4&-4&10&3\\-4&3&3&3&10
+ \end{pmatrix}
+% END MATRIX five
+\]
+
+\[
+ Q_1=
+% BEGIN MATRIX Q1
+ \begin{pmatrix}
+ 10&3&3&3&-4&-4&-4\\
+ 3&10&3&-4&3&3&3\\
+ 3&3&10&-4&3&3&3\\
+ 3&-4&-4&10&-4&-4&-4\\
+ -4&3&3&-4&10&3&3\\
+ -4&3&3&-4&3&10&3\\
+ -4&3&3&-4&3&3&10
+ \end{pmatrix}
+% END MATRIX Q1
+\]
+
+\[
+ Q_2=
+% BEGIN MATRIX Q2
+ \begin{pmatrix}
+ 10&3&3&3&3&-4&-4\\
+ 3&10&3&-4&-4&3&3\\
+ 3&3&10&-4&-4&3&3\\
+ 3&-4&-4&10&3&-4&-4\\
+ 3&-4&-4&3&10&-4&-4\\
+ -4&3&3&-4&-4&10&3\\
+ -4&3&3&-4&-4&3&10
+ \end{pmatrix}
+% END MATRIX Q2
+\]
+
+\[
+ K_1=
+% BEGIN MATRIX K1
+ \begin{pmatrix}
+ 20&-12&-12&-6&8&8&8\\
+ -12&9&7&4&-5&-5&-5\\
+ -12&7&9&4&-5&-5&-5\\
+ -6&4&4&4&-2&-2&-2\\
+ 8&-5&-5&-2&5&3&3\\
+ 8&-5&-5&-2&3&5&3\\
+ 8&-5&-5&-2&3&3&5
+ \end{pmatrix}
+% END MATRIX K1
+\]
+
+\[
+ K_2=
+% BEGIN MATRIX K2
+ \begin{pmatrix}
+ 17&-11&-11&-7&-7&6&6\\
+ -11&9&7&5&5&-4&-4\\
+ -11&7&9&5&5&-4&-4\\
+ -7&5&5&5&3&-2&-2\\
+ -7&5&5&3&5&-2&-2\\
+ 6&-4&-4&-2&-2&4&2\\
+ 6&-4&-4&-2&-2&2&4
+ \end{pmatrix}
+% END MATRIX K2
+\]
+\end{namedresult}
+
+\begin{namedresult}{Computation}{(C19: quadratic values and inverse certificates)}\label{hc:comp:C19}
+ \lean{Computations.C19.claw_quadratic}
+ \lean{Computations.C19.five_block_quadratic}
+ \lean{Computations.C19.left_inverse_Q1}\lean{Computations.C19.left_inverse_Q2}
+ \uses{hc:def:certificates,hc:facts:matrix}
+ \leavevmode\par
+ \pflet{$\Zx\triangleq(-1,1,1,1)^T$ and
+ $\Zy\triangleq(-1,1,1,1,-1)^T$.}
+ \prove{$\Zx^TQ_{\rm claw}\Zx=-2$, $\Zy^TQ_{\rm five}\Zy=-4$, and
+ $K_jQ_j=14I_7$ for each $j\in\{1,2\}$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ These are finite integer certificates, suitable for
+ kernel-checked arithmetic. The script \path{blueprint/checks/hallconnor/check_proof.py} reads every matrix
+ from Definition~\ref{hc:def:certificates} and recomputes every entry.
+ \step{hcCertClaw}{$\Zx^TQ_{\rm claw}\Zx=-2$.}
+ \begin{proof}\pf\ From Definition~\ref{hc:def:certificates}, the
+  diagonal sum is $40$ and the upper-triangle sum is $-9-12=-21$.
+  The quadratic sum is $40+2(-21)=-2$, by \ref{hc:facts:matrix}.~\qed\end{proof}
+ \step{hcCertFive}{$\Zy^TQ_{\rm five}\Zy=-4$.}
+ \begin{proof}\pf\ From Definition~\ref{hc:def:certificates}, the
+  diagonal sum is $50$. The upper-triangle row contributions are
+  $-13,-4,-7,-3$, totalling $-27$. Thus the value is
+  $50+2(-27)=-4$, by \ref{hc:facts:matrix}.~\qed\end{proof}
+ \step{hcCertOne}{$K_1Q_1=14I_7$.}
+ \begin{proof}\pf\ For all $u,w\in\{1,\ldots,7\}$, substitute the
+  integer entries in Definition~\ref{hc:def:certificates} into
+  $\sum_{i=1}^7K_1(u,i)Q_1(i,w)$, using \ref{hc:facts:matrix}.
+  The seven diagonal sums are $14$ and all $42$ other sums are zero.
+  For example the first row starts with
+  $200-36-36-18-32-32-32=14$ and
+  $60-120-36+24+24+24+24=0$.~\qed\end{proof}
+ \step{hcCertTwo}{$K_2Q_2=14I_7$.}
+ \begin{proof}\pf\ For all $u,w\in\{1,\ldots,7\}$, the sums
+  $\sum_{i=1}^7K_2(u,i)Q_2(i,w)$ from
+  Definition~\ref{hc:def:certificates} are $14$ on the diagonal
+  and zero off it, by integer multiplication and \ref{hc:facts:matrix}.
+  The first two sums are
+  $170-33-33-21-21-24-24=14$ and
+  $51-110-33+28+28+18+18=0$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcCertClaw}, \stepref{hcCertFive},
+  \stepref{hcCertOne}, and \stepref{hcCertTwo}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the two nonsingular matrices)}\label{hc:lem:inverse}
+ \lean{Computations.C19.det_Q1_ne_zero}\lean{Computations.C19.det_Q2_ne_zero}
+ \uses{hc:def:certificates,hc:comp:C19,hc:facts:matrix,hc:facts:det}
+ \leavevmode\par
+ \assume{$j\in\{1,2\}$, with $Q_j,K_j$ as in Definition~\ref{hc:def:certificates}.}
+ \prove{$\det Q_j\ne0$ over $\rats$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The certified product has nonzero determinant.
+ \step{hcInvProduct}{\new\ $(\det K_j)(\det Q_j)=14^7$.}
+ \begin{proof}\pf\ Cast the integral identity of
+  Computation~\ref{hc:comp:C19} to $\rats$ by \ref{hc:facts:matrix},
+  then take determinants;
+  multiplicativity and scalar multiplication in \ref{hc:facts:det}
+  give $\det(14I_7)=14^7$. This replaces the ordinary proof's
+  zero-kernel argument with the determinant of the same certificate.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ If $\det Q_j=0$, the left side of
+  \stepref{hcInvProduct} vanishes, whereas $14^7\ne0$ in $\rats$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(no induced claw)}\label{hc:lem:claw}
+ \lean{Design.Z_clawFree}
+ \uses{hc:def:design,hc:def:matrices,hc:def:graph,hc:def:certificates,hc:lem:Connor,
+ hc:lem:principal,hc:comp:C19}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{There are no four distinct blocks $B,X,Y,W$ for which
+ $B\sim X$, $B\sim Y$, $B\sim W$, and $X,Y,W$ are pairwise nonadjacent.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The four specified labels would give a negative
+ quadratic value of a principal matrix of $C$.
+ \step{hcClawBad}{\assume{Four blocks $B,X,Y,W$ satisfy the forbidden pattern.}
+  \prove{\textsc{False}.}}
+ \begin{proof}
+  \step{hcClawIndex}{The ordered list $(B,X,Y,W)$ defines an
+   injection $e:\mathrm{Fin}\,4\to\cB$.}
+  \begin{proof}\pf\ The blocks are distinct by \asm{1}.~\qed\end{proof}
+  \step{hcClawDiag}{$C_e(i,i)=10$ for each $i$.}
+  \begin{proof}\pf\ The diagonal clause of Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcClawCentre}{All entries from the centre to a leaf are $3$.}
+  \begin{proof}\pf\ The three adjacencies in \asm{1} and the
+   adjacency clause of Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcClawLeaves}{All entries between distinct leaves are $-4$.}
+  \begin{proof}\pf\ Their distinctness and nonadjacency in \asm{1}
+   give the last clause of Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcClawMatrix}{$C_e=Q_{\rm claw}$.}
+  \begin{proof}\pf\ The diagonal, centre-leaf, and leaf-leaf entries
+   are exactly those of Definition~\ref{hc:def:certificates}, by
+   \stepref{hcClawDiag}, \stepref{hcClawCentre}, \stepref{hcClawLeaves}.
+   Symmetry in Lemma~\ref{hc:lem:Connor} supplies the reversed entries.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Apply Lemma~\ref{hc:lem:principal} with
+   \stepref{hcClawIndex} to the vector of Computation~\ref{hc:comp:C19}.
+   Step \stepref{hcClawMatrix} makes its value $-2\ge0$, a contradiction.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{hcClawBad} negates the forbidden existence.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the five-block restriction)}\label{hc:lem:five}
+ \textup{[\cite{HC}, Lemma 4.5 at $k=5$.]}
+ \lean{Design.not_adj_of_five_block_pattern}
+ \uses{hc:def:design,hc:def:matrices,hc:def:graph,hc:def:certificates,hc:lem:Connor,
+ hc:lem:principal,hc:comp:C19}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality and
+  $D$ is a design with parameters $(15,5,21,7,2)$.
+  \item $B_1,B_2,B_3,Y,W$ are five distinct blocks; $B_1,B_2,B_3$ form a triangle.
+  \item $Y\sim B_1$, $Y\not\sim B_2,B_3$, and
+  $W\sim B_2,B_3$, $W\not\sim B_1$.
+ \end{pfenum}}
+ \prove{$Y\not\sim W$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ An edge $YW$ gives the second negative quadratic certificate.
+ \step{hcFiveBad}{\assume{$Y\sim W$.}\prove{\textsc{False}.}}
+ \begin{proof}
+  \step{hcFiveIndex}{The ordered list $(B_1,B_2,B_3,Y,W)$ defines an
+   injection $e:\mathrm{Fin}\,5\to\cB$.}
+  \begin{proof}\pf\ Distinctness is \asm[2]{0}.~\qed\end{proof}
+  \step{hcFiveDiag}{Every diagonal entry of $C_e$ is $10$.}
+  \begin{proof}\pf\ Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcFiveTriangle}{The three entries between $B_1,B_2,B_3$ are $3$.}
+  \begin{proof}\pf\ The triangle in \asm[2]{0} and
+   Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcFiveY}{The entries from $Y$ to $(B_1,B_2,B_3)$ are $(3,-4,-4)$.}
+  \begin{proof}\pf\ Apply the adjacency and nonadjacency clauses of
+   Lemma~\ref{hc:lem:Connor} to the three stipulated relations in
+   \asm[3]{0}; their labels are distinct by \asm[2]{0}.~\qed\end{proof}
+  \step{hcFiveW}{The entries from $W$ to $(B_1,B_2,B_3)$ are $(-4,3,3)$.}
+  \begin{proof}\pf\ Apply Lemma~\ref{hc:lem:Connor} to the three
+   stipulated relations of $W$ in \asm[3]{0}, using \asm[2]{0}.~\qed\end{proof}
+  \step{hcFiveYW}{$C(Y,W)=3$.}
+  \begin{proof}\pf\ By \asm{1} and Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcFiveMatrix}{$C_e=Q_{\rm five}$.}
+  \begin{proof}\pf\ Steps \stepref{hcFiveDiag}--\stepref{hcFiveYW}
+   give every diagonal and upper-triangle entry in
+   Definition~\ref{hc:def:certificates}; symmetry from
+   Lemma~\ref{hc:lem:Connor} supplies the lower triangle.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Lemma~\ref{hc:lem:principal},
+   \stepref{hcFiveIndex}, \stepref{hcFiveMatrix}, and
+   Computation~\ref{hc:comp:C19} give $-4\ge0$, a contradiction.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{hcFiveBad} proves the negation.~\qed\end{proof}
+\end{proof}
+
+\subsubsection{The local six-cliques}
+
+\begin{namedresult}{Lemma}{(splitting a neighbourhood)}\label{hc:lem:split}
+ \lean{Design.exists_sixClique_neighborhood_split}
+ \uses{hc:def:design,hc:def:matrices,hc:def:graph,hc:def:certificates,hc:lem:intersections,
+ hc:lem:common,hc:lem:claw,hc:lem:five,hc:lem:Connor,hc:lem:principal,
+ hc:lem:inverse,hc:facts:finite}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality and
+  $D$ is a design with parameters $(15,5,21,7,2)$.
+  \item $B_1,B_2\in\cB$ and $B_1\sim B_2$.
+ \end{pfenum}}
+ \prove{There are $S_1,S_2\in\cS$ such that
+ \[
+ B_1,B_2\in S_1,\quad S_1\cap S_2=\{B_1\},\quad
+ S_1\cup S_2=\{B_1\}\cup\Gamma(B_1).
+ \]
+ Moreover every $K\in\cS$ containing $B_1,B_2$ equals $S_1$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will partition the other blocks by adjacency to $B_1,B_2$.
+ The claw restriction gives two cliques and an exact edge count.
+ A suitable third vertex then has a defect $j\le2$. The two positive
+ defects give the certified nonsingular seven-block matrices, in
+ conflict with the rank bound. Defect zero gives the split and uniqueness.
+ \pflet{$\cM\triangleq\Gamma(B_1)\cap\Gamma(B_2)$,
+ $\cU\triangleq\Gamma(B_1)\diff(\Gamma(B_2)\cup\{B_2\})$,
+ $\cV\triangleq\Gamma(B_2)\diff(\Gamma(B_1)\cup\{B_1\})$, and
+ $\cR\triangleq\cB\diff(\{B_1,B_2\}\cup\cM\cup\cU\cup\cV)$.}
+ Write $\cF_{ij}\triangleq\{B\notin\{B_1,B_2\}:
+ |B_1\cap B|=i,\ |B_2\cap B|=j\}$ for the fibres whose
+ cardinalities are $x_{ij}$ in Lemma~\ref{hc:lem:common}.
+ \step{hcLocalFibreM}{$\cM=\cF_{11}$.}
+ \begin{proof}\pf\ Definition~\ref{hc:def:graph} identifies each
+  adjacency with a one-point intersection and excludes the two
+  endpoints by irreflexivity. Conversely the fibre gives both
+  adjacencies. Lemma~\ref{hc:lem:intersections} places these
+  intersections among the two possible sizes for distinct labels.~\qed\end{proof}
+ \step{hcLocalFibreU}{$\cU=\cF_{12}$.}
+ \begin{proof}\pf\ Membership in $\cU$ gives adjacency to $B_1$
+  and excludes $B_2$ and adjacency to $B_2$.
+  Definition~\ref{hc:def:graph} gives the first intersection size
+  one; Lemma~\ref{hc:lem:intersections} forces the second to be two.
+  Conversely these two sizes and the exclusions in $\cF_{12}$ give
+  precisely the defining membership conditions of $\cU$.~\qed\end{proof}
+ \step{hcLocalFibreV}{$\cV=\cF_{21}$.}
+ \begin{proof}\pf\ Membership in $\cV$ gives adjacency to $B_2$
+  and excludes $B_1$ and adjacency to $B_1$.
+  Definition~\ref{hc:def:graph} gives the second size one;
+  Lemma~\ref{hc:lem:intersections} forces the first to be two.
+  Conversely the two sizes and endpoint exclusions in $\cF_{21}$
+  give precisely the defining conditions of $\cV$.~\qed\end{proof}
+ \step{hcLocalFibreR}{$\cR=\cF_{22}$.}
+ \begin{proof}\pf\ Outside $\{B_1,B_2\}$,
+  Lemma~\ref{hc:lem:intersections} leaves four possible pairs of
+  sizes. Steps \stepref{hcLocalFibreM}--\stepref{hcLocalFibreV}
+  remove the first three, leaving $(2,2)$. Conversely this pair
+  gives no adjacency to either endpoint by Definition~\ref{hc:def:graph},
+  so its label lies in none of $\cM,\cU,\cV$ and belongs to $\cR$.~\qed\end{proof}
+ \step{hcLocalSizes}{$|\cM|=5$, $|\cU|=4$, $|\cV|=4$, and $|\cR|=6$.}
+ \begin{proof}\pf\ Hypothesis \asm[2]{0} and
+  Definition~\ref{hc:def:graph} give $s=1$.
+  Apply the $s=1$ row of Lemma~\ref{hc:lem:common} to
+  steps \stepref{hcLocalFibreM}--\stepref{hcLocalFibreR}.~\qed\end{proof}
+ \step{hcLocalDisjoint}{$\cM,\cU,\cV,\cR$ are pairwise disjoint.
+  Each is disjoint from $\{B_1,B_2\}$.}
+ \begin{proof}\pf\ Their four different pairs of intersection
+  sizes in steps \stepref{hcLocalFibreM}--\stepref{hcLocalFibreR}
+  are mutually exclusive, and each fibre excludes the endpoints.~\qed\end{proof}
+ \step{hcLocalCoverParts}{$\cM\cup\cU\cup\cV\cup\cR=
+  \cB\diff\{B_1,B_2\}$.}
+ \begin{proof}\pf\ By Lemma~\ref{hc:lem:intersections}, every label
+  outside the endpoints has one of the four pairs of sizes.
+  Use steps \stepref{hcLocalFibreM}--\stepref{hcLocalFibreR}.~\qed\end{proof}
+ \step{hcLocalNeighboursOne}{$\Gamma(B_1)=\{B_2\}\cup\cM\cup\cU$,
+  with pairwise disjoint parts.}
+ \begin{proof}\pf\ The endpoint $B_2$ is a neighbour by \asm[2]{0}.
+  Every other neighbour has first size one, so lies in $\cF_{11}$
+  or $\cF_{12}$ by Lemma~\ref{hc:lem:intersections} and
+  Definition~\ref{hc:def:graph}; both fibres consist of neighbours.
+  Apply \stepref{hcLocalFibreM}, \stepref{hcLocalFibreU}, and
+  \stepref{hcLocalDisjoint}.~\qed\end{proof}
+ \step{hcLocalNeighboursTwo}{$\Gamma(B_2)=\{B_1\}\cup\cM\cup\cV$,
+  with pairwise disjoint parts.}
+ \begin{proof}\pf\ The endpoint $B_1$ is a neighbour by \asm[2]{0}.
+  Every other neighbour has second size one, so lies in $\cF_{11}$
+  or $\cF_{21}$ by Lemma~\ref{hc:lem:intersections} and
+  Definition~\ref{hc:def:graph}; both fibres consist of neighbours.
+  Apply \stepref{hcLocalFibreM}, \stepref{hcLocalFibreV}, and
+  \stepref{hcLocalDisjoint}.~\qed\end{proof}
+ \step{hcLocalU}{$\cU$ is a clique.}
+ \begin{proof}
+  \step{hcLocalUPair}{\assume{$Y,Y'\in\cU$, $Y\ne Y'$, and $Y\not\sim Y'$.}
+   \prove{\textsc{False}.}}
+  \begin{proof}\pf\ In \stepref{hcLocalFibreU}, $B_2,Y,Y'$ are
+   distinct neighbours of $B_1$. Neither $Y$ nor $Y'$ is adjacent
+   to $B_2$; \asm{2} excludes their mutual edge. This is the claw
+   forbidden by Lemma~\ref{hc:lem:claw}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{hcLocalUPair} excludes every
+   missing edge between distinct members, as required by
+   Definition~\ref{hc:def:graph}.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalV}{$\cV$ is a clique.}
+ \begin{proof}
+  \step{hcLocalVPair}{\assume{$W,W'\in\cV$, $W\ne W'$, and $W\not\sim W'$.}
+   \prove{\textsc{False}.}}
+  \begin{proof}\pf\ Step \stepref{hcLocalFibreV} makes
+   $B_1,W,W'$ distinct neighbours of $B_2$; $B_1$ is adjacent to
+   neither $W$ nor $W'$. With \asm{2} these are the three leaves
+   of a claw, contradicting Lemma~\ref{hc:lem:claw}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{hcLocalVPair} proves the clique
+   predicate of Definition~\ref{hc:def:graph}.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalTwo}{For every $Y\in\cU$, $|\Gamma(Y)\cap\cM|=2$.}
+ \begin{proof}
+  \step{hcLocalYCommon}{For each $Y\in\cU$, the common neighbours of
+   $B_1,Y$ are the disjoint union of $\cU\diff\{Y\}$ and
+   $\Gamma(Y)\cap\cM$.}
+  \begin{proof}\pf\ In the first neighbourhood decomposition of
+   \stepref{hcLocalNeighboursOne}, $B_2\not\sim Y$ by membership in
+   $\cU$; step \stepref{hcLocalU} gives every member of
+   $\cU\diff\{Y\}$. These leave precisely the stated part of $\cM$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Lemma~\ref{hc:lem:common} gives five common
+   neighbours of the adjacent pair $B_1,Y$. The first part in
+   \stepref{hcLocalYCommon} has size $4-1=3$ by
+   \stepref{hcLocalSizes} and \ref{hc:facts:finite}, leaving two.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalEdgeSwap}{$\displaystyle
+  \sum_{X\in\cM}|\Gamma(X)\cap\cU|
+  =\sum_{Y\in\cU}|\Gamma(Y)\cap\cM|$.}
+ \begin{proof}\pf\ Write each cardinality as a sum of adjacency
+  indicators. Interchange the finite sums by \path{Finset.sum_comm}
+  in \ref{hc:facts:finite}; symmetry of adjacency from
+  Definition~\ref{hc:def:graph} gives the other sum.~\qed\end{proof}
+ \step{hcLocalEight}{$\displaystyle
+  \sum_{X\in\cM}|\Gamma(X)\cap\cU|=8$.}
+ \begin{proof}\pf\ By \stepref{hcLocalEdgeSwap} the sum equals
+  $\sum_{Y\in\cU}2$, using \stepref{hcLocalTwo}.
+  Step \stepref{hcLocalSizes} gives $4\cdot2=8$.~\qed\end{proof}
+ \step{hcLocalPick}{\pick\ $B_3\in\cM$ such that $|\Gamma(B_3)\cap\cU|\ge2$.}
+ \begin{proof}\pf\ Otherwise each summand of \stepref{hcLocalEight}
+  is at most one. Termwise summation gives
+  $8\le\sum_{X\in\cM}1=|\cM|=5$, using
+  \stepref{hcLocalSizes} and \ref{hc:facts:finite}, a contradiction.~\qed\end{proof}
+ \step{hcLocalDefect}{\pflet{$j\triangleq|\cU\diff\Gamma(B_3)|$, and}
+  \[
+  h\triangleq|\Gamma(B_3)\cap(\cM\diff\{B_3\})|,\quad
+  e\triangleq|\Gamma(B_3)\cap\cV|,\quad
+  \ell\triangleq|\Gamma(B_3)\cap\cR|.
+  \]
+  Then $0\le j\le2$ and $|\Gamma(B_3)\cap\cU|=4-j$.}
+ \begin{proof}\pf\ The neighbours and nonneighbours of $B_3$ partition
+  the four-element set $\cU$, by \stepref{hcLocalSizes} and
+  \ref{hc:facts:finite}; \stepref{hcLocalPick} supplies at least two neighbours.~\qed\end{proof}
+ \step{hcLocalCounts}{$h=j$, $e=4-j$, and $\ell=j$.}
+ \begin{proof}
+  \step{hcLocalFirst}{$1+h+(4-j)=5$.}
+  \begin{proof}\pf\ Count common neighbours of $B_1,B_3$ using
+   Lemma~\ref{hc:lem:common} and \stepref{hcLocalNeighboursOne}:
+   $B_2$ contributes one, $\cM\diff\{B_3\}$ contributes $h$, and
+   $\cU$ contributes $4-j$ by \stepref{hcLocalDefect}.~\qed\end{proof}
+  \step{hcLocalSecond}{$1+h+e=5$.}
+  \begin{proof}\pf\ Count common neighbours of $B_2,B_3$ using
+   Lemma~\ref{hc:lem:common}: $B_1$ contributes one, the part
+   $\cM\diff\{B_3\}$ contributes $h$, and $\cV$ contributes $e$,
+   by \stepref{hcLocalNeighboursTwo} and \stepref{hcLocalDefect}.~\qed\end{proof}
+  \step{hcLocalDegree}{$2+h+(4-j)+e+\ell=10$.}
+  \begin{proof}\pf\ Count all neighbours of $B_3$ in the partition
+   \stepref{hcLocalCoverParts}, whose parts are disjoint by
+   \stepref{hcLocalDisjoint}. Both $B_1,B_2$ are neighbours by
+   \stepref{hcLocalPick}; the other contributions are the four
+   counts in \stepref{hcLocalDefect}. The degree is ten by
+   Lemma~\ref{hc:lem:intersections}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Solve \stepref{hcLocalFirst} for $h$, then
+   \stepref{hcLocalSecond} for $e$, then \stepref{hcLocalDegree}
+   for $\ell$, over $\ints$.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalParts}{\pflet{$\cU_0\triangleq\cU\diff\Gamma(B_3)$ and
+  $\cV_1\triangleq\cV\cap\Gamma(B_3)$.}
+  They are disjoint cliques of sizes $j,4-j$, disjoint also from
+  $\{B_1,B_2,B_3\}$.}
+ \begin{proof}\pf\ Disjointness is \stepref{hcLocalDisjoint} and
+  \stepref{hcLocalPick}; the sizes are \stepref{hcLocalDefect} and
+  \stepref{hcLocalCounts}. They are subsets of the cliques in
+  \stepref{hcLocalU} and \stepref{hcLocalV}.~\qed\end{proof}
+ \step{hcLocalNoCross}{No member of $\cU_0$ is adjacent to a member of $\cV_1$.}
+ \begin{proof}
+  \step{hcLocalCrossData}{\assume{$Y\in\cU_0$ and $W\in\cV_1$.}
+   \prove{$Y\not\sim W$.}}
+  \begin{proof}
+   \step{hcLocalFiveDistinct}{$B_1,B_2,B_3,Y,W$ are distinct.}
+   \begin{proof}\pf\ Step \stepref{hcLocalParts} gives disjointness,
+    and \stepref{hcLocalDisjoint}, \stepref{hcLocalPick} separate
+    $B_3$ from the adjacent pair $B_1,B_2$.~\qed\end{proof}
+   \step{hcLocalFiveTriangle}{$B_1,B_2,B_3$ form a triangle.}
+   \begin{proof}\pf\ Use \asm[2]{0} and $B_3\in\cM$ in
+    \stepref{hcLocalPick}.~\qed\end{proof}
+   \step{hcLocalFiveY}{$Y\sim B_1$, $Y\not\sim B_2$, and $Y\not\sim B_3$.}
+   \begin{proof}\pf\ Membership in $\cU_0$ in \asm{2}, and the
+    definition in \stepref{hcLocalParts} and the fibre description
+    in \stepref{hcLocalFibreU}.~\qed\end{proof}
+   \step{hcLocalFiveW}{$W\sim B_2$, $W\sim B_3$, and $W\not\sim B_1$.}
+   \begin{proof}\pf\ Membership in $\cV_1$ in \asm{2}, and the
+    definition in \stepref{hcLocalParts} and the fibre description
+    in \stepref{hcLocalFibreV}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Apply Lemma~\ref{hc:lem:five} to
+    \stepref{hcLocalFiveDistinct}--\stepref{hcLocalFiveW}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{hcLocalCrossData} is quantified
+   over every pair of the indicated parts.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalPattern}{On the named blocks $B_1,B_2,B_3$ and the
+  members of $\cU_0,\cV_1$, $C$ is symmetric with diagonal $10$.
+  Its off-diagonal entries are
+  \[
+  \begin{array}{c|ccc|cc}
+       &B_1&B_2&B_3&\cU_0&\cV_1\\\hline
+  B_1&*&3&3&3&-4\\
+  B_2&3&*&3&-4&3\\
+  B_3&3&3&*&-4&3\\\hline
+  \cU_0&3&-4&-4&3&-4\\
+  \cV_1&-4&3&3&-4&3
+  \end{array}
+  \]
+  A set in this table denotes any of its members, with distinct
+  blocks required for within-set entries.}
+ \begin{proof}
+  \step{hcPatternDiagonal}{For every block $X$, $C(X,X)=10$.}
+  \begin{proof}\pf\ Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcPatternTriangle}{The three entries among $B_1,B_2,B_3$ are $3$.}
+  \begin{proof}\pf\ The triangle follows from \asm[2]{0},
+   \stepref{hcLocalFibreM}, and \stepref{hcLocalPick};
+   use Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcPatternOneU}{For $Y\in\cU_0$, $C(B_1,Y)=3$.}
+  \begin{proof}\pf\ Membership in $\cU$ gives adjacency to $B_1$
+   by \stepref{hcLocalFibreU} and \stepref{hcLocalParts};
+   apply Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcPatternTwoU}{For $Y\in\cU_0$, $C(B_2,Y)=-4$.}
+  \begin{proof}\pf\ Step \stepref{hcLocalFibreU} excludes adjacency
+   to $B_2$; distinctness in \stepref{hcLocalParts} permits
+   Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcPatternThreeU}{For $Y\in\cU_0$, $C(B_3,Y)=-4$.}
+  \begin{proof}\pf\ The definition and disjointness in
+   \stepref{hcLocalParts} give nonadjacency and distinctness;
+   apply Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcPatternOneV}{For $W\in\cV_1$, $C(B_1,W)=-4$.}
+  \begin{proof}\pf\ Step \stepref{hcLocalFibreV} excludes adjacency
+   to $B_1$; use the distinctness in \stepref{hcLocalParts} and
+   Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcPatternTwoV}{For $W\in\cV_1$, $C(B_2,W)=3$.}
+  \begin{proof}\pf\ Step \stepref{hcLocalFibreV} gives adjacency to
+   $B_2$ for every member of the subset in \stepref{hcLocalParts};
+   use Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcPatternThreeV}{For $W\in\cV_1$, $C(B_3,W)=3$.}
+  \begin{proof}\pf\ The definition of $\cV_1$ in
+   \stepref{hcLocalParts} gives adjacency; use Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcPatternUU}{For distinct $Y,Y'\in\cU_0$, $C(Y,Y')=3$.}
+  \begin{proof}\pf\ The clique in \stepref{hcLocalParts} gives
+   adjacency, so Lemma~\ref{hc:lem:Connor} applies.~\qed\end{proof}
+  \step{hcPatternVV}{For distinct $W,W'\in\cV_1$, $C(W,W')=3$.}
+  \begin{proof}\pf\ The clique in \stepref{hcLocalParts} gives
+   adjacency; use Lemma~\ref{hc:lem:Connor}.~\qed\end{proof}
+  \step{hcPatternUV}{For $Y\in\cU_0$ and $W\in\cV_1$, $C(Y,W)=-4$.}
+  \begin{proof}\pf\ Step \stepref{hcLocalNoCross} excludes the edge;
+   \stepref{hcLocalParts} gives distinctness, so
+   Lemma~\ref{hc:lem:Connor} applies.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{hcPatternDiagonal}--\stepref{hcPatternUV}
+   cover the diagonal and all ten unordered pair types.
+   Symmetry from Lemma~\ref{hc:lem:Connor} gives the reversed entries.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalNotOne}{\assume{$j=1$.}\prove{\textsc{False}.}}
+ \begin{proof}
+  \step{hcLocalEnumerateOne}{\pick\ $Y,W_1,W_2,W_3$ with
+   $\cU_0=\{Y\}$, $\cV_1=\{W_1,W_2,W_3\}$, and the $W_i$ pairwise distinct.}
+  \begin{proof}\pf\ By \asm{1} and \stepref{hcLocalParts}, the sizes
+   are one and three. Apply \path{Finset.card_eq_one} and
+   \path{Finset.card_eq_three} from \ref{hc:facts:finite}.~\qed\end{proof}
+  \step{hcLocalInjectionOne}{Put
+   $a\triangleq(B_1,B_2,B_3,Y,W_1,W_2,W_3):\mathrm{Fin}\,7\to\cB$.
+   Then $a$ is injective.}
+  \begin{proof}\pf\ The first three blocks are distinct by
+   \asm[2]{0}, \stepref{hcLocalDisjoint}, and \stepref{hcLocalPick}.
+   Step \stepref{hcLocalParts} separates them from the two disjoint
+   parts, and \stepref{hcLocalEnumerateOne} separates the $W_i$.
+   Thus the literal Lean vector \texttt{![B1, B2, B3, Y, W1, W2, W3]}
+   has seven distinct entries.~\qed\end{proof}
+  \step{hcLocalQOne}{$C_a=Q_1$.}
+  \begin{proof}\pf\ Use the fixed list in \stepref{hcLocalInjectionOne}.
+   In zero-based indices, the named blocks occupy $0,1,2$, $Y$ occupies
+   $3$, and $W_1,W_2,W_3$ occupy $4,5,6$ by \stepref{hcLocalEnumerateOne}.
+   For each of the $49$ pairs, the corresponding entry of
+   \stepref{hcLocalPattern} equals the displayed entry of $Q_1$ in
+   Definition~\ref{hc:def:certificates}: the diagonal is $10$,
+   triangle and within-$W$ entries are $3$, the three entries from
+   $Y$ to $B_1,B_2,B_3$ are $(3,-4,-4)$, each $W_i$ has
+   $(-4,3,3)$ to those blocks, and all $Y,W_i$ entries are $-4$.
+   These cases and their reverses exhaust the entries.~\qed\end{proof}
+  \step{hcLocalSingularOne}{$\det C_a=0$.}
+  \begin{proof}\pf\ Apply Lemma~\ref{hc:lem:principal} to
+   \stepref{hcLocalInjectionOne}, whose domain has size seven.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{hcLocalQOne} and
+   \stepref{hcLocalSingularOne} contradict Lemma~\ref{hc:lem:inverse} at $j=1$.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalNotTwo}{\assume{$j=2$.}\prove{\textsc{False}.}}
+ \begin{proof}
+  \step{hcLocalEnumerateTwo}{\pick\ $Y_1,Y_2,W_1,W_2$ with
+   $\cU_0=\{Y_1,Y_2\}$, $\cV_1=\{W_1,W_2\}$,
+   $Y_1\ne Y_2$, and $W_1\ne W_2$.}
+  \begin{proof}\pf\ The two sizes in \stepref{hcLocalParts} are
+   both two by \asm{1}. Apply \path{Finset.card_eq_two} from
+   \ref{hc:facts:finite} to each set.~\qed\end{proof}
+  \step{hcLocalInjectionTwo}{Put
+   $a\triangleq(B_1,B_2,B_3,Y_1,Y_2,W_1,W_2):\mathrm{Fin}\,7\to\cB$.
+   Then $a$ is injective.}
+  \begin{proof}\pf\ The initial blocks are distinct by
+   \asm[2]{0}, \stepref{hcLocalDisjoint}, and \stepref{hcLocalPick}.
+   The disjointness in \stepref{hcLocalParts} and the two inequalities
+   in \stepref{hcLocalEnumerateTwo} separate all remaining pairs.
+   This is the literal Lean vector \texttt{![B1, B2, B3, Y1, Y2, W1, W2]}.~\qed\end{proof}
+  \step{hcLocalQTwo}{$C_a=Q_2$.}
+  \begin{proof}\pf\ The list in \stepref{hcLocalInjectionTwo} puts
+   $B_1,B_2,B_3$ at indices $0,1,2$, $Y_1,Y_2$ at $3,4$, and
+   $W_1,W_2$ at $5,6$, using \stepref{hcLocalEnumerateTwo}.
+   For each of the $49$ pairs, \stepref{hcLocalPattern} matches
+   $Q_2$ in Definition~\ref{hc:def:certificates}: the diagonal is
+   $10$, the triangle, $Y_1,Y_2$, and $W_1,W_2$ entries are $3$,
+   each $Y_i$ has $(3,-4,-4)$ to the triangle, each $W_i$ has
+   $(-4,3,3)$, and the four $Y_i,W_h$ entries are $-4$.
+   The reverse entries agree by symmetry.~\qed\end{proof}
+  \step{hcLocalSingularTwo}{$\det C_a=0$.}
+  \begin{proof}\pf\ Lemma~\ref{hc:lem:principal} applies to
+   \stepref{hcLocalInjectionTwo} with domain size seven.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{hcLocalQTwo} and
+   \stepref{hcLocalSingularTwo} contradict Lemma~\ref{hc:lem:inverse} at $j=2$.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalZero}{$j=0$; $B_3$ is adjacent to every member of
+  $\cU$ and to no member of $\cM\diff\{B_3\}$.}
+ \begin{proof}\pf\ The integer bound $0\le j\le2$ of
+  \stepref{hcLocalDefect} and the exclusions
+  \stepref{hcLocalNotOne}, \stepref{hcLocalNotTwo} force zero.
+  The counts in \stepref{hcLocalDefect}, \stepref{hcLocalCounts}
+  are then four and zero; use \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcLocalM}{$\cM\diff\{B_3\}$ is a clique of size four.}
+ \begin{proof}
+  \step{hcLocalMSize}{$|\cM\diff\{B_3\}|=4$.}
+  \begin{proof}\pf\ Use $|\cM|=5$, $B_3\in\cM$ from
+   \stepref{hcLocalSizes}, \stepref{hcLocalPick}, and
+   deletion of a singleton in \ref{hc:facts:finite}.~\qed\end{proof}
+  \step{hcLocalMClaw}{\assume{$X,Y\in\cM\diff\{B_3\}$ are distinct and nonadjacent.}
+   \prove{\textsc{False}.}}
+  \begin{proof}\pf\ The three distinct vertices $B_3,X,Y$ are
+   neighbours of $B_1$ by \stepref{hcLocalFibreM} and
+   \stepref{hcLocalPick}; $B_3$ has no edges to $X,Y$ by
+   \stepref{hcLocalZero}. With \asm{2} they give a claw,
+   contradicting Lemma~\ref{hc:lem:claw}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{hcLocalMSize} gives the size and
+   \stepref{hcLocalMClaw} gives every required edge.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalSOne}{Put $S_1\triangleq\{B_1,B_2\}\cup(\cM\diff\{B_3\})$.
+  Then $S_1\in\cS$ and $B_1,B_2\in S_1$.}
+ \begin{proof}
+  \step{hcLocalSOneSize}{$|S_1|=6$.}
+  \begin{proof}\pf\ The union is disjoint by
+   \stepref{hcLocalDisjoint}, and \stepref{hcLocalM} gives $2+4=6$.~\qed\end{proof}
+  \step{hcLocalSOneCore}{$B_1,B_2$ are adjacent.}
+  \begin{proof}\pf\ Hypothesis \asm[2]{0}.~\qed\end{proof}
+  \step{hcLocalSOneMixed}{Every member of $\cM\diff\{B_3\}$ is
+   adjacent to each of $B_1,B_2$.}
+  \begin{proof}\pf\ The definition of $\cM$ in \stepref{hcLocalFibreM}.~\qed\end{proof}
+  \step{hcLocalSOneInternal}{Distinct members of $\cM\diff\{B_3\}$ are adjacent.}
+  \begin{proof}\pf\ Step \stepref{hcLocalM}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The three pair types in
+   \stepref{hcLocalSOneCore}--\stepref{hcLocalSOneInternal} exhaust
+   pairs in $S_1$. With \stepref{hcLocalSOneSize} this is membership
+   in $\cS$, by Definition~\ref{hc:def:graph}; the two containments
+   follow from the displayed union.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalSTwo}{Put $S_2\triangleq\{B_1,B_3\}\cup\cU$.
+  Then $S_2\in\cS$.}
+ \begin{proof}
+  \step{hcLocalSTwoSize}{$|S_2|=6$.}
+  \begin{proof}\pf\ The two-element set is disjoint from $\cU$
+   by \stepref{hcLocalDisjoint} and \stepref{hcLocalPick}; its
+   union has size $2+4=6$ by \stepref{hcLocalSizes}.~\qed\end{proof}
+  \step{hcLocalSTwoCore}{$B_1\sim B_3$.}
+  \begin{proof}\pf\ Step \stepref{hcLocalPick} puts $B_3\in\cM$.~\qed\end{proof}
+  \step{hcLocalSTwoFirst}{Every member of $\cU$ is adjacent to $B_1$.}
+  \begin{proof}\pf\ Step \stepref{hcLocalFibreU}.~\qed\end{proof}
+  \step{hcLocalSTwoThird}{Every member of $\cU$ is adjacent to $B_3$.}
+  \begin{proof}\pf\ Step \stepref{hcLocalZero}.~\qed\end{proof}
+  \step{hcLocalSTwoInternal}{Every pair of distinct members of $\cU$ is adjacent.}
+  \begin{proof}\pf\ Step \stepref{hcLocalU}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{hcLocalSTwoCore}--\stepref{hcLocalSTwoInternal}
+   cover all pair types. Together with \stepref{hcLocalSTwoSize},
+   they are the predicate of Definition~\ref{hc:def:graph}.~\qed\end{proof}
+ \end{proof}
+ \step{hcLocalMeet}{$S_1\cap S_2=\{B_1\}$.}
+ \begin{proof}\pf\ In \stepref{hcLocalSOne} and \stepref{hcLocalSTwo},
+  the parts $\{B_2\}$, $\cM\diff\{B_3\}$, $\{B_3\}$, and
+  $\cU$ are pairwise disjoint by \stepref{hcLocalDisjoint} and
+  \stepref{hcLocalPick}; only $B_1$ is shared.~\qed\end{proof}
+ \step{hcLocalCover}{$S_1\cup S_2=\{B_1\}\cup\Gamma(B_1)$.}
+ \begin{proof}\pf\ The two unions in \stepref{hcLocalSOne},
+  \stepref{hcLocalSTwo} combine to $\{B_1,B_2\}\cup\cM\cup\cU$,
+  since $B_3\in\cM$. Use the first neighbourhood decomposition
+  of \stepref{hcLocalNeighboursOne}.~\qed\end{proof}
+ \step{hcLocalUnique}{\assume{$K\in\cS$ and $B_1,B_2\in K$.}
+  \prove{$K=S_1$.}}
+ \begin{proof}
+  \step{hcLocalKFour}{$K\diff\{B_1,B_2\}\subseteq\cM$ and
+   $|K\diff\{B_1,B_2\}|=4$.}
+  \begin{proof}\pf\ Every remaining vertex is adjacent to both
+   initial blocks by Definition~\ref{hc:def:graph}. The two
+   distinct blocks are in the six-element set $K$, so
+   \ref{hc:facts:finite} gives size four.~\qed\end{proof}
+  \step{hcLocalKExclude}{$B_3\notin K$.}
+  \begin{proof}
+   \step{hcLocalKBad}{\assume{$B_3\in K$.}\prove{\textsc{False}.}}
+   \begin{proof}\pf\ By \stepref{hcLocalKFour}, removing $B_3$
+    leaves three vertices in $\cM\diff\{B_3\}$, thus at least
+    one, by \ref{hc:facts:finite}. The clique $K$ makes it adjacent
+    to $B_3$, contradicting \stepref{hcLocalZero}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Step \stepref{hcLocalKBad} proves the negation.~\qed\end{proof}
+  \end{proof}
+  \step{hcLocalKEqual}{$K\diff\{B_1,B_2\}=\cM\diff\{B_3\}$.}
+  \begin{proof}\pf\ Steps \stepref{hcLocalKFour}, \stepref{hcLocalKExclude}
+   give inclusion; both sets have size four by \stepref{hcLocalM}.
+   Apply the subset and cardinality criterion in \ref{hc:facts:finite}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Reinsert the two members $B_1,B_2$ into
+   \stepref{hcLocalKEqual}; the resulting union is $S_1$ by
+   \stepref{hcLocalSOne}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcLocalSOne}, \stepref{hcLocalSTwo},
+  \stepref{hcLocalMeet}, \stepref{hcLocalCover}, and
+  \stepref{hcLocalUnique} give the stated witnesses and uniqueness.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Corollary}{(the unique six-clique through an edge)}\label{hc:cor:unique}
+ \lean{Design.exists_unique_sixClique_of_adj}\lean{Design.sixClique_eq_of_adj}
+ \uses{hc:def:design,hc:def:graph,hc:lem:split}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality and
+  $D$ is a design with parameters $(15,5,21,7,2)$.
+  \item $B_1\sim B_2$.
+ \end{pfenum}}
+ \prove{There is a unique $S\in\cS$ containing $B_1,B_2$.
+ In particular, if $K,L\in\cS$ both contain $B_1,B_2$, then $K=L$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Choose one local witness and compare every other
+ six-clique through the edge with that same witness.
+ \step{hcUniqueWitness}{\pick\ $S_1,S_2$ with the conclusions of
+  Lemma~\ref{hc:lem:split} for $B_1,B_2$.}
+ \begin{proof}\pf\ Apply that lemma to \asm[2]{0}.~\qed\end{proof}
+ \step{hcUniqueExists}{There is a unique $S\in\cS$ containing $B_1,B_2$.}
+ \begin{proof}\pf\ Step \stepref{hcUniqueWitness} gives the witness
+  $S_1$ and states that every such $S$ equals $S_1$.~\qed\end{proof}
+ \step{hcUniqueEqual}{\assume{$K,L\in\cS$ and $B_1,B_2\in K\cap L$.}
+  \prove{$K=L$.}}
+ \begin{proof}\pf\ The uniqueness clause of \stepref{hcUniqueWitness}
+  gives $K=S_1$ and $L=S_1$. Transitivity gives $K=L$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcUniqueExists} and \stepref{hcUniqueEqual}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Corollary}{(exactly two six-cliques through a block)}\label{hc:cor:two}
+ \lean{Design.card_sixCliques_through_block}
+ \uses{hc:def:design,hc:def:graph,hc:lem:intersections,hc:lem:split,hc:cor:unique,hc:facts:finite}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality and
+  $D$ is a design with parameters $(15,5,21,7,2)$.
+  \item $B_1\in\cB$.
+ \end{pfenum}}
+ \prove{There are distinct $S_1,S_2\in\cS$ with
+ $\{S\in\cS:B_1\in S\}=\{S_1,S_2\}$ and
+ $S_1\cap S_2=\{B_1\}$. In particular the filtered family has size two.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will use one local split, then apply the stated
+ adjacent-pair uniqueness lemma to each possible six-clique.
+ \step{hcTwoPick}{\pick\ $B_2\in\Gamma(B_1)$.}
+ \begin{proof}\pf\ Lemma~\ref{hc:lem:intersections} gives ten
+  neighbours; positive cardinality in \ref{hc:facts:finite} gives a witness.~\qed\end{proof}
+ \step{hcTwoSplit}{\pick\ $S_1,S_2$ with all the conclusions of
+  Lemma~\ref{hc:lem:split} for $B_1,B_2$.}
+ \begin{proof}\pf\ Apply that lemma using \stepref{hcTwoPick}.~\qed\end{proof}
+ \step{hcTwoDistinct}{$S_1\ne S_2$, and both contain $B_1$.}
+ \begin{proof}\pf\ Their intersection is $\{B_1\}$ by
+  \stepref{hcTwoSplit}. Equality would give a singleton of size
+  six, contrary to Definition~\ref{hc:def:graph}.~\qed\end{proof}
+ \step{hcTwoExhaust}{\assume{$K\in\cS$ and $B_1\in K$.}
+  \prove{$K=S_1$ or $K=S_2$.}}
+ \begin{proof}
+  \step{hcTwoOther}{\pick\ $X\in K\diff\{B_1\}$.}
+  \begin{proof}\pf\ This set has size five by \asm{1},
+   Definition~\ref{hc:def:graph}, and \ref{hc:facts:finite}.~\qed\end{proof}
+  \step{hcTwoEdge}{$B_1\sim X$ and
+   $X\in(S_1\diff\{B_1\})\cup(S_2\diff\{B_1\})$.}
+  \begin{proof}\pf\ The clique $K$ in \asm{1} and
+   \stepref{hcTwoOther} give adjacency. The covering conclusion
+   of \stepref{hcTwoSplit} gives the indicated membership.~\qed\end{proof}
+  \step{hcTwoFirst}{\case{$X\in S_1$.} $K=S_1$.}
+  \begin{proof}\pf\ Both six-cliques contain the adjacent pair
+   $B_1,X$ by \asm{1}, \stepref{hcTwoDistinct}, and
+   \stepref{hcTwoEdge}. Apply the uniqueness conclusion of
+   Corollary~\ref{hc:cor:unique} to this pair.~\qed\end{proof}
+  \step{hcTwoSecond}{\case{$X\in S_2$.} $K=S_2$.}
+  \begin{proof}\pf\ The cliques $K,S_2$ contain $B_1,X$ by
+   \asm{1}, \stepref{hcTwoDistinct}, and \stepref{hcTwoEdge}.
+   Corollary~\ref{hc:cor:unique} applied to $B_1,X$ identifies them.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{hcTwoEdge} makes
+   \stepref{hcTwoFirst}, \stepref{hcTwoSecond} exhaustive.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{hcTwoExhaust} gives containment
+  of the filtered family in $\{S_1,S_2\}$; \stepref{hcTwoDistinct}
+  gives the reverse containment and size two. The intersection
+  is part of \stepref{hcTwoSplit}.~\qed\end{proof}
+\end{proof}
+
+\subsubsection{The global family}
+
+\begin{namedresult}{Lemma}{(seven six-cliques)}\label{hc:lem:seven}
+ \lean{Design.card_sixCliques}
+ \uses{hc:def:design,hc:def:graph,hc:cor:two,hc:facts:finite}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{$|\cS|=7$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Count incidences between block labels and six-cliques.
+ \step{hcSevenByClique}{There are $6|\cS|$ pairs $(B,S)$ with $B\in S\in\cS$.}
+ \begin{proof}\pf\ Every member of $\cS$ has size six by
+  Definition~\ref{hc:def:graph}; apply \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcSevenByBlock}{There are $42$ such pairs.}
+ \begin{proof}\pf\ Each of the $21$ block labels belongs to two
+  members of $\cS$ by Corollary~\ref{hc:cor:two} and
+  Definition~\ref{hc:def:design}; use \ref{hc:facts:finite}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Equate \stepref{hcSevenByClique} and
+  \stepref{hcSevenByBlock}, then divide $6|\cS|=42$ by six.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(intersections of six-cliques)}\label{hc:lem:clique-meet}
+ \lean{Design.sixClique_inter_card}
+ \uses{hc:def:design,hc:def:graph,hc:cor:unique,hc:cor:two,hc:lem:seven,hc:facts:finite}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality and
+  $D$ is a design with parameters $(15,5,21,7,2)$.
+  \item $S_0,S_1\in\cS$ and $S_0\ne S_1$.
+ \end{pfenum}}
+ \prove{$|S_0\cap S_1|=1$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Any two distinct cliques share at most one block.
+ The other clique through each of the six blocks of $S_0$ then
+ enumerates all six cliques different from $S_0$.
+ \step{hcMeetAtMost}{For all distinct $S,T\in\cS$, $|S\cap T|\le1$.}
+ \begin{proof}
+  \step{hcMeetTwo}{\assume{$S,T\in\cS$, $S\ne T$, and distinct $B,B'\in S\cap T$.}
+   \prove{\textsc{False}.}}
+  \begin{proof}\pf\ $B\sim B'$ by the clique predicate in
+   Definition~\ref{hc:def:graph}. Corollary~\ref{hc:cor:unique}
+   identifies $S,T$ through this edge, contradicting $S\ne T$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The cardinality-at-most-one criterion of
+   \ref{hc:facts:finite} applies to \stepref{hcMeetTwo}.~\qed\end{proof}
+ \end{proof}
+ \step{hcMeetMap}{For every $B\in S_0$ there is a unique
+  $f(B)\in\cS\diff\{S_0\}$ containing $B$.}
+ \begin{proof}\pf\ Corollary~\ref{hc:cor:two} supplies exactly
+  two cliques through $B$, one of which is $S_0$ by \asm[2]{0}.
+  Deleting that one leaves a singleton by \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcMeetInjective}{$f:S_0\to\cS\diff\{S_0\}$ is injective.}
+ \begin{proof}\pf\ If $f(B)=f(B')$ with $B\ne B'$, then
+  $S_0$ and $f(B)\ne S_0$ share two blocks by \stepref{hcMeetMap},
+  contradicting \stepref{hcMeetAtMost}.~\qed\end{proof}
+ \step{hcMeetSurjective}{$f$ is surjective.}
+ \begin{proof}\pf\ Its domain has size six by
+  Definition~\ref{hc:def:graph}; its codomain has size $7-1=6$
+  by Lemma~\ref{hc:lem:seven} and \asm[2]{0}.
+  The finite bijectivity criterion of \ref{hc:facts:finite}
+  applies to \stepref{hcMeetInjective}.~\qed\end{proof}
+ \step{hcMeetNonempty}{$S_0\cap S_1$ is nonempty.}
+ \begin{proof}\pf\ By \asm[2]{0} and \stepref{hcMeetSurjective},
+  choose $B\in S_0$ with $f(B)=S_1$. Step \stepref{hcMeetMap}
+  gives $B\in S_1$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Combine the lower bound from
+  \stepref{hcMeetNonempty} with \stepref{hcMeetAtMost}, using
+  \ref{hc:facts:finite}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(points in a six-clique)}\label{hc:lem:point-clique}
+ \lean{Design.card_blocksThrough_in_sixClique}
+ \uses{hc:def:design,hc:def:graph,hc:facts:finite}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality and
+  $D$ is a design with parameters $(15,5,21,7,2)$.
+  \item $S_0\in\cS$.
+ \end{pfenum}}
+ \prove{For every $p\in P$, $|\{B\in S_0:p\in B\}|=2$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Two moments of the point multiplicities give a sum
+ of squares equal to zero.
+ \step{hcPointDefine}{\pflet{$m(p)\triangleq|\{B\in S_0:p\in B\}|$.}
+  Then $\sum_{p\in P}m(p)=30$.}
+ \begin{proof}\pf\ Count $(p,B)$ with $B\in S_0$ and $p\in B$.
+  There are six labels, each with five points, by
+  Definitions~\ref{hc:def:graph}, \ref{hc:def:design}, and
+  \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcPointSecond}{$\sum_{p\in P}m(p)(m(p)-1)=30$ in $\ints$.}
+ \begin{proof}\pf\ Count $(p,B,B')$ with distinct $B,B'\in S_0$
+  and $p\in B\cap B'$. Each of the $6\cdot5$ ordered pairs
+  meets in exactly one point by Definition~\ref{hc:def:graph}.
+  Counting by $p$ gives the sum, using \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcPointSquares}{$\sum_{p\in P}(m(p)-2)^2=0$ in $\ints$.}
+ \begin{proof}
+  \pf\ Integer expansion gives
+  \begin{align*}
+   \sum_p(m(p)-2)^2
+    &=\sum_p m(p)(m(p)-1)-3\sum_p m(p)+4|P|
+        &&\text{[ring arithmetic]}\\
+    &=30-90+60 &&\text{[\stepref{hcPointDefine}, \stepref{hcPointSecond},
+                           \ref{hc:def:design}]}\\
+    &=0 &&\text{[integer arithmetic].}
+  \end{align*}\qed
+ \end{proof}
+ \step{hcPointZero}{For every $p\in P$, $(m(p)-2)^2=0$.}
+ \begin{proof}\pf\ Each integer square is nonnegative; apply the
+  zero-sum criterion of \ref{hc:facts:finite} to \stepref{hcPointSquares}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ An integer square vanishes only at zero, so
+  \stepref{hcPointZero} gives $m(p)-2=0$ and $m(p)=2$ for every $p$.~\qed\end{proof}
+\end{proof}
+
+\subsubsection{The labelled extension and the matrix it supplies}
+
+\begin{namedresult}{Definition}{(clique incidence and extended blocks)}\label{hc:def:extension}
+ \lean{Design.sixCliqueIncMatrix}\lean{Design.hallConnorBlocks}
+ \lean{Design.hallConnorIncMatrix}
+ \uses{hc:def:design,hc:def:matrices,hc:def:graph}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \pflet{$T\in\mat{\cB}{\cS}{\ints}$ have $T(B,S)=1$ for $B\in S$
+ and $0$ otherwise. Put $P^*\triangleq P\sqcup\cS$ and
+ $\cB^*\triangleq\operatorname{Option}(\cB)$.}
+ Denote their injections by $\iota:P\to P^*$ and $\eta:\cS\to P^*$,
+ the old labels by $\operatorname{some}(B)$, and the new label by $\operatorname{none}$.
+ Define the block function $F:\cB^*\to\operatorname{Finset}(P^*)$ by
+ \[
+ \begin{split}
+ F(\operatorname{some}(B))&\triangleq
+    \iota(B)\cup\{\eta(S):S\in\cS,\ B\in S\},\\
+ F(\operatorname{none})&\triangleq\{\eta(S):S\in\cS\}.
+ \end{split}
+ \]
+ Here $\iota(B)$ is the image of the point set of $B$.
+ Define $N^*\triangleq D.\mathrm{hallConnorIncMatrix}
+ \in\mat{P^*}{\cB^*}{\ints}$ by the four entry formulas
+ \[
+ N^*(\iota(p),\operatorname{some}(B))\triangleq N(p,B),\quad N^*(\iota(p),\operatorname{none})\triangleq0,
+ \]
+ \[
+ N^*(\eta(S),\operatorname{some}(B))\triangleq T(B,S),\quad N^*(\eta(S),\operatorname{none})\triangleq1.
+ \]
+\end{namedresult}
+
+\begin{namedresult}{Lemma}{(parameters of the extended blocks)}\label{hc:lem:extension-parameters}
+ \lean{Design.hallConnorBlocks_parameters}
+ \uses{hc:def:design,hc:def:graph,hc:def:extension,hc:cor:two,hc:lem:seven,
+ hc:lem:clique-meet,hc:lem:point-clique,hc:facts:finite}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{For the types and block function of Definition~\ref{hc:def:extension},
+ \[
+ \begin{gathered}
+ |P^*|=22,\qquad|\cB^*|=22,\qquad
+ \forall A\in\cB^*,\ |F(A)|=7,\\
+ \forall x\in P^*,\ |\{A:x\in F(A)\}|=7,\\
+ \forall x,y\in P^*,\ x\ne y\Rightarrow
+                  |\{A:x,y\in F(A)\}|=2.
+ \end{gathered}
+ \]}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will verify every cardinality and each of the three
+ unordered types of point pair. The disjoint sum distinguishes new
+ points from old points even if their underlying representations agree.
+ \step{hcExtPoints}{$|P^*|=22$ and $|\cB^*|=22$.}
+ \begin{proof}\pf\ Definition~\ref{hc:def:extension} gives the sums
+  $|P|+|\cS|=15+7$ and $|\cB|+1=21+1$, using
+  Definition~\ref{hc:def:design}, Lemma~\ref{hc:lem:seven}, and
+  \path{Fintype.card_sum} and \path{Fintype.card_option} in
+  \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcExtOldBlock}{For every $B\in\cB$, $|F(\operatorname{some}(B))|=7$.}
+ \begin{proof}\pf\ There are five old points by
+  Definition~\ref{hc:def:design} and two new points by
+  Corollary~\ref{hc:cor:two}. Both $\iota$ and $\eta$ are injective,
+  and their images are disjoint by Definition~\ref{hc:def:extension}.
+  Apply \path{Finset.card_image_of_injective} and the disjoint-union
+  count in \ref{hc:facts:finite} to get $5+2=7$.~\qed\end{proof}
+ \step{hcExtNewBlock}{$|F(\operatorname{none})|=7$.}
+ \begin{proof}\pf\ The map $\eta$ is injective, and
+  Lemma~\ref{hc:lem:seven} gives seven members of $\cS$;
+  use Definition~\ref{hc:def:extension} and
+  \path{Finset.card_image_of_injective} in \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcExtOldReplication}{Each old point $\iota(p)$ lies in seven extended blocks.}
+ \begin{proof}\pf\ Definition~\ref{hc:def:extension} preserves all
+  incidences of $p$ with old labels and puts no old point in $F(\operatorname{none})$.
+  Its old replication number is seven by Definition~\ref{hc:def:design}.~\qed\end{proof}
+ \step{hcExtNewReplication}{Each new point $\eta(S)$ lies in seven extended blocks.}
+ \begin{proof}\pf\ Definition~\ref{hc:def:extension} puts it in
+  exactly the old labels $B\in S$, of which there are six by
+  Definition~\ref{hc:def:graph}, and also in the distinct new
+  label $\operatorname{none}$. The count is $6+1=7$.~\qed\end{proof}
+ \step{hcExtOldOld}{\assume{$p,q\in P$ and $p\ne q$.}
+  \prove{$\iota(p),\iota(q)$ lie together in exactly two extended blocks.}}
+ \begin{proof}
+  \step{hcExtOldOldOld}{The common old labels are precisely
+   $\{\operatorname{some}(B):p,q\in B\}$.}
+  \begin{proof}\pf\ The old-incidence clause of
+   Definition~\ref{hc:def:extension}.~\qed\end{proof}
+  \step{hcExtOldOldNew}{The new block contains neither old point.}
+  \begin{proof}\pf\ The two injections have disjoint images in
+   Definition~\ref{hc:def:extension}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{hcExtOldOldOld} has cardinality two
+   by Definition~\ref{hc:def:design} and \asm{1};
+   \stepref{hcExtOldOldNew} excludes any further label.~\qed\end{proof}
+ \end{proof}
+ \step{hcExtOldNew}{\assume{$p\in P$ and $S\in\cS$.}
+  \prove{$\iota(p),\eta(S)$ lie together in exactly two extended blocks.}}
+ \begin{proof}
+  \step{hcExtMixedOld}{The common old labels are precisely
+   $\{\operatorname{some}(B):B\in S,\ p\in B\}$.}
+  \begin{proof}\pf\ Use both old-label incidence clauses in
+   Definition~\ref{hc:def:extension}.~\qed\end{proof}
+  \step{hcExtMixedNew}{The new block does not contain $\iota(p)$.}
+  \begin{proof}\pf\ Definition~\ref{hc:def:extension}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Lemma~\ref{hc:lem:point-clique} gives two labels
+   in \stepref{hcExtMixedOld}; \stepref{hcExtMixedNew} excludes
+   a contribution from the new label.~\qed\end{proof}
+ \end{proof}
+ \step{hcExtNewOld}{\assume{$S\in\cS$ and $p\in P$.}
+  \prove{$\eta(S),\iota(p)$ lie together in exactly two extended blocks.}}
+ \begin{proof}\pf\ The set of common labels is unchanged when the
+  two membership conditions are interchanged. Apply
+  \stepref{hcExtOldNew} to $p,S$.~\qed\end{proof}
+ \step{hcExtNewNew}{\assume{$S,T\in\cS$ and $S\ne T$.}
+  \prove{$\eta(S),\eta(T)$ lie together in exactly two extended blocks.}}
+ \begin{proof}
+  \step{hcExtNewNewOld}{The common old labels are
+   $\{\operatorname{some}(B):B\in S\cap T\}$, of size one.}
+  \begin{proof}\pf\ Definition~\ref{hc:def:extension} gives this
+   set, and Lemma~\ref{hc:lem:clique-meet} with \asm{1} gives its size.~\qed\end{proof}
+  \step{hcExtNewNewNew}{Both points lie in the new block.}
+  \begin{proof}\pf\ The clause for $F(\operatorname{none})$ in
+   Definition~\ref{hc:def:extension}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The old label of \stepref{hcExtNewNewOld}
+   and the new label of \stepref{hcExtNewNewNew} are distinct,
+   and together exhaust the common labels by
+   Definition~\ref{hc:def:extension}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcExtPoints}--\stepref{hcExtNewReplication}
+  verify the cardinalities, block sizes, and replication numbers.
+  Steps \stepref{hcExtOldOld}, \stepref{hcExtOldNew},
+  \stepref{hcExtNewOld}, \stepref{hcExtNewNew} exhaust ordered
+  distinct point pairs: each point is in exactly one summand.
+  Counting labels uses \path{Fintype.sum_option}, and splitting
+  point sums uses \path{Fintype.sum_sum_type}, from
+  \ref{hc:facts:finite}. These give every asserted equality.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Definition}{(the Hall--Connor extension)}\label{hc:def:extension-design}
+ \lean{Design.hallConnorExtension}
+ \uses{hc:def:design,hc:def:extension,hc:lem:extension-parameters}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ Define $D^*\triangleq D.\mathrm{hallConnorExtension}$ of type
+ \[
+ \texttt{Design (Sum P D.sixCliques) (Option B) 22 7 22 7 2}
+ \]
+ with $D^*.\mathrm{block}\triangleq D.\mathrm{hallConnorBlocks}=F$
+ from Definition~\ref{hc:def:extension}. The subtype of members
+ is intended by \texttt{D.sixCliques} in the point type.
+ The cardinality and incidence fields are exactly the equalities in
+ Lemma~\ref{hc:lem:extension-parameters}; the positivity fields of
+ Definition~\ref{hc:def:design} are $22>1$, $7>1$, and $22>0$.
+\end{namedresult}
+
+\begin{namedresult}{Theorem}{(the Hall--Connor residual identity)}\label{hc:thm:extension}
+ \textup{[\cite{HC}, Theorems 2.1 and 3.2 at $k=5$.]}
+ \lean{Design.hallConnorExtension_isSymmetric}
+ \lean{Design.hallConnorExtension_residual}
+ \uses{hc:def:design,hc:def:extension,hc:def:extension-design}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{The design $D^*=D.\mathrm{hallConnorExtension}$ is symmetric,
+ and for every $B\in\cB$,
+ \[
+ D^*.\mathrm{block}(\operatorname{some}(B))\diff
+ D^*.\mathrm{block}(\operatorname{none})=\iota(B).
+ \]
+ Thus deleting the new block and all its points recovers $D$ label by label.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The parameter type gives symmetry; the two disjoint
+ point images give the residual identity.
+ \step{hcExtSymmetric}{$D^*$ is symmetric.}
+ \begin{proof}\pf\ Its parameters in Definition~\ref{hc:def:extension-design}
+  have $v=b=22$, which is Definition~\ref{hc:def:design}.~\qed\end{proof}
+ \step{hcExtResidual}{For every $B$, the asserted block difference is $\iota(B)$.}
+ \begin{proof}\pf\ Unfold the block function in
+  Definition~\ref{hc:def:extension-design}. In
+  Definition~\ref{hc:def:extension}, every added point belongs to
+  $F(\operatorname{none})$ and no old point does. Removing that
+  block from $F(\operatorname{some}(B))$ leaves exactly $\iota(B)$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcExtSymmetric} and \stepref{hcExtResidual}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(integral products for the extension)}\label{hc:lem:extension-products}
+ \lean{Design.incMatrix_mul_sixCliqueIncMatrix}
+ \lean{Design.sixCliqueIncMatrix_transpose_mul}
+ \lean{Design.hallConnorIncMatrix_mul_transpose}
+ \uses{hc:def:design,hc:def:matrices,hc:def:graph,hc:def:extension,hc:lem:incidence,
+ hc:lem:clique-meet,hc:lem:point-clique,hc:facts:finite,hc:facts:matrix}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{All of the following are identities over $\ints$:
+ \[
+ NT=2J_{P,\cS},\qquad T^TT=5I_{\cS}+J_{\cS},\qquad
+ N^*N^{*T}=5I_{P^*}+2J_{P^*}.
+ \]}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will expose the four matrix blocks so that the main
+ contradiction can consume the integral identity directly.
+ \step{hcProductsNT}{$NT=2J_{P,\cS}$.}
+ \begin{proof}\pf\ By Definition~\ref{hc:def:extension} and
+  \ref{hc:facts:matrix}, the $(p,S)$ entry counts $B\in S$ with
+  $p\in B$. Lemma~\ref{hc:lem:point-clique} gives two.~\qed\end{proof}
+ \step{hcProductsTTDiag}{$(T^TT)(S,S)=6$ for every $S\in\cS$.}
+ \begin{proof}\pf\ This entry counts the six labels in $S$, by
+  Definitions~\ref{hc:def:graph}, \ref{hc:def:extension}, and
+  \ref{hc:facts:matrix}.~\qed\end{proof}
+ \step{hcProductsTTOff}{\assume{$S,T_0\in\cS$ and $S\ne T_0$.}
+  \prove{$(T^TT)(S,T_0)=1$.}}
+ \begin{proof}\pf\ The entry counts $S\cap T_0$, by
+  Definition~\ref{hc:def:extension} and \ref{hc:facts:matrix};
+  Lemma~\ref{hc:lem:clique-meet} gives one.~\qed\end{proof}
+ \step{hcProductsTT}{$T^TT=5I_{\cS}+J_{\cS}$.}
+ \begin{proof}\pf\ The diagonal and off-diagonal cases
+  \stepref{hcProductsTTDiag} and \stepref{hcProductsTTOff} are
+  exhaustive and have the asserted entries $6$ and $1$.~\qed\end{proof}
+ \step{hcProductsOO}{The old-old block of $N^*N^{*T}$ is $5I_P+2J_P$.}
+ \begin{proof}\pf\ Sum over old labels and the new label using
+  Definition~\ref{hc:def:extension}, \ref{hc:facts:matrix}, and
+  \path{Fintype.sum_option} in \ref{hc:facts:finite}.
+  The result is $NN^T+0$, equal to $5I_P+2J_P$ by
+  Lemma~\ref{hc:lem:incidence}.~\qed\end{proof}
+ \step{hcProductsON}{The old-new block of $N^*N^{*T}$ is $2J_{P,\cS}$.}
+ \begin{proof}\pf\ The two label contributions are $NT$ and zero,
+  by Definition~\ref{hc:def:extension}, \ref{hc:facts:matrix}, and
+  \path{Fintype.sum_option} in \ref{hc:facts:finite};
+  use \stepref{hcProductsNT}.~\qed\end{proof}
+ \step{hcProductsNO}{The new-old block of $N^*N^{*T}$ is $2J_{\cS,P}$.}
+ \begin{proof}\pf\ It is the transpose of the old-new block,
+  since a matrix times its transpose is symmetric by
+  \ref{hc:facts:matrix}; apply \stepref{hcProductsON}.~\qed\end{proof}
+ \step{hcProductsNN}{The new-new block of $N^*N^{*T}$ is $5I_{\cS}+2J_{\cS}$.}
+ \begin{proof}\pf\ Old labels contribute $T^TT$ and the new label
+  contributes $J_{\cS}$, by Definition~\ref{hc:def:extension} and
+  \ref{hc:facts:matrix}, using \path{Fintype.sum_option} in
+  \ref{hc:facts:finite}. Step \stepref{hcProductsTT} gives their sum.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcProductsOO}--\stepref{hcProductsNN}
+  give the four blocks of $5I_{P^*}+2J_{P^*}$, because distinct
+  summands never give a diagonal entry. Together with
+  \stepref{hcProductsNT} and \stepref{hcProductsTT}, they prove all assertions.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Theorem}{(Hall--Connor, matrix form)}\label{hc:thm:matrix}
+ \lean{Design.hall_connor}
+ \uses{hc:def:design,hc:def:extension,hc:lem:seven,hc:lem:extension-products,
+ hc:facts:finite,hc:facts:matrix}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{There is $M\in\mat{\mathrm{Fin}\,22}{\mathrm{Fin}\,22}{\ints}$
+ with $MM^T=5I_{22}+2J_{22}$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will reindex both finite types in the integral
+ identity, keeping the summed block index the same in both factors.
+ \step{hcMatrixSizes}{$|P^*|=22$ and $|\cB^*|=22$.}
+ \begin{proof}\pf\ Definition~\ref{hc:def:extension} gives disjoint
+  sums of sizes $15+7$ and $21+1$, by
+  Definition~\ref{hc:def:design}, Lemma~\ref{hc:lem:seven}, and
+  \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcMatrixEquiv}{\pick\ equivalences
+  $a:\mathrm{Fin}\,22\to P^*$ and $b:\mathrm{Fin}\,22\to\cB^*$.}
+ \begin{proof}\pf\ Apply the enumeration fact in
+  \ref{hc:facts:finite} to \stepref{hcMatrixSizes}.~\qed\end{proof}
+ \step{hcMatrixDefine}{\pflet{$M(i,j)\triangleq N^*(a(i),b(j))$.}
+  This is an integral matrix.}
+ \begin{proof}\pf\ Every entry of $N^*$ is an integer by
+  Definition~\ref{hc:def:extension}; composition preserves its scalar type.~\qed\end{proof}
+ \step{hcMatrixProduct}{$(MM^T)(i,j)=(N^*N^{*T})(a(i),a(j))$ for all $i,j$.}
+ \begin{proof}\pf\ Both factors use the bijection $b$ on the
+  summed label index. Apply \path{Matrix.transpose_submatrix}
+  and \path{Matrix.submatrix_mul_equiv} from \ref{hc:facts:matrix}
+  to \stepref{hcMatrixDefine}, using \stepref{hcMatrixEquiv}.~\qed\end{proof}
+ \step{hcMatrixTransport}{$MM^T=5I_{22}+2J_{22}$.}
+ \begin{proof}\pf\ Lemma~\ref{hc:lem:extension-products} and
+  \stepref{hcMatrixProduct} give entries
+  $5\,1_{a(i)=a(j)}+2$. The injection $a$ in
+  \stepref{hcMatrixEquiv} makes $a(i)=a(j)$ equivalent to $i=j$,
+  so these are exactly the asserted entries.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The witness \stepref{hcMatrixDefine} and its
+  equation \stepref{hcMatrixTransport} prove the existential conclusion.~\qed\end{proof}
+\end{proof}
+
+\subsubsection{The determinant obstruction and the conclusion}
+
+\begin{namedresult}{Lemma}{(an odd power of five)}\label{hc:lem:odd-power}
+ \lean{Computations.C19.not_sq_eq_49_mul_5_pow_odd}
+ \lean{Computations.C19.not_sq_eq_49_mul_5_pow_21}
+ \uses{hc:facts:prime}
+ \leavevmode\par
+ \assume{$m\in\nn$ and $d\in\ints$.}
+ \prove{$d^2\ne49\cdot5^{2m+1}$. In particular $d^2\ne49\cdot5^{21}$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will induct on $m$, universally quantifying the
+ integer at each stage so that the induction hypothesis applies to $d/5$.
+ \step{hcOddAll}{For every $m\in\nn$ and every $d\in\ints$,
+  $d^2\ne49\cdot5^{2m+1}$.}
+ \begin{proof}
+  \step{hcOddBase}{\assume{$d\in\ints$ and $d^2=49\cdot5$.}
+   \prove{\textsc{False}.}}
+  \begin{proof}
+   \step{hcOddBaseDivide}{\pick\ $e\in\ints$ with $d=5e$.}
+   \begin{proof}\pf\ The equality in \asm{2} gives $5\mid d^2$;
+    \ref{hc:facts:prime} gives $5\mid d$.~\qed\end{proof}
+   \step{hcOddBaseCancel}{$5e^2=49$.}
+   \begin{proof}\pf\ Substitute \stepref{hcOddBaseDivide} into
+    \asm{2} and cancel the nonzero integer factor five.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Step \stepref{hcOddBaseCancel} would make
+    $49$ divisible by five, whereas $49=5\cdot9+4$.~\qed\end{proof}
+  \end{proof}
+  \step{hcOddStep}{\assume{\begin{pfenum}
+    \item $m\in\nn$ and $e^2\ne49\cdot5^{2m+1}$ for every $e\in\ints$.
+    \item $d\in\ints$ and $d^2=49\cdot5^{2m+3}$.
+   \end{pfenum}}
+   \prove{\textsc{False}.}}
+  \begin{proof}
+   \step{hcOddStepDivide}{\pick\ $e\in\ints$ with $d=5e$.}
+   \begin{proof}\pf\ The exponent $2m+3$ is positive, so
+    \asm[2]{2} gives $5\mid d^2$. Apply
+    \ref{hc:facts:prime}.~\qed\end{proof}
+   \step{hcOddStepCancel}{$e^2=49\cdot5^{2m+1}$.}
+   \begin{proof}\pf\ Substitute \stepref{hcOddStepDivide} into
+    \asm[2]{2}, use $5^{2m+3}=25\cdot5^{2m+1}$, and cancel $25\ne0$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Apply \asm[1]{2} to the integer $e$ in
+    \stepref{hcOddStepCancel}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Natural induction using \stepref{hcOddBase} and
+   \stepref{hcOddStep}, since $2(m+1)+1=2m+3$.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{hcOddAll} proves the general assertion;
+  its instance $m=10$ gives exponent $21$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Theorem}{(the Bruck--Ryser--Chowla instance)}\label{hc:thm:BRC}
+ \lean{Matrix.bruck_ryser_chowla_twenty_two}
+ \uses{hc:lem:det,hc:lem:odd-power,hc:facts:matrix,hc:facts:det}
+ \leavevmode\par
+ \assume{$M\in\mat{\mathrm{Fin}\,22}{\mathrm{Fin}\,22}{\ints}$.}
+ \prove{$MM^T\ne5I_{22}+2J_{22}$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will take determinants over $\rats$, retaining
+ the integer determinant to apply the descent at five.
+ \step{hcBRCBad}{\assume{$MM^T=5I_{22}+2J_{22}$.}\prove{\textsc{False}.}}
+ \begin{proof}
+  \step{hcBRCInteger}{Put $d\triangleq\det_{\ints}M$.
+   Then $d\in\ints$ and $\det_{\rats}(M_{\rats})=(d:\rats)$.}
+  \begin{proof}\pf\ The integer determinant is an integer by its
+   scalar type; the cast identity is \path{Int.cast_det} in
+   \ref{hc:facts:det}.~\qed\end{proof}
+  \step{hcBRCSquare}{$(d:\rats)^2=49\cdot5^{21}$.}
+  \begin{proof}
+   \pf\ Cast \asm{1} to $\rats$ using \ref{hc:facts:matrix}.
+   Since $5\ne0$ in $\rats$, the determinant lemma applies, giving
+   \begin{align*}
+    (d:\rats)^2&=\det(M_{\rats}M_{\rats}^T)
+       &&\text{[\stepref{hcBRCInteger}, \ref{hc:facts:det}]}\\
+     &=\det(5I_{22}+2J_{22}) &&\text{[\asm{1}]}\\
+     &=5^{21}(5+22\cdot2) &&\text{[\ref{hc:lem:det}]}\\
+     &=49\cdot5^{21} &&\text{[rational arithmetic].}
+   \end{align*}\qed
+  \end{proof}
+  \step{hcBRCBack}{$d^2=49\cdot5^{21}$ in $\ints$.}
+  \begin{proof}\pf\ The cast $\ints\to\rats$ is injective and
+   preserves sums and products; apply it to \stepref{hcBRCSquare}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Lemma~\ref{hc:lem:odd-power} contradicts
+   \stepref{hcBRCBack}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{hcBRCBad} proves the required negation.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Theorem}{(the parameter contradiction)}\label{hc:thm:false}
+ \lean{Design.false_of_parameters_15_5_2}
+ \uses{hc:def:design,hc:thm:matrix,hc:thm:BRC}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,5,21,7,2)$.
+ \end{pfenum}}
+ \prove{\textsc{False}.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The matrix supplied by the embedding is forbidden by the obstruction.
+ \step{hcFalseMatrix}{\pick\ an integer matrix $M$ of order $22$
+  with $MM^T=5I_{22}+2J_{22}$.}
+ \begin{proof}\pf\ Apply Theorem~\ref{hc:thm:matrix} to $D$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Apply Theorem~\ref{hc:thm:BRC} to the witness
+  and equation in \stepref{hcFalseMatrix}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Corollary}{(nonexistence of a $2$-$(15,5,2)$ design)}\label{hc:cor:main}
+ \lean{Design.not_nonempty_15_5_2}\lean{Design.not_pair_counts_15_5_2}
+ \uses{hc:def:design,hc:lem:parameters,hc:thm:false}
+ \leavevmode\par
+ \prove{The type
+ \[\texttt{Design (Fin 15) (Fin 21) 15 5 21 7 2}\]
+ is empty.
+ Moreover, for every finite point type $P$ of size $15$ and every
+ finite label type $\cB$, both with decidable equality, there is no
+ function $F:\cB\to\operatorname{Finset}(P)$ whose blocks have size
+ five and whose distinct point pairs lie in exactly two labels.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will state both the bundled and unbundled forms.
+ \step{hcMainBundled}{The specified design type is empty.}
+ \begin{proof}\pf\ Every inhabitant would give \textsc{False}
+  by Theorem~\ref{hc:thm:false} with $P=\mathrm{Fin}\,15$,
+  $\cB=\mathrm{Fin}\,21$.~\qed\end{proof}
+ \step{hcMainUnbundled}{\assume{$P,\cB,F$ have the properties in the second assertion.}
+  \prove{\textsc{False}.}}
+ \begin{proof}
+  \step{hcMainParameters}{\pick\ $D:\texttt{Design P B 15 5 21 7 2}$
+   with $D.\mathrm{block}(B)=F(B)$ for every $B\in\cB$.}
+  \begin{proof}\pf\ Apply Lemma~\ref{hc:lem:parameters} to \asm{1}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Apply Theorem~\ref{hc:thm:false} to
+   \stepref{hcMainParameters}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{hcMainBundled} and \stepref{hcMainUnbundled}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Definition}{(complementary labelled blocks)}\label{hc:def:compl}
+ \lean{Design.compl}\uses{hc:def:design,hc:facts:finite}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(v,k,b,r,\lambda)$.
+  \item $2\le v-k$.
+ \end{pfenum}}
+ Define $D.\mathrm{compl}$ with the same point and label types by
+ \[
+ \begin{gathered}
+ D.\mathrm{compl}:\texttt{Design P B v (v-k) b (b-r) (b+lam-2*r)},\\
+ D.\mathrm{compl}.\mathrm{block}(B)\triangleq P\diff D(B).
+ \end{gathered}
+ \]
+ The differences are natural differences. No injectivity of the
+ block function is assumed. The proof below constructs its fields.
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will give the complement constructor its full
+ parameter type. The bound on the new block size is exactly the
+ condition needed by Definition~\ref{hc:def:design}.
+ \step{hcComplGeneralSize}{Every complementary block has size $v-k$.}
+ \begin{proof}\pf\ Its old block is a subset of $P$ with size $k$;
+  subtract from $|P|=v$ using Definition~\ref{hc:def:design}
+  and the finite-difference formula of \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcComplGeneralPoint}{Every point belongs to $b-r$ complementary labels.}
+ \begin{proof}\pf\ The $r$ old labels through it form a subset of
+  the $b$ labels. The other labels are exactly its complementary
+  incidences, by Definition~\ref{hc:def:design} and \ref{hc:facts:finite}.~\qed\end{proof}
+ \step{hcComplGeneralPair}{\new\ \assume{$p,q\in P$ and $p\ne q$.}
+  \prove{Exactly $b+\lambda-2r$ complementary labels contain $p,q$.}}
+ \begin{proof}
+  \step{hcComplGeneralUnion}{Let $A_p,A_q$ be the sets of old
+   incident labels of $p,q$. Then
+   $|A_p\cup A_q|+\lambda=2r$.}
+  \begin{proof}\pf\ Both sets have size $r$ and their intersection
+   has size $\lambda$, by \asm{1} and Definition~\ref{hc:def:design}; use
+   the union-intersection identity in \ref{hc:facts:finite}.~\qed\end{proof}
+  \step{hcComplGeneralCount}{If $c$ counts labels containing
+   neither point, then $c+2r=b+\lambda$.}
+  \begin{proof}\pf\ The complement of $A_p\cup A_q$ among labels
+   has size $c$, so $c+|A_p\cup A_q|=b$ by
+   \ref{hc:facts:finite}. Add \stepref{hcComplGeneralUnion}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{hcComplGeneralCount} gives
+   $2r\le b+\lambda$ and $c=b+\lambda-2r$ in $\nn$.
+   These are the common complementary labels by the block definition.
+   This is the ordinary proof's inclusion-exclusion argument stated
+   for general parameters, so the constructor has a precise type.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The types keep cardinalities $v,b$;
+  steps \stepref{hcComplGeneralSize}, \stepref{hcComplGeneralPoint},
+  and \stepref{hcComplGeneralPair} give the three incidence fields.
+  The new block size is greater than one by \asm[3]{0}; $v>1,b>0$
+  come from the old design in Definition~\ref{hc:def:design}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Corollary}{(the complementary parameters)}\label{hc:cor:complement}
+ \lean{Design.false_of_parameters_15_10_9}\lean{Design.not_nonempty_15_10_9}
+ \uses{hc:def:design,hc:def:compl,hc:thm:false}
+ \leavevmode\par
+ \assume{\begin{pfenum}
+  \item $P,\cB$ are finite types with decidable equality.
+  \item $D$ is a design with parameters $(15,10,21,14,9)$.
+ \end{pfenum}}
+ \prove{\textsc{False}. Thus
+ \texttt{Design (Fin 15) (Fin 21) 15 10 21 14 9} is empty.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Complementing every labelled block produces the forbidden parameters.
+ \step{hcComplDesign}{Put $D'\triangleq D.\mathrm{compl}$.
+  Then $D':\texttt{Design P B 15 5 21 7 2}$.}
+ \begin{proof}\pf\ Apply the constructor of Definition~\ref{hc:def:compl}
+  to \asm[2]{0}, with $2\le15-10=5$.
+  Its parameters reduce to $15-10=5$, $21-14=7$, and
+  $21+9-2\cdot14=2$. These are definitionally equal numerals in Lean.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Apply Theorem~\ref{hc:thm:false} to
+  \stepref{hcComplDesign}. Since the argument applies to arbitrary
+  finite $P,\cB$, it also excludes an inhabitant on
+  $\mathrm{Fin}\,15$ and $\mathrm{Fin}\,21$.~\qed\end{proof}
+\end{proof}
+
+\subsubsection{Interfaces, provenance, and checks}
+
+The statements above make the design-to-matrix bridge explicit:
+\path{Design.hall_connor} returns the integer matrix equation that
+\path{Matrix.bruck_ryser_chowla_twenty_two} negates. The constructor
+\path{Design.hallConnorExtension} has the separately named theorem
+\path{Design.hallConnorExtension_residual}, with point type \texttt{Sum P D.sixCliques} and label type
+\texttt{Option B}. Here \path{D.sixCliques} denotes the subtype of
+members when used as a type. The existential matrix theorem does
+not need a general residual-design API.
+
+No mathematical repair of the ordinary proof is needed.
+We have made its moments, entry identities, principal-matrix bounds,
+and clique incidence counts separately citable, put the determinant
+lemma before its first use, and expanded the local and extension
+cases. These are changes of proof structure. The ordinary
+proof already proves the clique property before counting eight
+edges, already defines the global family as all six-cliques, and
+already uses rank to exclude $Q_1,Q_2$. Those repairs of the source
+are retained here. Neither the unused rational determinant-sign
+remark nor the unused source-local patterns are dependencies.
+Three steps are tagged \new: using the rank-one determinant lemma,
+taking the determinant of each certified inverse identity, and
+stating the complement count for general parameters to give
+\path{Design.compl} an exact interface. They retain the same
+nonexistence argument.
+
+All direct dependencies have local labels prefixed by
+\path{hc:}; there are no deferred blueprint labels. The names in
+\verb|\lean| are declarations of the Lean formalization, except for the
+Mathlib API cited explicitly with paths. Mathlib
+was inspected at commit
+\par\noindent\path{082e2d37e8b0463410cdb532e111cd43d5a66174}\par\noindent
+(4 September 2026), the version pinned in \path{lake-manifest.json}.
+Its rank identities apply over $\rats$; the analytic theorem about
+nonnegative determinants over an \path{RCLike} field is unnecessary.
+The determinant obstruction uses only the even-order instance,
+proved here without a quadratic-form local-global theorem.
+
+The six displayed matrices are those of the ordinary proof. The exact
+checks \path{blueprint/checks/hallconnor/check_proof.py}, with the $T(7)$
+control \path{check_t7.py}, read them from this file and check all six
+matrices, the two quadratic values, and every entry of both inverse
+certificates; they are the checks of the ordinary proof in
+\path{cgss/proofs/hallconnor/checks/}. The control
+exercises all $210$ ordered adjacent pairs; no existing design can
+exercise the hypothetical incidence structure. These checks do not
+establish the quantified counting and clique arguments, which are
+provided by the proofs above.
+\end{mergedproofsection}

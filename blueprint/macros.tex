@@ -1,0 +1,93 @@
+% Macros of the blueprint. The author's own macros are at the start of each document; do not duplicate them here.
+
+% The macros of leanblueprint, as no-ops under pdflatex, so that its dependency graph can be
+% generated later: \lean{Decl.name}, \uses{label, label}, \leanok.
+\newcommand{\lean}[1]{}
+\newcommand{\uses}[1]{}
+\newcommand{\leanok}{}
+
+% Results that carry the paper's own number, for instance
+%   \begin{cgss}{Lemma}{2.8}\label{lem:2.8} ... \end{cgss}
+% and results of ours, numbered within the section, through the usual counters.
+% Statements are set upright, since pf2's keywords (Assume, Prove) are small capitals, which have
+% no italic shape in Computer Modern.
+\theoremstyle{definition}
+\makeatletter
+\newtheorem*{cgss@env}{\cgss@name}
+\newcommand{\cgss@name}{}
+% The environment sets an anchor and makes the paper's number the text of \ref, so that
+% \ref{lem:2.9} prints 2.9 and links to the lemma.
+\newenvironment{cgss}[2]{\renewcommand{\cgss@name}{#1 #2}\begin{cgss@env}%
+  \phantomsection\def\@currentlabel{#2}}{\end{cgss@env}}
+\makeatother
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}[lemma]{Proposition}
+\newtheorem{corollary}[lemma]{Corollary}
+\newtheorem{definition}[lemma]{Definition}
+\newtheorem*{hypothesis}{Hypothesis}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+% Citing assumptions as in [L95]: \asm{1} gives <1>, the assumption of the enclosing level-1
+% step, and \asm[2]{0} gives <0>:2, the second assumption of the theorem itself. Steps are
+% cited with pf2's \stepref{label}.
+\newcommand{\asm}[2][]{$\langle#2\rangle$\if\relax\detokenize{#1}\relax\else{:}#1\fi}
+
+% Tags of the structured proofs: a step that departs from the paper, and a step that fills a gap.
+\newcommand{\new}{\textbf{[new]}}
+\newcommand{\repair}{\textbf{[repair]}}
+
+% The paper's sets of Hypothesis 2.4.
+\newcommand{\Ga}{\Gamma_a}
+\newcommand{\Gb}{\Gamma_b}
+\newcommand{\Gc}{\Gamma_c}
+
+% Vectors that the author's macros do not provide, in its pattern: the vectors a, b, c of Hypothesis 2.4,
+% a unit vector e, and roots r, s, t.
+\newcommand\Za{{\mathbf a}}
+\newcommand\Zb{{\mathbf b}}
+\newcommand\Zc{{\mathbf c}}
+\newcommand\Ze{{\mathbf e}}
+\newcommand\Zr{{\mathbf r}}
+\newcommand\Zs{{\mathbf s}}
+\newcommand\Zt{{\mathbf t}}
+
+% Additional vector names for the arbitrary adjacent pair in Lemma 2.10.
+\newcommand\Zp{{\mathbf p}}
+\newcommand\Zq{{\mathbf q}}
+
+% Upright Dynkin type letters, following cgss/notation.md: \typ{A}_\ell, \typ{E}_8.
+\newcommand{\typ}[1]{\mathrm{#1}}
+
+% Auxiliary results have descriptive headings, not numbers that could clash with CGSS.
+% For example, \begin{namedresult}{Corollary}{of Lemma 2.8} inherits cgss's unique anchor;
+% \ref prints the descriptive second argument. Existing result environments are unchanged.
+\newenvironment{namedresult}[2]{\begin{cgss}{#1}{#2}}{\end{cgss}}
+
+% The all-positive half root used in the Section 3 spanning and inclusion proofs.
+\newcommand\Zh{{\mathbf h}}
+
+% A visible citation with its exact Lean name as metadata and a pdfLaTeX-safe display.
+% Unlike \path, the display may render Unicode subscripts and Greek letters as TeX math.
+% Example: \leancite{LineSystem.E₈}{\texttt{LineSystem.E\ensuremath{{}_8}}}.
+\newcommand{\leancite}[2]{#2}
+
+% Local layout for the merged structured proofs; existing section settings are restored.
+\newenvironment{mergedproofsection}{\begingroup\emergencystretch=3em}{\par\endgroup}
+
+% A descriptive library-fact label (the paragraph already supplies its hyperlink anchor).
+\makeatletter
+\newcommand{\factlabel}[2]{\def\@currentlabel{#1}\label{#2}}
+\makeatother
+
+% Section 5 (spectral characterization). A citation of the spectral toolkit
+% cgss/proofs/spectraltools/spectraltools.tex, which the blueprint does not input: \ST{Theorem 6.2} prints
+% [ST, Theorem 6.2]. Its structured version spectraltools-lamport.tex has the same numbering.
+\newcommand{\ST}[1]{[ST,~#1]}
+% The spectrum of a matrix or a graph, as a multiset, and the multiplicity of an eigenvalue:
+% \Spec(X), \mult_X(\mu). A multiset is written \ms{\mu^{m},\dots}, where \mu^{m} means m copies.
+\newcommand{\Spec}{\opk{Spec}}
+\newcommand{\mult}{\opk{mult}}
+\newcommand{\ms}[1]{\left[\!\left[#1\right]\!\right]}
+% The largest eigenvalue of a real symmetric matrix or of a graph, as in the toolkit.
+\newcommand{\lmax}{\lambda_{\max}}

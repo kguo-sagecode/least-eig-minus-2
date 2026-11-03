@@ -1,0 +1,1849 @@
+\section{Root systems}\label{sec:3}
+\begingroup
+\emergencystretch=3em
+
+We will construct the models before using the classification. All dimensions in this
+section are dimensions of spans. We use both signs of every root, with squared norm 2,
+as in Section 2. The symbol $\ell$ denotes rank, and $N$ denotes the number of lines.
+Coordinates in the text start at 1; Lean's coordinates in \texttt{Fin} start at 0.
+An isometric inclusion means a linear isometry of spans carrying the source roots
+into the target roots. It is proper when that inclusion of root sets is proper.
+
+\new\ We distinguish a proved blueprint result from an existing Lean declaration.
+The tags \verb|\lean| give the Lean names; every one of them names a declaration in
+Lean, and \path{dependency-diagram.md}, at the top of the repository, maps the numbered results
+to their declarations. In
+computational leaves we specify the integer lists, the Boolean test, and the soundness theorem.
+The script \path{blueprint/checks/sec3/check_sec3.py} recomputes these tests exactly; it is a
+sanity check, not a kernel proof of a new certificate.
+No classification of Root Systems from Remark 3.11 is used here.
+
+\begin{namedresult}{Lemma}{(transport on spans)}\label{lem:sec3-transport}
+ \lean{LineSystem.Iso.spanIsometry}
+ \uses{def:line-iso,def:line-system,def:indecomposable,def:2.1,def:2.2,hyp:2.4,facts:inner}
+ \assume{$S,T$ are line systems in finite-dimensional real inner product spaces
+ $V,V'$, and $f:\Phi(S)\to\Phi(T)$ is a bijection preserving inner products.}
+ \prove{There is a unique surjective linear isometry
+ $F:\operatorname{span}\Phi(S)\to\operatorname{span}\Phi(T)$ with $F(\Zr)=f(\Zr)$.
+ It preserves line count and rank, star-closure, indecomposability, and maximality
+ within the span. Its inverse has the same properties. For $\Za,\Zb\in\Phi(S)$ with
+ $(\Za,\Zb)=-1$, the map $f$ carries the sets $\Ga$ and $\Delta$ of
+ Hypothesis~\ref{hyp:2.4} for $\Za,\Zb$ bijectively onto those for $f(\Za),f(\Zb)$,
+ and preserves orthogonality in $\Ga$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We state the transport fact separately so later results do not
+ cite a construction hidden inside a proof. We will factor finite linear combinations through their kernels, and
+ then transport the defining predicates.
+ \step{s3trrelations}{For any real coefficients $a(\Zr)$, the two sums
+ $\sum a(\Zr)\Zr$ and $\sum a(\Zr)f(\Zr)$ have equal squared norms.}
+ \begin{proof}
+  \pf\ Expand both squared norms by bilinearity from Section~\ref{facts:inner}; each term
+  agrees by the inner-product hypothesis.~\qed
+ \end{proof}
+ \step{s3trmap}{The rule $F(\sum a(\Zr)\Zr)=\sum a(\Zr)f(\Zr)$ is a linear map of spans.}
+ \begin{proof}
+  \step{s3trkernel}{A zero source combination has zero target combination.}
+  \begin{proof}\pf\ Apply zero squared norm from Section~\ref{facts:inner} to
+   \stepref{s3trrelations}.~\qed\end{proof}
+  \step{s3trquotient}{The target combination map factors through the quotient by
+   the kernel of the source combination map.}
+  \begin{proof}\pf\ Apply \path{Submodule.liftQ} to the kernel inclusion
+   in \stepref{s3trkernel}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Identify the quotient with the source range by
+   \path{LinearMap.quotKerEquivRange}, and the range with the span by
+   \path{Fintype.range_linearCombination}.~\qed\end{proof}
+ \end{proof}
+ \step{s3trisometry}{The map $F$ is an isometry and is onto the target span.}
+ \begin{proof}
+  \step{s3trinner}{It preserves the inner product of two combinations.}
+  \begin{proof}\pf\ Bilinearity from Section~\ref{facts:inner} expands that product into
+   the preserved products of pairs of roots.~\qed\end{proof}
+  \step{s3tronto}{Each target combination has a source combination mapping to it.}
+  \begin{proof}\pf\ Reindex its coefficients by the inverse of $f$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Use \stepref{s3trinner} and \stepref{s3tronto}.~\qed\end{proof}
+ \end{proof}
+ \step{s3trpredicates}{The asserted invariants are preserved.}
+ \begin{proof}
+  \step{s3trlines}{Antipodal pairs correspond bijectively.}
+  \begin{proof}\pf\ Linearity gives $F(-\Zr)=-F(\Zr)$; use the root bijection.~\qed\end{proof}
+  \step{s3trrank}{The ranks agree.}
+  \begin{proof}\pf\ A linear bijection carries a basis to a basis.~\qed\end{proof}
+  \step{s3trclosed}{Star-closure is preserved in each direction.}
+  \begin{proof}\pf\ Transport the sum and inner product in Definition~\ref{def:2.1}
+   through $F$ or $F^{-1}$.~\qed\end{proof}
+  \step{s3trindecomp}{Indecomposability is preserved in each direction.}
+  \begin{proof}\pf\ Pull an orthogonal partition back through the corresponding
+   root bijection in the indecomposability definition in Section~\ref{def:indecomposable}.~\qed\end{proof}
+  \step{s3trmaximal}{Maximality within the span is preserved in each direction.}
+  \begin{proof}\pf\ Transport a candidate vector of Definition~\ref{def:2.2}
+   through the surjective span isometry.~\qed\end{proof}
+  \step{s3trmarked}{\new\ The map $f$ carries $\Ga$ and $\Delta$ for $\Za,\Zb$ onto
+   those for $f(\Za),f(\Zb)$, preserving orthogonality.}
+  \begin{proof}\pf\ These sets are defined in Hypothesis~\ref{hyp:2.4} by inner products
+   with $\Za$, $\Zb$ and $\Zc=-\Za-\Zb$; $f$ preserves inner products and
+   $F(\Zc)=-f(\Za)-f(\Zb)$ by linearity.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The six preceding steps are the six assertions.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The finite-span lemma in Section~\ref{facts:inner} forces the formula
+  for any linear extension; thus \stepref{s3trmap} is unique. Combine
+  \stepref{s3trisometry} and \stepref{s3trpredicates}.~\qed\end{proof}
+\end{proof}
+\begingroup\raggedright
+The quotient and combination declarations are in the Mathlib files
+\path{LinearAlgebra/Quotient/Basic.lean}, \path{LinearAlgebra/Isomorphisms.lean},
+and \path{LinearAlgebra/Finsupp/LinearCombination.lean}, respectively.\par
+\endgroup
+
+\begin{namedresult}{Lemma}{(restriction to the span)}\label{lem:sec3-restrict}
+ \lean{LineSystem.restrictSpan}\lean{LineSystem.Iso.restrictSpan}
+ \uses{def:line-system,lem:sec3-transport,facts:inner}
+ \assume{$S$ is a line system in a finite-dimensional real inner product space $V$,
+ and $W=\operatorname{span}\Phi(S)$, with the inner product of $V$.}
+ \prove{The vectors of $\Phi(S)$, as vectors of $W$, form the root set of a line system
+ $S|_W$ in $W$, and $\Phi(S|_W)$ spans $W$. The identity of $\Phi(S)$ is a bijection
+ $\Phi(S|_W)\to\Phi(S)$ preserving inner products. Thus $S|_W$ and $S$ have the same
+ number of lines, the same rank, and the same sets $\Ga$ and $\Delta$ with the same
+ orthogonalities, and each is nonempty, star-closed or indecomposable exactly when the
+ other is. A surjective linear isometry from $W$ that carries $\Phi(S|_W)$ onto a root
+ set carries $\Phi(S)$ onto it.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ Theorem 2.13 assumes that the roots span the ambient space. We will
+ state the passage to the span once, since Theorems 3.5 and 3.6 use it for $S$ and for
+ the models.
+ \step{s3reslines}{$S|_W$ is a line system in $W$.}
+ \begin{proof}\pf\ The inner product of $W$ is that of $V$ on vectors of $W$, by
+  \path{Submodule.coe_inner}; the conditions of the line-system definition in
+  Section~\ref{def:line-system} are conditions on these inner products and on negation.~\qed\end{proof}
+ \step{s3resspan}{$\Phi(S|_W)$ spans $W$.}
+ \begin{proof}\pf\ This is \path{Submodule.span_span_coe_preimage} for the set
+  $\Phi(S)$.~\qed\end{proof}
+ \step{s3resinner}{The identity of $\Phi(S)$ preserves inner products.}
+ \begin{proof}\pf\ Apply \path{Submodule.coe_inner} to two roots.~\qed\end{proof}
+ \step{s3resinvariants}{The two systems have the asserted common invariants.}
+ \begin{proof}\pf\ Apply Lemma~\ref{lem:sec3-transport} to the bijection of
+  \stepref{s3resinner}; nonemptiness is preserved by any bijection.~\qed\end{proof}
+ \step{s3resisometry}{The assertion on surjective linear isometries holds.}
+ \begin{proof}\pf\ The two root sets are the same vectors of $W$, and
+  $W=\operatorname{span}\Phi(S)$ by definition.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s3reslines}, \stepref{s3resspan},
+  \stepref{s3resinner}, \stepref{s3resinvariants} and \stepref{s3resisometry} are the
+  assertions.~\qed\end{proof}
+\end{proof}
+The two span declarations are in the Mathlib files
+\path{Analysis/InnerProductSpace/Subspace.lean} and \path{LinearAlgebra/Span/Defs.lean}.
+
+\begin{namedresult}{Lemma}{(an equal-rank proper inclusion)}\label{lem:sec3-proper-inclusion}
+ \lean{LineSystem.not_isMaximal_of_proper_isometric_inclusion}
+ \uses{def:line-system,def:2.2,facts:inner}
+ \assume{\begin{pfenum}
+  \item $S$ and $T$ are line systems in finite-dimensional real inner product spaces.
+  \item The spans $W_S=\operatorname{span}\Phi(S)$ and $W_T=\operatorname{span}\Phi(T)$
+   have the same dimension.
+  \item $G:W_S\to W_T$ is a linear isometry with $G(\Phi(S))\subsetneq\Phi(T)$.
+ \end{pfenum}}
+ \prove{$S$ is not maximal within $W_S$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We will pull back a target root outside the image; it is a candidate
+ of Definition 2.2 that is not a root of $S$.
+ \step{s3propsurj}{$G$ is onto $W_T$.}
+ \begin{proof}\pf\ An isometry is injective, and the dimensions agree by \asm[2]{0};
+  apply \path{LinearMap.injective_iff_surjective_of_finrank_eq_finrank}.~\qed\end{proof}
+ \step{s3proppick}{\pick\ $\Zt\in\Phi(T)\diff G(\Phi(S))$ and $\Zx\in W_S$ with
+  $G(\Zx)=\Zt$.}
+ \begin{proof}\pf\ The root $\Zt$ exists by \asm[3]{0}, and $\Zx$ by
+  \stepref{s3propsurj}.~\qed\end{proof}
+ \step{s3propnorm}{$(\Zx,\Zx)=2$.}
+ \begin{proof}\pf\ $G$ preserves inner products and $(\Zt,\Zt)=2$.~\qed\end{proof}
+ \step{s3propproducts}{For every $\Zr\in\Phi(S)$, $(\Zx,\Zr)\in\{-2,-1,0,1,2\}$.}
+ \begin{proof}\pf\ $(\Zx,\Zr)=(\Zt,G(\Zr))$, and $\Zt,G(\Zr)\in\Phi(T)$ by
+  \asm[3]{0}; use the line-system definition in Section~\ref{def:line-system}.~\qed\end{proof}
+ \step{s3propnew}{$\Zx\notin\Phi(S)$.}
+ \begin{proof}\pf\ Otherwise $\Zt=G(\Zx)$ would lie in $G(\Phi(S))$, contrary to the
+  choice of $\Zt$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s3propnorm}, \stepref{s3propproducts} and
+  \stepref{s3propnew} give a vector of $W_S$ that Definition~\ref{def:2.2} requires in
+  $\Phi(S)$ for a maximal $S$.~\qed\end{proof}
+\end{proof}
+The rank declaration is in the Mathlib file \path{LinearAlgebra/FiniteDimensional/Lemmas.lean}.
+
+\begin{cgss}{Definition}{3.1}\label{def:3.1}
+ \lean{LineSystem.An}\lean{LineSystem.Dn}\uses{def:line-system}
+ \assume{$\ell$ is an integer, $\ell\geq1$ for $\typ A_\ell$ and $\ell\geq4$
+ for $\typ D_\ell$; $(\Ze_i)$ is the standard orthonormal coordinate basis.}
+ \pflet{The signed roots of the two systems are}
+ \[
+ \begin{split}
+ \Phi(\typ A_\ell)&=\{\Ze_i-\Ze_j:1\leq i,j\leq\ell+1,\ i\ne j\},\\
+ \Phi(\typ D_\ell)&=\{s\Ze_i+t\Ze_j:1\leq i<j\leq\ell,\ s,t\in\{1,-1\}\}.
+ \end{split}
+ \]
+ These are line systems: each root has squared norm 2; taking negatives stays in
+ the displayed set; pairwise products are integers of absolute value at most 2.
+ We verify these assertions below with the other models.
+ The inclusion $\Phi(\typ A_\ell)\subseteq\Phi(\typ D_{\ell+1})$ uses these coordinates.
+ For $\ell<4$, the Lean definition \texttt{Dn} still uses this coordinate formula.
+ The classification only uses $\typ D_\ell$ for $\ell\geq4$.
+\end{cgss}
+
+\begin{remark}
+ \lean{LineSystem.cuboctahedronVertices}\lean{LineSystem.cuboctahedron}
+ \lean{LineSystem.cuboctahedronDiagonals}
+ \lean{LineSystem.cuboctahedronVertices_eq}\lean{LineSystem.ncard_cuboctahedronVertices}
+ \lean{LineSystem.ncard_cubeEdges}\lean{LineSystem.IsCubeEdge.sym2_eq_of_midpoint_eq}
+ \lean{LineSystem.cuboctahedron_Φ_inter_span_singleton}
+ \lean{LineSystem.numLines_cuboctahedron}\lean{LineSystem.ncard_cuboctahedronDiagonals}
+ \lean{LineSystem.cuboctahedron_eq_Dn}\lean{LineSystem.cuboctahedron.isoAn}
+ \lean{LineSystem.nonempty_iso_cuboctahedron_An}
+ The paper adds that $\typ A_3$ is represented by the 6 diagonals of the cuboctahedron. This is
+ a side claim, and we prove it in \path{LineGraphs/SideClaims/Cuboctahedron.lean}. The vertices of
+ the cuboctahedron are the midpoints of the twelve edges of the cube with vertices
+ $(\pm1,\pm1,\pm1)$, and distinct edges have distinct midpoints. The midpoints are the twelve
+ vectors with one coordinate 0 and two coordinates $\pm1$, which is $\Phi(\typ D_3)$ in the
+ coordinates above. The vertex opposite to $\Zv$ is $-\Zv$, so each diagonal carries exactly two
+ vertices, and the six diagonals are the lines of the line system $\typ D_3$
+ (\path{LineSystem.cuboctahedron_eq_Dn}). This system is isomorphic to $\typ A_3$
+ (\path{LineSystem.nonempty_iso_cuboctahedron_An}); in Lean the isomorphism is checked on the
+ integer roots, by the kernel.
+\end{remark}
+
+\begin{cgss}{Definition}{3.2}\label{def:3.2}
+ \lean{LineSystem.E₈viaA₈}\lean{LineSystem.E₈viaD₈}
+ \lean{LineSystem.E₈viaSteiner}\lean{LineSystem.E₈}
+ \lean{LineSystem.steiner348}\uses{def:3.1,def:line-system}
+ \assume{Coordinate spaces have their usual real inner products.}
+ \pflet{The following three signed sets, with the indicated normalization, define
+ the three models of $\typ E_8$. The default is model (ii).}
+ \begin{pfenum}
+  \item In $\re^9$, take $\Phi(\typ A_8)$ together with both signs of
+  $\frac13\sum_{i=1}^9\Ze_i-\sum_{i\in T}\Ze_i$, for $T\in\binom{[9]}3$.
+  \item In $\re^8$, take $\Phi(\typ D_8)$ together with
+  $\frac12\sum_{i=1}^8\epsilon(i)\Ze_i$, where $\epsilon(i)\in\{1,-1\}$ and
+  $\prod_i\epsilon(i)=1$.
+  \item In $\re^8$, take $\pm\sqrt2\Ze_i$ and
+  $\frac1{\sqrt2}\sum_{i\in B}\epsilon(i)\Ze_i$ for all sign choices and all
+  $B\in\mathcal B$, where the blocks of $\mathcal B=S(3,4,8)$ are
+  \[
+  \begin{array}{rrrrrrr}
+  1234&1256&1278&1357&1368&1458&1467\\
+  2358&2367&2457&2468&3456&3478&5678.
+  \end{array}
+  \]
+ \end{pfenum}
+ \repair\ This fixes the labelling required by Gap 5. We correct the second
+ printed ``(i)'' to (ii) (Error 6), and remove the repeated sign condition
+ (Error 13). \new\ The factor $1/\sqrt2$ in (iii) changes the printed vectors
+ of squared norm 4 to our uniform squared norm 2, without changing their lines.
+\end{cgss}
+
+\begin{namedresult}{Lemma}{(integer realizations)}\label{lem:sec3-integer}
+ \lean{Computations.C2.model_presentations}
+ \uses{def:3.1,def:3.2,def:line-system,facts:inner}
+ \assume{The coordinate sets are those of Definitions~\ref{def:3.1} and~\ref{def:3.2}.}
+ \prove{They are line systems. Write $\Zr=c\Zv$ with integral $\Zv$ and
+ $c^2q=1$. Their presentations are as follows; each list of raw vectors has no repetitions.
+ \[
+ \begin{array}{c|c|c|l}
+ \text{model}&q&c&\text{raw vectors }\Zv\\\hline
+ \typ A_\ell&1&1&\Ze_i-\Ze_j\ (i\ne j)\\
+ \typ D_\ell&1&1&s\Ze_i+t\Ze_j\ (i<j)\\
+ \typ E_8\text{ (i)}&9&1/3&3(\Ze_i-\Ze_j),\quad\pm(\mathbf1-3\mathbf1_T)\\
+ \typ E_8\text{ (ii)}&4&1/2&2(s\Ze_i+t\Ze_j),\quad\epsilon\ (\prod\epsilon=1)\\
+ \typ E_8\text{ (iii)}&2&1/\sqrt2&\pm2\Ze_i,\quad\epsilon\mathbf1_B
+ \end{array}
+ \]
+ Every raw squared norm is $2q$, and every raw product lies in
+ $q\{-2,-1,0,1,2\}$. Each triple of points belongs to exactly one block of $\mathcal B$;
+ distinct blocks intersect in 0 or 2 points.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We make the integer normalization and injective indices explicit
+ to match the Lean models. We will check coordinates before using the common integer-model transfer.
+ \step{s3intclassical}{The assertions hold for $\typ A_\ell,\typ D_\ell$.}
+ \begin{proof}
+  \step{s3intclassnorm}{Every such vector has exactly two nonzero coordinates, each a sign.}
+  \begin{proof}\pf\ Read the two displays in Definition~\ref{def:3.1}.~\qed\end{proof}
+  \step{s3intclassproducts}{Its squared norm is 2 and the products are integers between $-2$ and 2.}
+  \begin{proof}\pf\ Sum the two coordinate products from \stepref{s3intclassnorm}.~\qed\end{proof}
+  \step{s3intclassunique}{Supports and signs recover the displayed indices uniquely.}
+  \begin{proof}\pf\ In $\typ A_\ell$ the positive and negative positions give the ordered
+   pair; in $\typ D_\ell$ the sorted support gives the pair and its entries give the signs.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Negating the displayed signs stays in each list;
+   use \stepref{s3intclassproducts} and \stepref{s3intclassunique}.~\qed\end{proof}
+ \end{proof}
+ \step{s3intone}{The assertions hold for model (i).}
+ \begin{proof}
+  \step{s3intonetriple}{For $t_T=\mathbf1-3\mathbf1_T$,
+  $t_T\cdot t_U=9(|T\cap U|-1)$.}
+  \begin{proof}\pf\ Expand the indicators and use $|T|=|U|=3$ in a 9-set.~\qed\end{proof}
+  \step{s3intonemixed}{$3(\Ze_i-\Ze_j)\cdot t_T=9(\mathbf1_T(j)-\mathbf1_T(i))$.}
+  \begin{proof}\pf\ Substitute the $i,j$ entries of $t_T$.~\qed\end{proof}
+  \step{s3intoneunique}{The signed triple vectors are distinct and disjoint from the pair vectors.}
+  \begin{proof}\pf\ A triple vector has three entries $-2$ and six entries 1;
+   its negative has different entry values, while a pair vector has seven zero entries.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Use \stepref{s3intonetriple}, \stepref{s3intonemixed},
+   \stepref{s3intoneunique}, and \stepref{s3intclassical} scaled by 3.~\qed\end{proof}
+ \end{proof}
+ \step{s3inttwo}{The assertions hold for model (ii).}
+ \begin{proof}
+  \step{s3inttwohalf}{For two parity-even sign vectors $u,v$, their Hamming distance
+   $d$ is even, and $u\cdot v=8-2d\in\{-8,-4,0,4,8\}$.}
+  \begin{proof}\pf\ The product of the eight coordinatewise products is 1,
+   so the number of $-1$ products is even.~\qed\end{proof}
+  \step{s3inttwomixed}{$2(s\Ze_i+t\Ze_j)\cdot\epsilon=2(s\epsilon(i)+t\epsilon(j))\in\{-4,0,4\}$.}
+  \begin{proof}\pf\ Each summand in parentheses is a sign.~\qed\end{proof}
+  \step{s3inttwounique}{The pair and half-root lists are disjoint and individually injective.}
+  \begin{proof}\pf\ Pair roots have six zeros; half roots have none and their
+   first seven signs determine the last by parity.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Use the last three steps and \stepref{s3intclassical};
+   reversing all eight signs preserves parity.~\qed\end{proof}
+ \end{proof}
+ \step{s3intthree}{The assertions hold for model (iii).}
+ \begin{proof}
+  \step{s3intblocks}{The stated block sizes, intersections, and unique-triple property hold.}
+  \begin{proof}\pf\ Enumerate the 14 displayed blocks and the 56 triples.
+   These are the existing kernel results \path{LineSystem.steinerBlock_card},
+   \path{LineSystem.steinerBlock_inter_even}, and
+   \path{LineSystem.existsUnique_subset_steiner348} in \path{Models.lean}.~\qed\end{proof}
+  \step{s3intthreeproducts}{Raw squared norms are 4, and products are even integers of absolute value at most 4.}
+  \begin{proof}
+   \step{s3intaxes}{Two axes have product 0 or $\pm4$; an axis and a block vector have product 0 or $\pm2$.}
+   \begin{proof}\pf\ The axis has its only nonzero entry equal to $\pm2$.~\qed\end{proof}
+   \step{s3intblockproducts}{Two block vectors have an even product between $-4$ and 4.}
+   \begin{proof}\pf\ By \stepref{s3intblocks}, the product sums 0, 2, or 4 signs.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ The two root types are exhausted by \stepref{s3intaxes}
+    and \stepref{s3intblockproducts}; each self-product is 4.~\qed\end{proof}
+  \end{proof}
+  \step{s3intthreeunique}{The raw list is injective and closed under negation.}
+  \begin{proof}\pf\ Support size distinguishes axes from blocks; support and entries
+   recover every index and sign. All signs are allowed.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Use \stepref{s3intthreeproducts} and \stepref{s3intthreeunique}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Apply \path{LineSystem.ofIntegerRoots} and
+  \path{LineSystem.inner_integerVector} to the five checked presentations.
+  These declarations are in \path{LineGraphs/LineSystem/IntegerModel.lean}.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Definition}{3.3}\label{def:3.3}
+ \lean{LineSystem.E₇}\lean{LineSystem.E₆}
+ \lean{LineSystem.T₇}\lean{LineSystem.T₆}
+ \uses{def:3.2,lem:sec3-integer,def:line-system}
+ \assume{$\typ E_8$ is model (ii) in $\re^8$.}
+ \pflet{$\Zr_0=\Ze_7-\Ze_8$, $\Zs_0=\Ze_6-\Ze_7$, and}
+ \[
+ \Phi(\typ E_7)=\{\Zx\in\Phi(\typ E_8):x_7=x_8\},\qquad
+ \Phi(\typ E_6)=\{\Zx\in\Phi(\typ E_8):x_6=x_7=x_8\}.
+ \]
+ Thus $\typ E_7=\typ E_8\cap\Zr_0^\perp$ and
+ $\typ E_6=\typ E_8\cap\Zr_0^\perp\cap\Zs_0^\perp$.
+ The roots $\Zr_0,\Zs_0,-\Zr_0-\Zs_0$ form a star.
+ \repair\ We fix these choices first, and prove independence of both choices below
+ (Gap 5); no transitivity hypothesis is part of the definition.
+ For the printed counting argument we also name two cuts in model (iii):
+ $T_7=\typ E_8^{\rm(iii)}\cap\Ze_8^\perp$ and
+ $T_6=T_7\cap(\Ze_5+\Ze_6+\Ze_7+\Ze_8)^\perp$.
+ Orthogonal cuts are line systems by restriction of the defining conditions.
+\end{cgss}
+
+\begin{namedresult}{Lemma}{(spans of the models)}\label{lem:sec3-spans}
+ \lean{LineSystem.finrank_span_An}\lean{LineSystem.finrank_span_Dn}
+ \lean{LineSystem.finrank_span_E₈}\lean{LineSystem.finrank_span_E₈viaD₈}
+ \lean{LineSystem.finrank_span_E₈viaA₈}\lean{LineSystem.finrank_span_E₈viaSteiner}
+ \lean{LineSystem.finrank_span_E₇}\lean{LineSystem.finrank_span_E₆}
+ \uses{def:3.1,def:3.2,def:3.3,facts:inner}
+ \assume{The models have the parameter ranges in Definitions~\ref{def:3.1}--\ref{def:3.3}.}
+ \prove{Their spans and ranks are
+ \[
+ \begin{array}{c|c|c}
+ \typ A_\ell&\{\Zx\in\re^{\ell+1}:\sum x_i=0\}&\ell\\
+ \typ D_\ell&\re^\ell&\ell\\
+ \typ E_8\text{ (i)}&\{\Zx\in\re^9:\sum x_i=0\}&8\\
+ \typ E_8\text{ (ii), (iii)}&\re^8&8\\
+ \typ E_7&\{\Zx\in\re^8:x_7=x_8\}&7\\
+ \typ E_6&\{\Zx\in\re^8:x_6=x_7=x_8\}&6.
+ \end{array}
+ \]}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ We supply the dimension inputs deferred by Theorem 2.13
+ (Gap 4). We will give spanning vectors with explicit independent coordinates.
+ \step{s3spanA}{The $\typ A_\ell$ span is the stated hyperplane of dimension $\ell$.}
+ \begin{proof}
+  \step{s3spanAzero}{Every root has coordinate sum zero.}
+  \begin{proof}\pf\ Its two nonzero coordinates are 1 and $-1$.~\qed\end{proof}
+  \step{s3spanAbasis}{The vectors $\Ze_i-\Ze_{\ell+1}$, $1\leq i\leq\ell$, form a basis of this hyperplane.}
+  \begin{proof}\pf\ A vector in the hyperplane is
+   $\sum_{i=1}^\ell x_i(\Ze_i-\Ze_{\ell+1})$; its first $\ell$ coordinates make
+   these coefficients unique.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The basis roots of \stepref{s3spanAbasis} and the containment
+   in \stepref{s3spanAzero} give equality.~\qed\end{proof}
+ \end{proof}
+ \step{s3spanD}{The $\typ D_\ell$ roots span $\re^\ell$.}
+ \begin{proof}\pf\ For $j\ne i$,
+  $\Ze_i=((\Ze_i+\Ze_j)+(\Ze_i-\Ze_j))/2$ lies in the root span.~\qed\end{proof}
+ \step{s3spanEi}{Model (i) spans the zero-sum hyperplane in $\re^9$.}
+ \begin{proof}\pf\ Its additional roots have sum $9/3-3=0$, and it contains the
+  $\typ A_8$ hyperplane of \stepref{s3spanA}.~\qed\end{proof}
+ \step{s3spanEii}{Model (ii) spans $\re^8$.}
+ \begin{proof}\pf\ It contains $\typ D_8$, whose span is given by \stepref{s3spanD}.~\qed\end{proof}
+ \step{s3spanEiii}{Model (iii) spans $\re^8$.}
+ \begin{proof}\pf\ Its eight axis roots are nonzero scalar multiples of a coordinate basis.~\qed\end{proof}
+ \step{s3spanSeven}{The $\typ E_7$ span has basis $\Ze_1,\ldots,\Ze_6,\Ze_7+\Ze_8$.}
+ \begin{proof}
+  \step{s3spanSevenin}{These seven vectors lie in the span.}
+  \begin{proof}\pf\ The $\typ D_6$ roots on the first six coordinates give the six axes
+   by \stepref{s3spanD}; $\Ze_7+\Ze_8$ is itself an $\typ E_7$ root.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The displayed vectors uniquely expand every vector with
+   $x_7=x_8$, which contains all the roots by Definition~\ref{def:3.3}.~\qed\end{proof}
+ \end{proof}
+ \step{s3spanSix}{The $\typ E_6$ span has basis $\Ze_1,\ldots,\Ze_5,\Ze_6+\Ze_7+\Ze_8$.}
+ \begin{proof}
+  \step{s3spanSixaxes}{The first five axes belong to the span.}
+  \begin{proof}\pf\ Apply \stepref{s3spanD} to the $\typ D_5$ roots on the first five coordinates.~\qed\end{proof}
+  \step{s3spanSixtail}{The last basis vector belongs to the span.}
+  \begin{proof}\pf\ Subtract $\sum_{i=1}^5\Ze_i$ from twice the root
+   $\frac12\mathbf1$, using \stepref{s3spanSixaxes}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ These six vectors uniquely expand every vector with
+   $x_6=x_7=x_8$, which contains the roots by Definition~\ref{def:3.3}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The six cases exhaust the models. The cited dimension declarations
+  already implement these arguments in \path{LineGraphs/LineSystem/ModelSpans.lean}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C2}\label{comp:C2}
+ \lean{Computations.C2.line_counts}
+ \lean{LineSystem.numLines_T₇}\lean{LineSystem.numLines_T₆}
+ \uses{def:3.1,def:3.2,def:3.3,lem:sec3-integer}
+ \assume{The models and the fixed cuts $T_7,T_6$ are as defined above.}
+ \prove{Their line counts are $\ell(\ell+1)/2$, $\ell(\ell-1)$,
+ 120 in each $\typ E_8$ model, 63 for $\typ E_7,T_7$, and 36 for $\typ E_6,T_6$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will count injective signed indices and divide by 2.
+ \step{s3countA}{$\typ A_\ell$ has $\ell(\ell+1)/2$ lines.}
+ \begin{proof}\pf\ There are $(\ell+1)\ell$ ordered distinct pairs in
+  Definition~\ref{def:3.1}; injectivity is Lemma~\ref{lem:sec3-integer}.~\qed\end{proof}
+ \step{s3countD}{$\typ D_\ell$ has $\ell(\ell-1)$ lines.}
+ \begin{proof}\pf\ There are $4\binom\ell2$ signed indices; divide by 2.~\qed\end{proof}
+ \step{s3countEone}{Model (i) has $36+84=120$ lines.}
+ \begin{proof}\pf\ Its disjoint types contribute $\binom92$ and $\binom93$ antipodal pairs.~\qed\end{proof}
+ \step{s3countEtwo}{Model (ii) has $56+64=120$ lines.}
+ \begin{proof}\pf\ Its disjoint types contribute $2\binom82$ and $2^7/2$ antipodal pairs.~\qed\end{proof}
+ \step{s3countEthree}{Model (iii) has $8+8\cdot14=120$ lines.}
+ \begin{proof}\pf\ Each of the 14 supports contributes $2^4/2$ pairs, in addition to the eight axes.~\qed\end{proof}
+ \step{s3countSeven}{$\typ E_7$ has $(60+2+64)/2=63$ lines.}
+ \begin{proof}
+  \step{s3countSevenpairs}{Its pair roots are $\typ D_6$ and $\pm(\Ze_7+\Ze_8)$.}
+  \begin{proof}\pf\ The condition $x_7=x_8$ permits a support inside $[6]$, or the
+   support $\{7,8\}$ with equal signs.~\qed\end{proof}
+  \step{s3countSevenhalf}{It has $2^5\cdot2=64$ half roots.}
+  \begin{proof}\pf\ The first six signs have even parity; the last two are equal with two choices.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Add the two disjoint counts and divide by 2.~\qed\end{proof}
+ \end{proof}
+ \step{s3countSix}{$\typ E_6$ has $(40+32)/2=36$ lines.}
+ \begin{proof}
+  \step{s3countSixpairs}{Its pair roots are exactly $\typ D_5$ on $[5]$.}
+  \begin{proof}\pf\ A two-element support cannot meet the three required equal
+   nonzero coordinates $6,7,8$.~\qed\end{proof}
+  \step{s3countSixhalf}{There are $2^5=32$ half roots.}
+  \begin{proof}\pf\ The first five signs determine the common last sign by the even-parity condition.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Add the disjoint counts and divide by 2.~\qed\end{proof}
+ \end{proof}
+ \step{s3countTseven}{$T_7$ has $7+8\cdot7=63$ lines.}
+ \begin{proof}\pf\ Exactly seven blocks in Definition~\ref{def:3.2} avoid 8;
+  each contributes eight lines, in addition to seven axes.~\qed\end{proof}
+ \step{s3countTsix}{$T_6$ has $4+8+4\cdot6=36$ lines.}
+ \begin{proof}
+  \step{s3countTsixaxes}{The four surviving axes have indices $1,2,3,4$.}
+  \begin{proof}\pf\ Impose $x_8=0$ and $x_5+x_6+x_7=0$ on an axis.~\qed\end{proof}
+  \step{s3countTsixblock}{The block 1234 contributes eight lines.}
+  \begin{proof}\pf\ Both linear conditions vanish on every sign choice on this block.~\qed\end{proof}
+  \step{s3countTsixother}{Each of the other six blocks avoiding 8 contributes four lines.}
+  \begin{proof}\pf\ Each meets $\{5,6,7\}$ twice; those signs must be opposite.
+   There are $2\cdot2^2=8$ signed roots per block.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The three disjoint root types give the stated sum.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ All counts use the injectivity in Lemma~\ref{lem:sec3-integer}.
+  The common Lean transfer is \path{LineSystem.IntegerModel.numLines_eq}.
+  The finite cardinal certificates \leancite{LineSystem.card_E₇Index}{\texttt{LineSystem.\allowbreak card\_\allowbreak E\ensuremath{{}_7}Index}} and
+  \leancite{LineSystem.card_E₆Index}{\texttt{LineSystem.\allowbreak card\_\allowbreak E\ensuremath{{}_6}Index}} already check 126 and 72 in the kernel.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C3}\label{comp:C3}
+ \lean{LineSystem.E₈viaA₈.isoE₈}\lean{LineSystem.E₈viaSteiner.isoE₈}
+ \uses{def:3.2,lem:sec3-integer,lem:sec3-spans,comp:C2,lem:sec3-transport}
+ \assume{The three models have the normalization of Definition~\ref{def:3.2}.}
+ \prove{Model (i) is isometric to model (ii) by
+ \[
+ U(\Zx)_i=d_i(x_i+x_9/2)\quad(1\leq i\leq8),\qquad
+ d_1=\cdots=d_7=1,\quad d_8=-1,
+ \]
+ on the zero-sum hyperplane. Model (iii) is isometric to model (ii) by
+ $Q/\sqrt2$, where $Q$ is block diagonal with four blocks
+ $\left(\begin{smallmatrix}1&1\\1&-1\end{smallmatrix}\right)$
+ on the coordinate pairs $12,34,56,78$. Both maps carry the full signed root sets onto one another.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We give explicit maps, so equivalence of the definitions does not
+ use Theorem 3.5. In raw coordinates their formulas are rational, even though the
+ normalization of the Steiner map introduces $\sqrt2$.
+ \step{s3c3Umetric}{$U$ preserves inner products on the zero-sum hyperplane.}
+ \begin{proof}\pf\ For $\sum x_i=\sum y_i=0$, expansion gives
+  $\sum_{i=1}^8(x_i+x_9/2)(y_i+y_9/2)=\sum_{i=1}^9x_iy_i$.
+  The factors $d_i^2=1$ do not change this sum.~\qed\end{proof}
+ \step{s3c3Uroots}{$U$ sends every root of model (i) to a root of model (ii).}
+ \begin{proof}
+  \step{s3c3Upair}{\case{$\Zx=\Ze_i-\Ze_j$, with $i,j\leq8$.}}
+  \begin{proof}\pf\ Its image is $d_i\Ze_i-d_j\Ze_j$, a $\typ D_8$ root.~\qed\end{proof}
+  \step{s3c3Unine}{\case{$\Zx=\Ze_i-\Ze_9$, with $i\leq8$.}}
+  \begin{proof}\pf\ Before the factor $d$, the image has one entry $1/2$ and
+   seven entries $-1/2$. Negating coordinate 8 makes its sign parity even.~\qed\end{proof}
+  \step{s3c3Utripleout}{\case{$\Zx=\mathbf1/3-\mathbf1_T$ and $9\notin T$.}}
+  \begin{proof}\pf\ Before $d$, the image is $\mathbf1/2-\mathbf1_T$, with
+   three negative signs; the coordinate-8 sign change makes their number even.~\qed\end{proof}
+  \step{s3c3Utriplein}{\case{$\Zx=\mathbf1/3-\mathbf1_T$ and $T=\{i,j,9\}$.}}
+  \begin{proof}\pf\ Its image is $-d_i\Ze_i-d_j\Ze_j$, a $\typ D_8$ root.~\qed\end{proof}
+  \step{s3c3Usigns}{Negatives of the listed roots also map to roots.}
+  \begin{proof}\pf\ $U$ is linear and model (ii) is closed under negation by
+   Lemma~\ref{lem:sec3-integer}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The pair and triple alternatives in Definition~\ref{def:3.2}
+   are exhausted by the five preceding steps.~\qed\end{proof}
+ \end{proof}
+ \step{s3c3Qmetric}{$Q/\sqrt2$ preserves inner products.}
+ \begin{proof}\pf\ Each displayed block has transpose times itself equal to $2I_2$,
+  so $Q^TQ=2I_8$.~\qed\end{proof}
+ \step{s3c3Qroots}{$Q/\sqrt2$ sends the roots of model (iii) into model (ii).}
+ \begin{proof}
+  \step{s3c3Qaxis}{An axis root $\pm\sqrt2\Ze_i$ maps to a $\typ D_8$ root.}
+  \begin{proof}\pf\ The $i$th column of $Q$ has two entries in $\{1,-1\}$.~\qed\end{proof}
+  \step{s3c3Qunion}{\case{$B$ is the union of two pairs among $12,34,56,78$.}}
+  \begin{proof}\pf\ On each occupied pair $Q$ sends two signs to one entry $\pm2$
+   and one zero; division by 2 gives a $\typ D_8$ root.~\qed\end{proof}
+  \step{s3c3Qtransversal}{\case{$B$ meets each of the four pairs once.}}
+  \begin{proof}
+   \step{s3c3Qeven}{The number of second positions selected by $B$ is even.}
+   \begin{proof}\pf\ Read the eight transversal blocks in Definition~\ref{def:3.2}:
+    \[\begin{array}{rrrr}1357&1368&1458&1467\\2358&2367&2457&2468.\end{array}\]
+    \qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Selecting a first position gives a pair of signs with product 1;
+    selecting a second gives product $-1$. Step \stepref{s3c3Qeven} makes the total
+    product 1, so $Q\Zv/2$ is a half root of model (ii).~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ The other six blocks are $1234,1256,1278,3456,3478,5678$,
+   the unions in \stepref{s3c3Qunion}; together with axes these exhaust the raw types.~\qed\end{proof}
+ \end{proof}
+ \step{s3c3onto}{Both root maps are onto.}
+ \begin{proof}\pf\ Each is injective by its isometry property and maps between two
+  finite sets of 240 roots by C2, so each is surjective.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Use \stepref{s3c3onto} and the span descriptions in
+  Lemma~\ref{lem:sec3-spans}. Equivalently, the induced index bijections satisfy
+  the hypothesis of the existing constructor \path{LineSystem.Iso.ofIntegerModels}.~\qed\end{proof}
+\end{proof}
+For a kernel certificate the raw maps are
+$\Zv\mapsto(d_i(2v_i+v_9)/3)_{i=1}^8$ and $\Zv\mapsto Q\Zv$.
+The 240 images in each case are integral. In Lean (\path{Computations/C3.lean}) the kernel
+checks that the lists of images are permutations of the roots of model (ii), and checks the
+scaled Gram equalities; the script \path{blueprint/checks/sec3/check_sec3.py} checks the images,
+their bijections, and the scaled Gram equalities in exact arithmetic.
+
+\begin{namedresult}{Lemma}{(a connected spanning set)}\label{lem:sec3-connected-span}
+ \lean{LineSystem.isIndecomposable_of_connected_spanning}
+ \uses{def:line-system,def:indecomposable,facts:inner}
+ \assume{$S$ is a line system in a finite-dimensional real inner product space;
+ $B\subseteq\Phi(S)$ is nonempty, spans $\operatorname{span}\Phi(S)$, and its
+ graph joining distinct roots of nonzero inner product is connected.}
+ \prove{$S$ is indecomposable.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We isolate the spanning criterion for the model verifications.
+ An orthogonal partition cannot separate an edge of $B$, or a root
+ from every vector of a spanning set.
+ \step{s3connpartition}{\assume{$P\cup Q=\Phi(S)$ and $P\perp Q$.}
+  \prove{$P=\varnothing$ or $Q=\varnothing$.}}
+ \begin{proof}
+  \step{s3connunique}{No root belongs to both parts.}
+  \begin{proof}\pf\ Such a root would have self-product both 0 and 2.~\qed\end{proof}
+  \step{s3connedge}{The endpoints of every edge of $B$ lie in the same part.}
+  \begin{proof}\pf\ Different parts have inner product zero by \asm{1}.~\qed\end{proof}
+  \step{s3connpath}{All of $B$ lies in one part.}
+  \begin{proof}\pf\ Choose a vertex of the nonempty $B$ and propagate its part
+   along a path to each vertex, using \stepref{s3connedge}.~\qed\end{proof}
+  \step{s3connother}{The other part is empty.}
+  \begin{proof}
+   \step{s3connzero}{Every vector of that part is orthogonal to the whole span.}
+   \begin{proof}\pf\ It is orthogonal to $B$ by \asm{1} and
+    \stepref{s3connpath}; extend by the finite-span lemma in Section~\ref{facts:inner}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ A root in that part is in the span, so
+    \stepref{s3connzero} would give its self-product as 0 instead of 2.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Use \stepref{s3connother}, whichever part contains $B$.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{s3connpartition} is the indecomposability definition in Section~\ref{def:indecomposable}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C4}\label{comp:C4}
+ \lean{Computations.C4.exceptional_star_data}
+ \lean{Computations.C4.marked_star_data}
+ \lean{LineSystem.E₆.latticeGraphIso}\lean{LineSystem.E₇.triangularGraphComplIso}
+ \lean{LineSystem.Hyp24.nonempty_latticeGraph_iso_of_S_eq_E₆}
+ \lean{LineSystem.Hyp24.nonempty_triangularGraph_compl_iso_of_S_eq_E₇}
+ \lean{LineSystem.E₆.exists_isometry_star}\lean{LineSystem.E₇.exists_isometry_star}
+ \lean{LineSystem.E₈.exists_isometry_star}
+ \lean{LineSystem.Hyp24.orthGraph_isSRGWith_of_S_eq_E₆}\lean{LineSystem.Hyp24.orthGraph_isSRGWith_of_S_eq_E₇}
+ \lean{LineSystem.Hyp24.orthGraph_isSRGWith_of_S_eq_E₈}
+ \lean{LineSystem.Hyp24.card_Γa_of_S_eq_E₆}\lean{LineSystem.Hyp24.card_Γa_of_S_eq_E₇}
+ \lean{LineSystem.Hyp24.card_Γa_of_S_eq_E₈}
+ \lean{LineSystem.Hyp24.card_Δ_of_S_eq_E₆}\lean{LineSystem.Hyp24.card_Δ_of_S_eq_E₇}
+ \lean{LineSystem.Hyp24.card_Δ_of_S_eq_E₈}
+ \lean{LineSystem.isStarClosed_An}\lean{LineSystem.isStarClosed_Dn}
+ \lean{LineSystem.isStarClosed_E₈}\lean{LineSystem.isStarClosed_E₇}\lean{LineSystem.isStarClosed_E₆}
+ \lean{LineSystem.isStarClosed_E₈viaA₈}\lean{LineSystem.isStarClosed_E₈viaSteiner}
+ \lean{LineSystem.isIndecomposable_An}\lean{LineSystem.isIndecomposable_Dn}
+ \lean{LineSystem.isIndecomposable_E₈}\lean{LineSystem.isIndecomposable_E₇}
+ \lean{LineSystem.isIndecomposable_E₆}\lean{LineSystem.isIndecomposable_E₈viaA₈}
+ \lean{LineSystem.isIndecomposable_E₈viaSteiner}
+ \lean{LineSystem.An.hyp24}\lean{LineSystem.Dn.hyp24}\lean{LineSystem.E₆.hyp24}
+ \lean{LineSystem.E₇.hyp24}\lean{LineSystem.E₈.hyp24}
+ \lean{LineSystem.An.orthGraphIso}\lean{LineSystem.Dn.orthGraphIso}
+ \lean{LineSystem.E₆.orthGraphIso}\lean{LineSystem.E₇.orthGraphIso}\lean{LineSystem.E₈.orthGraphIso}
+ \lean{LineSystem.An.card_Γa}\lean{LineSystem.Dn.card_Γa}\lean{LineSystem.E₆.card_Γa}
+ \lean{LineSystem.E₇.card_Γa}\lean{LineSystem.E₈.card_Γa}
+ \lean{LineSystem.E₆.card_Δ_div_two}\lean{LineSystem.E₇.card_Δ_div_two}
+ \lean{LineSystem.E₈.card_Δ_div_two}\lean{LineSystem.E₆.orthGraph_isSRGWith}
+ \lean{LineSystem.E₇.orthGraph_isSRGWith}\lean{LineSystem.E₈.orthGraph_isSRGWith}
+ \uses{def:3.1,def:3.2,def:3.3,lem:sec3-integer,lem:sec3-spans,comp:C2,comp:C3,lem:sec3-transport,lem:sec3-connected-span,hyp:2.4,def:gamma-graph,def:2.1}
+ \assume{We use the models in their specified ranges, and $X=\opk{Orth}(\Ga)$
+ has the convention of Hypothesis~\ref{hyp:2.4}: distinct vertices are adjacent when
+ their inner product is 0.}
+ \prove{Every model is nonempty, star-closed, and indecomposable. The model
+ $\typ A_1$ has one line and rank 1. For the marked star
+ $\Za=\Ze_1-\Ze_2$, $\Zb=\Ze_2-\Ze_3$ the following data hold:
+ \[
+ \begin{array}{c|c|c|c|c}
+ \text{model}&\text{rank}&\Ga\text{ or its graph}&|\Ga|&|\Delta|/2\\\hline
+ \typ A_\ell\ (\ell\geq2)&\ell&\{\Ze_j-\Ze_3:4\leq j\leq\ell+1\}&\ell-2&\text{not needed}\\
+ \typ D_\ell&\ell&\{\Ze_1+\Ze_2\}\cup\{-\Ze_3\pm\Ze_j:4\leq j\leq\ell\}&2\ell-5&\text{not needed}\\
+ \typ E_6&6&\text{strongly regular }(9,4,1,2)&9&6\\
+ \typ E_7&7&\text{strongly regular }(15,6,1,3)&15&15\\
+ \typ E_8\text{ (ii)}&8&\text{strongly regular }(27,10,1,5)&27&36
+ \end{array}
+ \]
+ The $\typ A$ graph is empty and the $\typ D$ graph is the friendship graph of $\ell-3$ triangles.
+ The three exceptional rows hold for \emph{every} ordered pair $\Za,\Zb$ of roots
+ with inner product $-1$ in the corresponding fixed model. The signed permutation
+ $\sigma$ with $\sigma(\Ze_1)=\Ze_2$, $\sigma(\Ze_2)=-\Ze_1$, $\sigma(\Ze_3)=-\Ze_3$,
+ fixing the other coordinate vectors, is an automorphism of $\typ D_\ell$, $\typ E_8$,
+ $\typ E_7$ and $\typ E_6$ that carries $\Za,\Zb$ to the ordered star
+ $\Za'=\Ze_1+\Ze_2$, $\Zb'=-\Ze_1+\Ze_3$. For this star, the graph $\opk{Orth}(\Ga)$ of
+ $\typ E_6$ is the $3\times3$ lattice graph (adjacency in one common coordinate), and that
+ of $\typ E_7$ is the disjointness graph on $\binom{[6]}2$, the complement of $T(6)$. Finally,
+ the isometries of each exceptional model are transitive on its ordered stars: for
+ $t\in\{6,7,8\}$ and $\Zv,\Zw\in\Phi(\typ E_t)$ with $(\Zv,\Zw)=-1$ there is a linear isometry
+ $g$ of $\re^8$ with $g(\Phi(\typ E_t))=\Phi(\typ E_t)$, $g(\Za')=\Zv$ and $g(\Zb')=\Zw$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will prove the classical assertions parametrically. Exceptional
+ star data are finite tests on the complete integer root lists. Indecomposability
+ has a short spanning-set proof, independent of any classification.
+ \step{s3c4closed}{The five default models are star-closed.}
+ \begin{proof}
+  \step{s3c4Dclosed}{$\typ D_\ell$ is star-closed.}
+  \begin{proof}
+   \step{s3c4Dnorm}{\assume{$u,v$ are integral norm-2 roots with $u\cdot v=-1$.}
+    \prove{$(u+v)\cdot(u+v)=2$.}}
+   \begin{proof}\pf\ Bilinearity gives $2+2(-1)+2=2$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ An integral norm-2 vector has exactly two nonzero entries,
+    each $\pm1$: this is \path{LineSystem.exists_dnRoot_of_inner_self}.
+    Apply it to \stepref{s3c4Dnorm}.~\qed\end{proof}
+  \end{proof}
+  \step{s3c4Aclosed}{$\typ A_\ell$ is star-closed.}
+  \begin{proof}\pf\ In \stepref{s3c4Dclosed} the sum also has coordinate sum zero,
+   so its two signs are opposite. The Lean criterion is
+   \path{LineSystem.exists_anRoot_of_inner_self_of_sum}.~\qed\end{proof}
+  \step{s3c4Eclosed}{$\typ E_8$ is star-closed.}
+  \begin{proof}\pf\ The existing certificate
+   \leancite{Computations.C4.e₈_star_checked}{\texttt{Computations.\allowbreak C4.\allowbreak e\ensuremath{{}_8}\_\allowbreak star\_\allowbreak checked}} checks
+   \path{Computations.checkStar} with dimension 8, target $-4$, the complete
+   doubled root list, and its sound root decoder.
+   Apply \path{LineSystem.IntegerModel.isStarClosed_of_checkStar}.~\qed\end{proof}
+  \step{s3c4Sevenclosed}{$\typ E_7$ is star-closed.}
+  \begin{proof}\pf\ Apply \path{LineSystem.IsStarClosed.orthogonalTo} to
+   \stepref{s3c4Eclosed} and $\Zr_0$.~\qed\end{proof}
+  \step{s3c4Sixclosed}{$\typ E_6$ is star-closed.}
+  \begin{proof}\pf\ Apply the same named orthogonal-cut theorem to
+   \stepref{s3c4Sevenclosed} and $\Zs_0$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ These five cases exhaust the default models.~\qed\end{proof}
+ \end{proof}
+ \step{s3c4indec}{The five default models are nonempty and indecomposable.}
+ \begin{proof}
+  \pflet{$B_m=\{\Ze_i-\Ze_m:1\leq i<m\}\cup\{\Ze_1+\Ze_m\}$ for $m\geq3$,
+   and $\Zh=\frac12\mathbf1\in\re^8$.}
+  \step{s3c4Aindec}{$\typ A_\ell$ has a nonempty connected spanning set.}
+  \begin{proof}\pf\ The basis $\{\Ze_i-\Ze_{\ell+1}:1\leq i\leq\ell\}$ in
+   Lemma~\ref{lem:sec3-spans} has product 1 between distinct members;
+   for $\ell=1$ its graph has one vertex.~\qed\end{proof}
+  \step{s3c4Bindec}{$B_m$ is a connected spanning set in $\typ D_m$.}
+  \begin{proof}
+   \step{s3c4Bconnect}{Its difference roots form a clique, and $\Ze_1+\Ze_m$
+    has product $-1$ with $\Ze_2-\Ze_m$.}
+   \begin{proof}\pf\ Compute the products from the coordinate basis, using $m\geq3$.~\qed\end{proof}
+   \step{s3c4Bspan}{$B_m$ spans $\re^m$.}
+   \begin{proof}\pf\ The difference of $\Ze_1+\Ze_m$ and $\Ze_1-\Ze_m$
+    gives $2\Ze_m$; adding this recovered axis to each difference gives every other axis.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Use \stepref{s3c4Bconnect} and \stepref{s3c4Bspan}.~\qed\end{proof}
+  \end{proof}
+  \step{s3c4Eindec}{$B_8$ is a connected spanning subset of $\typ E_8$.}
+  \begin{proof}\pf\ It lies in $\typ D_8\subseteq \typ E_8$ and has the properties in
+   \stepref{s3c4Bindec}.~\qed\end{proof}
+  \step{s3c4Sevenindec}{$B_6\cup\{\Ze_7+\Ze_8,\Zh\}$ is a connected spanning subset of $\typ E_7$.}
+  \begin{proof}
+   \step{s3c4Sevenjoin}{$\Zh$ has product 1 with both $\Ze_1+\Ze_6\in B_6$
+    and $\Ze_7+\Ze_8$.}
+   \begin{proof}\pf\ Each product is $1/2+1/2$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Step \stepref{s3c4Bindec} spans the first six axes;
+    adding $\Ze_7+\Ze_8$ spans the space in Lemma~\ref{lem:sec3-spans}.
+    Step \stepref{s3c4Sevenjoin} connects the parts.~\qed\end{proof}
+  \end{proof}
+  \step{s3c4Sixindec}{$B_5\cup\{\Zh\}$ is a connected spanning subset of $\typ E_6$.}
+  \begin{proof}\pf\ $B_5$ spans the first five axes by \stepref{s3c4Bindec};
+   $\Zh$ has nonzero last three equal coordinates and has product 1 with
+   $\Ze_1+\Ze_5$. Use the $\typ E_6$ span in Lemma~\ref{lem:sec3-spans}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Apply Lemma~\ref{lem:sec3-connected-span} to each displayed nonempty set.~\qed\end{proof}
+ \end{proof}
+ \step{s3c4othermodels}{The other two $\typ E_8$ models are nonempty, star-closed, and indecomposable.}
+ \begin{proof}\pf\ Transport \stepref{s3c4closed} and \stepref{s3c4indec}
+  through C3, using Lemma~\ref{lem:sec3-transport}.~\qed\end{proof}
+ \step{s3c4Agraph}{The marked $\typ A_\ell$ graph has the asserted vertices and no edges.}
+ \begin{proof}
+  \step{s3c4Avertices}{The equations $x_1=x_2$ and $x_2-x_3=1$ select precisely
+   $\Ze_j-\Ze_3$ for $4\leq j\leq\ell+1$.}
+  \begin{proof}\pf\ A difference root cannot have two equal nonzero entries at 1 and 2,
+   so $x_1=x_2=0$ and $x_3=-1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Two distinct selected roots have product 1; their number is $\ell-2$.~\qed\end{proof}
+ \end{proof}
+ \step{s3c4Dgraph}{The marked $\typ D_\ell$ graph is the asserted friendship graph.}
+ \begin{proof}
+  \step{s3c4Dvertices}{The equations select $\Ze_1+\Ze_2$ and $-\Ze_3\pm\Ze_j$ for $j\geq4$.}
+  \begin{proof}\pf\ Either $x_1=x_2\ne0$, forcing $x_1=x_2=1,x_3=0$;
+   or $x_1=x_2=0$, forcing $x_3=-1$ and one further sign outside $[3]$.~\qed\end{proof}
+  \step{s3c4Dcentre}{The vertex $\Ze_1+\Ze_2$ is adjacent to all the others.}
+  \begin{proof}\pf\ Their supports are disjoint.~\qed\end{proof}
+  \step{s3c4Dpairs}{Among the other vertices, adjacency pairs the two signs of the same $j$.}
+  \begin{proof}\pf\ The product is 0 for those two signs, and 1 for different indices.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s3c4Dcentre} and \stepref{s3c4Dpairs} give
+   $\ell-3$ triangles and $1+2(\ell-3)$ vertices.~\qed\end{proof}
+ \end{proof}
+ \step{s3c4exceptional}{\new\ Every ordered star in each default exceptional model
+  has its stated row. We check all choices to avoid assuming transitivity.}
+ \begin{proof}
+  \pflet{$R$ be the sorted complete doubled integer root list of the model;
+   for $a,b\in R$ with $a\cdot b=-4$, set
+   $L(a,b)=\{v\in R:v\cdot a=0,\ v\cdot b=4\}$ and
+   $D(a,b)=\{v\in R:v\cdot a=v\cdot b=0\}$.}
+  A row test compares the two list lengths with $m,2\delta$; for each $u\in L$
+  it counts $v\in L$ with $u\cdot v=0$ and compares with $d$; for each distinct
+  $u,v\in L$ it counts $w\in L$ with $u\cdot w=v\cdot w=0$ and compares with
+  $\lambda$ when $u\cdot v=0$, and with $\mu$ otherwise.
+  \step{s3c4lists}{These lists represent exactly $\Ga$ and $\Delta$, respectively.}
+  \begin{proof}\pf\ Divide raw dot products by $q=4$ using
+   \path{LineSystem.inner_integerVector}; the third equation of $\Ga$ follows
+   from $\Zc=-\Za-\Zb$. Completeness is the model's
+   \texttt{mem\_rootList} theorem in \path{Computations/ModelTables.lean}.~\qed\end{proof}
+  \step{s3c4census}{The complete finite tests give
+  \[
+  \begin{array}{c|r|r|r|r|r|r}
+  R&\#(a,b)&|L|&|D|&d&\lambda&\mu\\\hline
+  \typ E_6&1440&9&12&4&1&2\\
+  \typ E_7&4032&15&30&6&1&3\\
+  \typ E_8&13440&27&72&10&1&5.
+  \end{array}
+  \]}
+  \begin{proof}\pf\ Exact integer evaluation gives \texttt{true} for
+   \path{Computations.checkNoSolution} on $R\times R$, where a bad pair has dot
+   product $-4$ and fails the specified row test. The lengths of the filtered
+   ordered-pair lists are the three displayed counts. No real arithmetic is evaluated.~\qed\end{proof}
+  \step{s3c4sound}{The row holds for every mathematical ordered star.}
+  \begin{proof}\pf\ Apply \path{Computations.checkNoSolution_sound} to
+   \stepref{s3c4census}, using the complete list identification in
+   \stepref{s3c4lists}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Adjacency is exactly a zero raw product; divide the length of each list $D(a,b)$
+   by 2 to count the lines of $\Delta$. Thus \stepref{s3c4sound} gives the asserted parameters.~\qed\end{proof}
+ \end{proof}
+ \step{s3c4sigma}{\new\ The map $\sigma$ is an automorphism of $\typ D_\ell$, $\typ E_8$,
+  $\typ E_7$ and $\typ E_6$, and $\sigma(\Za)=\Za'$, $\sigma(\Zb)=\Zb'$.}
+ \begin{proof}
+  \step{s3c4sigmaD}{$\sigma$ permutes $\Phi(\typ D_\ell)$ and the pair roots of model (ii).}
+  \begin{proof}\pf\ A signed permutation of coordinates carries $s\Ze_i+t\Ze_j$ to a vector
+   of the same form, in Definitions~\ref{def:3.1} and~\ref{def:3.2}.~\qed\end{proof}
+  \step{s3c4sigmahalf}{$\sigma$ permutes the half roots of model (ii).}
+  \begin{proof}\pf\ It permutes the entries of $\frac12\sum\epsilon(i)\Ze_i$ and changes
+   two signs, so the product condition of Definition~\ref{def:3.2}(ii) is kept.~\qed\end{proof}
+  \step{s3c4sigmacuts}{$\sigma$ permutes $\Phi(\typ E_7)$ and $\Phi(\typ E_6)$.}
+  \begin{proof}\pf\ It fixes the coordinates 6, 7 and 8, so it keeps the equations of
+   Definition~\ref{def:3.3}; use \stepref{s3c4sigmaD} and \stepref{s3c4sigmahalf}.~\qed\end{proof}
+  \step{s3c4sigmastar}{$\sigma(\Za)=\Za'$ and $\sigma(\Zb)=\Zb'$.}
+  \begin{proof}\pf\ $\sigma(\Ze_1-\Ze_2)=\Ze_2+\Ze_1$ and
+   $\sigma(\Ze_2-\Ze_3)=-\Ze_1+\Ze_3$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The map $\sigma$ is an orthogonal linear map; the four steps give the
+   assertions.~\qed\end{proof}
+ \end{proof}
+ \step{s3c4labels}{For the ordered star $\Za'=\Ze_1+\Ze_2$,
+  $\Zb'=-\Ze_1+\Ze_3$, the orthogonality graphs on $\Ga$ of $\typ E_6$ and $\typ E_7$
+  are the lattice graph and the six-symbol disjointness graph.}
+ \begin{proof}
+  \pflet{$A_{\typ E_6}$ and $A_{\typ E_7}$ be the integer adjacency tables
+   \texttt{e6Adjacency} and \texttt{e7Adjacency} of \path{Computations/C4E6Data.lean} and
+   \path{Computations/C4E7Data.lean}, and let $A_{\rm lat}$ and $A_{\rm dis}$ be the
+   tables of adjacency in one common coordinate on $\{0,1,2\}^2$ and of disjointness on
+   $\binom{[6]}2$, in lexicographic order.}
+  \step{s3c4Esixstar}{The roots $\Za',\Zb'$ are the marked star of the Lean term
+   \leancite{LineSystem.E₆.hyp24}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_6}.\allowbreak hyp24}}.}
+  \begin{proof}\pf\ These are
+   \leancite{LineSystem.E₆.hyp24_a}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_6}.\allowbreak hyp24\_\allowbreak a}} and
+   \leancite{LineSystem.E₆.hyp24_b}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_6}.\allowbreak hyp24\_\allowbreak b}},
+   in zero-based coordinates.~\qed\end{proof}
+  \step{s3c4Esevenstar}{The roots $\Za',\Zb'$ are the marked star of the Lean term
+   \leancite{LineSystem.E₇.hyp24}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_7}.\allowbreak hyp24}}.}
+  \begin{proof}\pf\ These are
+   \leancite{LineSystem.E₇.hyp24_a}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_7}.\allowbreak hyp24\_\allowbreak a}} and
+   \leancite{LineSystem.E₇.hyp24_b}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_7}.\allowbreak hyp24\_\allowbreak b}},
+   in zero-based coordinates.~\qed\end{proof}
+  \step{s3c4Esixtable}{The graph $\opk{Orth}(\Ga)$ of $\typ E_6$ for this star is
+   isomorphic to the graph decoded from $A_{\typ E_6}$.}
+  \begin{proof}\raggedright\pf\ This is
+   \leancite{LineSystem.E₆.orthGraphIso}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_6}.\allowbreak orthGraphIso}},
+   by \stepref{s3c4Esixstar}. Its target
+   \path{LineSystem.Hyp24.orthGraph} has adjacency at inner product 0, by
+   \path{LineSystem.Hyp24.orthGraph_adj}.~\qed\end{proof}
+  \step{s3c4Eseventable}{The graph $\opk{Orth}(\Ga)$ of $\typ E_7$ for this star is
+   isomorphic to the graph decoded from $A_{\typ E_7}$.}
+  \begin{proof}\raggedright\pf\ This is
+   \leancite{LineSystem.E₇.orthGraphIso}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_7}.\allowbreak orthGraphIso}},
+   by \stepref{s3c4Esevenstar}, with the same adjacency
+   \path{LineSystem.Hyp24.orthGraph_adj}.~\qed\end{proof}
+  \step{s3c4grid}{The graph decoded from $A_{\typ E_6}$ is isomorphic to the lattice graph on $\{0,1,2\}^2$.}
+  \begin{proof}\raggedright\pf\ Apply \path{Computations.nonempty_graphOfMatrix_iso} to
+   \path{Computations.checkGraphIso} on $A_{\typ E_6}$, $A_{\rm lat}$ and a nine-entry permutation;
+   in Lean it is the labelling \path{LineSystem.E₆.latticeLabel} of
+   \path{Computations/C4Graphs.lean}.~\qed\end{proof}
+  \step{s3c4duads}{The graph decoded from $A_{\typ E_7}$ is isomorphic to disjointness on $\binom{[6]}2$.}
+  \begin{proof}\raggedright\pf\ Apply \path{Computations.nonempty_graphOfMatrix_iso} to
+   \path{Computations.checkGraphIso} on $A_{\typ E_7}$, $A_{\rm dis}$ and a fifteen-entry permutation;
+   in Lean it is the labelling \path{LineSystem.E₇.pairLabel} of the same file.~\qed\end{proof}
+  \step{s3c4Esixlabel}{The $\typ E_6$ assertion holds.}
+  \begin{proof}\pf\ Compose the isomorphisms of \stepref{s3c4Esixtable} and
+   \stepref{s3c4grid}.~\qed\end{proof}
+  \step{s3c4Esevenlabel}{The $\typ E_7$ assertion holds.}
+  \begin{proof}\pf\ Compose the isomorphisms of \stepref{s3c4Eseventable} and
+   \stepref{s3c4duads}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s3c4Esixlabel} and \stepref{s3c4Esevenlabel} are the
+   two assertions.~\qed\end{proof}
+ \end{proof}
+ \step{s3c4trans}{\new\ For $t\in\{6,7,8\}$ the isometries of $\re^8$ preserving
+  $\Phi(\typ E_t)$ are transitive on the ordered stars of $\typ E_t$, as stated.}
+ \begin{proof}\raggedright\pf\ This is
+  \leancite{LineSystem.E₆.exists_isometry_star}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_6}.\allowbreak exists\_\allowbreak isometry\_\allowbreak star}}
+  and its analogues for $\typ E_7$ and $\typ E_8$, whose fixed star is $\Za',\Zb'$ by
+  \leancite{LineSystem.E₈.hyp24_a}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_8}.\allowbreak hyp24\_\allowbreak a}},
+  \leancite{LineSystem.E₈.hyp24_b}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_8}.\allowbreak hyp24\_\allowbreak b}}
+  and their analogues; their trees of reflections are checked by
+  \texttt{decide +kernel}.~\qed\end{proof}
+ \step{s3c4ranks}{The ranks are $\ell$, $\ell$, 6, 7, 8, and $\typ A_1$ has one line and rank 1.}
+ \begin{proof}\pf\ Read the ranks from Lemma~\ref{lem:sec3-spans}; the line of
+  $\typ A_1$ is $\Ze_1-\Ze_2$ by Definition~\ref{def:3.1}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Combine \stepref{s3c4closed}, \stepref{s3c4indec},
+  \stepref{s3c4othermodels}, \stepref{s3c4Agraph}, \stepref{s3c4Dgraph},
+  \stepref{s3c4exceptional}, \stepref{s3c4sigma}, \stepref{s3c4labels}, \stepref{s3c4trans},
+  and \stepref{s3c4ranks}.
+  None uses Theorem 2.13 or 3.5.~\qed\end{proof}
+\end{proof}
+\begingroup\raggedright
+The two classical closure declarations are in \path{LineSystem/ClassicalModels.lean};
+the three exceptional closure declarations are in \path{Computations/E8.lean}.
+Computation C4 is proved in Lean, for the marked star and for every ordered star of the
+exceptional models. The indecomposability theorems are in \path{Computations/C4.lean},
+\path{Computations/C4Classical.lean} and \path{Computations/C4E6.lean} to
+\path{Computations/C4E8.lean}; the marked stars \texttt{hyp24}, the isomorphisms
+\texttt{orthGraphIso}, the counts \texttt{card\_\ensuremath{\Gamma}a} and \texttt{card\_\ensuremath{\Delta}\_div\_two}, and the
+strongly regular parameters \texttt{orthGraph\_isSRGWith} are in
+\path{Computations/C4An.lean}, \path{Computations/C4Dn.lean} and
+\path{Computations/C4E6.lean} to \path{Computations/C4E8.lean}. The Lean star of $\typ A_\ell$
+and of $\typ D_\ell$ is our $\Za,\Zb$ in zero-based coordinates, $\Ze_0-\Ze_1$, $\Ze_1-\Ze_2$.
+The Lean star \texttt{hyp24} of $\typ E_6$, $\typ E_7$ and $\typ E_8$ is $\Za',\Zb'$, the image of
+our star under $\sigma$; our star itself is \texttt{hyp24Simple}, and
+\leancite{Computations.C4.marked_star_data}{\texttt{Computations.\allowbreak C4.\allowbreak marked\_\allowbreak star\_\allowbreak data}} records the table above for our star
+in all five rows. For every ordered star, a reflection in a root of a star-closed system is an
+automorphism, \leancite{LineSystem.rootReflection_mem_isometryGroup}{\texttt{LineSystem.\allowbreak rootReflection\_\allowbreak mem\_\allowbreak isometryGroup}} in
+\path{LineSystem/Reflections.lean}, and two reflection trees for each exceptional model, checked
+by \texttt{decide +kernel} in \path{Computations/C4E6Stars.lean} to
+\path{Computations/C4E8Stars.lean}, give transitivity on ordered stars:
+\leancite{LineSystem.E₆.exists_isometry_star}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_6}.\allowbreak exists\_\allowbreak isometry\_\allowbreak star}}, \leancite{LineSystem.E₇.exists_isometry_star}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_7}.\allowbreak exists\_\allowbreak isometry\_\allowbreak star}} and
+\leancite{LineSystem.E₈.exists_isometry_star}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_8}.\allowbreak exists\_\allowbreak isometry\_\allowbreak star}}. For every \texttt{H : Hyp24}
+with \texttt{H.S} one of the three models, \leancite{LineSystem.Hyp24.orthGraph_isSRGWith_of_S_eq_E₆}{\texttt{LineSystem.\allowbreak Hyp24.\allowbreak orthGraph\_\allowbreak isSRGWith\_\allowbreak of\_\allowbreak S\_\allowbreak eq\_\allowbreak E\ensuremath{{}_6}}},
+\leancite{LineSystem.Hyp24.card_Γa_of_S_eq_E₆}{\texttt{LineSystem.\allowbreak Hyp24.\allowbreak card\_\allowbreak \ensuremath{\Gamma}a\_\allowbreak of\_\allowbreak S\_\allowbreak eq\_\allowbreak E\ensuremath{{}_6}}} and
+\leancite{LineSystem.Hyp24.card_Δ_of_S_eq_E₆}{\texttt{LineSystem.\allowbreak Hyp24.\allowbreak card\_\allowbreak \ensuremath{\Delta}\_\allowbreak of\_\allowbreak S\_\allowbreak eq\_\allowbreak E\ensuremath{{}_6}}}, with their $\typ E_7$ and $\typ E_8$
+analogues, give the exceptional rows; Lean counts $\Delta$ as $12,30,72$ roots, twice the
+entries of the last column. The bundle \leancite{Computations.C4.exceptional_star_data}{\texttt{Computations.\allowbreak C4.\allowbreak exceptional\_\allowbreak star\_\allowbreak data}}
+collects them. The graph labels are the isomorphisms
+\leancite{LineSystem.E₆.latticeGraphIso}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_6}.\allowbreak latticeGraphIso}}, from the line graph of $K_{3,3}$, and
+\leancite{LineSystem.E₇.triangularGraphComplIso}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_7}.\allowbreak triangularGraphComplIso}}, from the complement of the line
+graph of $K_6$, both for the star $\Za',\Zb'$, in \path{Computations/C4Graphs.lean}; their every-star
+forms are \leancite{LineSystem.Hyp24.nonempty_latticeGraph_iso_of_S_eq_E₆}{\texttt{LineSystem.\allowbreak Hyp24.\allowbreak nonempty\_\allowbreak latticeGraph\_\allowbreak iso\_\allowbreak of\_\allowbreak S\_\allowbreak eq\_\allowbreak E\ensuremath{{}_6}}} and
+\leancite{LineSystem.Hyp24.nonempty_triangularGraph_compl_iso_of_S_eq_E₇}{\texttt{LineSystem.\allowbreak Hyp24.\allowbreak nonempty\_\allowbreak triangularGraph\_\allowbreak compl\_\allowbreak iso\_\allowbreak of\_\allowbreak S\_\allowbreak eq\_\allowbreak E\ensuremath{{}_7}}}. In Lean the
+transitivity replaces the transfer by $\sigma$. All these isomorphisms are for the orthogonality
+graph; the bridge \path{LineSystem.IntegerModel.adjMatrix_eq_dotAdjacency} builds the graph at
+inner product 1, and we do not use it. The script \path{blueprint/checks/sec3/check_sec3.py}
+recomputes the finite data; no Lean proof evaluates a spectrum.\par
+\endgroup
+The source lists have the membership theorems
+\leancite{LineSystem.E₆.mem_rootList}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_6}.\allowbreak mem\_\allowbreak rootList}}, \leancite{LineSystem.E₇.mem_rootList}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_7}.\allowbreak mem\_\allowbreak rootList}}, and
+\leancite{LineSystem.E₈viaD₈.mem_rootList}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_8}viaD\ensuremath{{}_8}.\allowbreak mem\_\allowbreak rootList}}. Sorting does not change membership;
+the lists $R,L,D$ in C4 contain each raw vector once.
+
+\begin{namedresult}{Lemma}{(independence of the perpendicular choices)}\label{lem:sec3-choices}
+ \lean{LineSystem.E₈.nonempty_iso_E₇_orthogonalTo}
+ \lean{LineSystem.E₈.nonempty_iso_E₆_orthogonalTo}
+ \lean{LineSystem.E₈.exists_isometry_of_ordered_star}
+ \lean{LineSystem.E₈.exists_isometry_of_root}
+ \lean{LineSystem.E₈viaA₈.exists_isometry_of_ordered_stars}
+ \lean{LineSystem.E₈viaA₈.exists_isometry_of_roots}
+ \lean{LineSystem.E₈viaA₈.nonempty_iso_E₇_orthogonalTo}
+ \lean{LineSystem.E₈viaA₈.nonempty_iso_E₆_orthogonalTo}
+ \lean{LineSystem.E₈viaSteiner.exists_isometry_of_ordered_stars}
+ \lean{LineSystem.E₈viaSteiner.exists_isometry_of_ordered_star}
+ \lean{LineSystem.E₈viaSteiner.exists_isometry_of_roots}
+ \lean{LineSystem.E₈viaSteiner.exists_isometry_of_root}
+ \lean{LineSystem.E₈viaSteiner.nonempty_iso_E₇_orthogonalTo}
+ \lean{LineSystem.E₈viaSteiner.nonempty_iso_E₆_orthogonalTo}
+ \lean{LineSystem.T₇.nonempty_iso_E₇}\lean{LineSystem.T₆.nonempty_iso_E₆}
+ \uses{def:3.2,def:3.3,comp:C2,comp:C3,comp:C4,lem:2.10,lem:2.12,def:indecomposable,facts:inner}
+ \assume{$\typ E_8$ is the default model in $\re^8$; $\Zr\in\Phi(\typ E_8)$ and,
+ for the star assertion, $\Zs\in\Phi(\typ E_8)$ with $(\Zr,\Zs)=-1$.}
+ \prove{There is an automorphism of $\typ E_8$, induced by a linear isometry of
+ $\re^8$, carrying $(\Zr,\Zs)$ to $(\Zr_0,\Zs_0)$.
+ Every root $\Zr$ also admits such an automorphism carrying it to $\Zr_0$,
+ without an initially chosen partner. Thus the cuts perpendicular to any line
+ or any star are isometric to $\typ E_7$ or $\typ E_6$, respectively.
+ The same assertions hold in the other two models, and $T_7\cong \typ E_7$, $T_6\cong \typ E_6$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ We fill Gap 5 before classification. C4 and Lemma 2.10
+ identify the marked graphs; Lemma 2.12 extends their isomorphism to the ordered stars.
+ \step{s3choicepair}{Any two ordered stars of $\typ E_8$ are carried to each other by an automorphism.}
+ \begin{proof}
+  \step{s3choicegraphs}{Their graphs on $\Ga$ are isomorphic.}
+  \begin{proof}\pf\ C4 gives order 27, degree 10, and star-closure and
+   indecomposability for each instance. Apply Lemma~\ref{lem:2.10}; the positive
+   degree excludes an empty graph and degree $10<26$ excludes a universal vertex.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Lemma~\ref{lem:2.12} extends this graph isomorphism to a
+   surjective span isometry carrying the ordered stars to each other.~\qed\end{proof}
+ \end{proof}
+ \step{s3choiceroot}{Every root has a partner of inner product $-1$.}
+ \begin{proof}
+  \step{s3choicenonorth}{Some root outside $\{\Zr,-\Zr\}$ has nonzero product with $\Zr$.}
+  \begin{proof}\pf\ Otherwise this antipodal pair and its nonempty complement
+   would be an orthogonal partition. This contradicts C4; the complement is
+   nonempty since C2 gives 120 lines.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The product in \stepref{s3choicenonorth} is $1$ or $-1$
+   by Section~\ref{facts:inner}; negate the partner when the product is 1.~\qed\end{proof}
+ \end{proof}
+ \step{s3choicecuts}{The default-model perpendicular cuts have the asserted isomorphisms.}
+ \begin{proof}
+  \step{s3choiceSeven}{The cut perpendicular to $\Zr$ maps onto $\typ E_7$.}
+  \begin{proof}\pf\ Use \stepref{s3choiceroot} and \stepref{s3choicepair} to send
+   $\Zr$ to $\Zr_0$; an isometry preserves the equation $(\Zx,\Zr)=0$.~\qed\end{proof}
+  \step{s3choiceSix}{The cut perpendicular to the ordered star maps onto $\typ E_6$.}
+  \begin{proof}\pf\ Step \stepref{s3choicepair} preserves the two equations of
+   orthogonality to $\Zr,\Zs$; orthogonality to $-\Zr-\Zs$ is their sum.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ These are the two cuts in Definition~\ref{def:3.3}.~\qed\end{proof}
+ \end{proof}
+ \step{s3choiceSteiner}{In model (iii), $T_7$ and $T_6$ are cuts of the required kinds.}
+ \lean{LineSystem.T₇_eq_orthogonalTo}\lean{LineSystem.T₆_eq_orthogonalTo}
+ \lean{LineSystem.inner_t₇Normal_t₆Normal}
+ \begin{proof}\pf\ Take $\Za=\sqrt2\Ze_8$ and
+  $\Zb=-(\Ze_5+\Ze_6+\Ze_7+\Ze_8)/\sqrt2$.
+  Here $\Za$ is an axis root and $\Zb$ is a root by block 5678, and their product is
+  $-1$. Their two perpendicular
+  equations are exactly those defining $T_7,T_6$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ C3 carries any root or ordered star in either other model to
+  the default model. Apply \stepref{s3choicecuts}, including the cuts identified
+  by \stepref{s3choiceSteiner}.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{3.4}\label{lem:3.4}
+ \lean{LineSystem.numLines_An}\lean{LineSystem.numLines_Dn}
+ \lean{LineSystem.numLines_E₈}\lean{LineSystem.numLines_E₈viaA₈}
+ \lean{LineSystem.numLines_E₈viaSteiner}\lean{LineSystem.numLines_E₇}\lean{LineSystem.numLines_E₆}
+ \uses{def:3.1,def:3.2,def:3.3,comp:C2,lem:sec3-choices}
+ \assume{The model parameters are $\ell\geq1$ for $\typ A_\ell$ and $\ell\geq4$ for
+ $\typ D_\ell$; the exceptional systems have the definitions above.}
+ \prove{\repair\ With $|\typ A_\ell|$ in place of the printed $|A|$ (Error 13),
+ \[
+ |\typ A_\ell|=\tfrac12\ell(\ell+1),\quad |\typ D_\ell|=\ell(\ell-1),\quad
+ |\typ E_8|=120,\quad |\typ E_7|=63,\quad |\typ E_6|=36.
+ \]
+ These are counts of lines, independent of the model and of the perpendicular choices.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will use the signed counts of C2, and then justify the paper's
+ use of model (iii) for the perpendicular systems.
+ \step{s334classical}{The first two formulas hold.}
+ \begin{proof}\pf\ Apply the first two counts of C2 in the stated parameter ranges.~\qed\end{proof}
+ \step{s334eight}{All three definitions of $\typ E_8$ have 120 lines.}
+ \begin{proof}\pf\ C2 gives $36+84=56+64=8+8\cdot14=120$.~\qed\end{proof}
+ \step{s334seven}{Every perpendicular-line system has 63 lines.}
+ \begin{proof}\pf\ Lemma~\ref{lem:sec3-choices} identifies it with $T_7$;
+  C2 gives $7+8\cdot7=63$.~\qed\end{proof}
+ \step{s334six}{Every perpendicular-star system has 36 lines.}
+ \begin{proof}\pf\ Lemma~\ref{lem:sec3-choices} identifies it with $T_6$;
+  C2 gives $4+8+4\cdot6=36$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ These four steps cover all five types and all allowed choices.
+  The seven named count declarations already exist in \path{LineSystem/Models.lean}.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Theorem}{3.5}\label{thm:3.5}
+ \lean{LineSystem.classification}\lean{LineSystem.RootType}
+ \lean{LineSystem.RootType.model}\lean{LineSystem.RootType.rank}
+ \uses{thm:2.13,def:line-system,def:3.1,def:3.2,def:3.3,comp:C2,comp:C3,comp:C4,lem:3.4,lem:sec3-spans,lem:sec3-transport,lem:sec3-restrict}
+ \assume{\begin{pfenum}
+  \item $V$ is a finite-dimensional real inner product space.
+  \item $S$ is a nonempty line system in $V$, and $W=\operatorname{span}\Phi(S)$.
+ \end{pfenum}}
+ \prove{$S$ is indecomposable and star-closed if and only if it is isomorphic to
+ exactly one of
+ $\typ A_\ell$ ($\ell\geq1$), $\typ D_\ell$ ($\ell\geq4$), $\typ E_6$, $\typ E_7$, $\typ E_8$.
+ The isomorphism is induced by a surjective linear isometry of spans.
+ All three definitions of $\typ E_8$ give that same type.}
+ \new\ In Lean the list is an index type \texttt{LineSystem.RootType}, with
+ constructors for $\typ A_\ell$ with $1\leq\ell$ and $\typ D_\ell$ with $4\leq\ell$, and
+ three constants for $\typ E_6$, $\typ E_7$, $\typ E_8$. Each type $t$ has an ambient
+ dimension \texttt{t.dim}, a model \texttt{t.model}, a line system in the Euclidean space
+ of that dimension, and a rank \texttt{t.rank}. The Lean statement then says that $S$ is
+ indecomposable and star-closed if and only if there is a unique $t$ with an isomorphism
+ from $S$ to \texttt{t.model}. Theorem 3.6 uses the same type, with $\typ A_7$, $\typ A_8$
+ and $\typ D_8$ excluded.
+\end{cgss}
+\begin{proof}
+ \pfsketch\ The models realize the five possibilities of Theorem 2.13. Its inputs
+ from this section are C2, C4, and the span calculations, which have all been
+ established without either classification theorem. We will include the one-line case.
+ \new\ The uniqueness assertion of Theorem 2.13 is stated for systems spanning
+ $\re^\ell$. We will restrict $S$ and the realizing model to their spans, map both spans
+ to $\re^\ell$ through orthonormal bases, apply uniqueness there, and compose.
+ \step{s335forward}{\assume{$S$ is indecomposable and star-closed.}
+  \prove{There are a listed model $Y$ and a surjective linear isometry
+  $F:W\to\operatorname{span}\Phi(Y)$ with $F(\Phi(S))=\Phi(Y)$.}}
+ \begin{proof}
+  \pflet{$\ell=\dim W$, and let $S|_W$ be the restriction of $S$ to $W$ in
+   Lemma~\ref{lem:sec3-restrict}.}
+  \step{s335restrict}{$S|_W$ satisfies the hypotheses of Theorem~\ref{thm:2.13},
+   with $W$ as the ambient space of dimension $\ell$.}
+  \begin{proof}\pf\ Lemma~\ref{lem:sec3-restrict} makes $S|_W$ a line system spanning
+   $W$, nonempty by \asm[2]{0} and indecomposable and star-closed by \asm{1}; $W$ is
+   finite-dimensional by \asm[1]{0}.~\qed\end{proof}
+  \step{s335possibilities}{$S|_W$ lies in one of the five cases of Theorem 2.13.}
+  \begin{proof}\pf\ Apply Theorem~\ref{thm:2.13} to \stepref{s335restrict}.~\qed\end{proof}
+  \step{s335realized}{A listed model $Y$ of rank $\ell$ has the number of lines of that
+   case and, when that case has more than one line, an ordered star with the data on
+   $\Ga$ and $\Delta$ of that case.}
+  \begin{proof}
+   \step{s335A}{\case{Case 1 of Theorem 2.13.}}
+   \begin{proof}\pf\ Take $Y=\typ A_\ell$: C4 gives rank $\ell$, the empty graph on
+    $\ell-2$ vertices for $\ell\geq2$, and one line for $\ell=1$; Lemma~\ref{lem:3.4}
+    gives $\ell(\ell+1)/2$ lines.~\qed\end{proof}
+   \step{s335D}{\case{Case 2 of Theorem 2.13, so $\ell\geq4$.}}
+   \begin{proof}\pf\ Take $Y=\typ D_\ell$: C4 gives rank $\ell$ and the friendship graph
+    of $\ell-3$ triangles; Lemma~\ref{lem:3.4} gives $\ell(\ell-1)$ lines.~\qed\end{proof}
+   \step{s335Eeight}{\case{Case 3 of Theorem 2.13, so $\ell=8$.}}
+   \begin{proof}\pf\ Take $Y=\typ E_8$: C4 gives rank 8, $|\Ga|=27$ and
+    $|\Delta|/2=36$; Lemma~\ref{lem:3.4} gives 120 lines.~\qed\end{proof}
+   \step{s335Eseven}{\case{Case 4 of Theorem 2.13, so $\ell=7$.}}
+   \begin{proof}\pf\ Take $Y=\typ E_7$: C4 gives rank 7, $|\Ga|=15$ and
+    $|\Delta|/2=15$; Lemma~\ref{lem:3.4} gives 63 lines.~\qed\end{proof}
+   \step{s335Esix}{\case{Case 5 of Theorem 2.13, so $\ell=6$.}}
+   \begin{proof}\pf\ Take $Y=\typ E_6$: C4 gives rank 6, $|\Ga|=9$ and
+    $|\Delta|/2=6$; Lemma~\ref{lem:3.4} gives 36 lines.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ These are the five cases in \stepref{s335possibilities}.~\qed\end{proof}
+  \end{proof}
+  \pflet{$W_Y=\operatorname{span}\Phi(Y)$, and let $Y|_{W_Y}$ be the restriction of $Y$
+   to $W_Y$ in Lemma~\ref{lem:sec3-restrict}.}
+  \step{s335modelhyp}{$Y|_{W_Y}$ satisfies the hypotheses of
+   Theorem~\ref{thm:2.13}, with $W_Y$ as the ambient space of dimension $\ell$.}
+  \begin{proof}
+   \step{s335modelprops}{$Y$ is nonempty, indecomposable and star-closed.}
+   \begin{proof}\pf\ This is the first assertion of C4.~\qed\end{proof}
+   \step{s335modeldim}{$\dim W_Y=\ell$.}
+   \begin{proof}\pf\ The rank of $Y$ is $\ell$ by \stepref{s335realized}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Lemma~\ref{lem:sec3-restrict} makes $Y|_{W_Y}$ a line system
+    spanning $W_Y$ with the properties of \stepref{s335modelprops}; its dimension is
+    \stepref{s335modeldim}.~\qed\end{proof}
+  \end{proof}
+  \step{s335samecase}{$Y|_{W_Y}$ lies in the same case of Theorem 2.13 as $S|_W$.}
+  \begin{proof}\pf\ Lemma~\ref{lem:sec3-restrict} carries the number of lines and the
+   marked-star data of \stepref{s335realized} from $Y$ to $Y|_{W_Y}$, whose dimension is
+   $\ell$ by \stepref{s335modelhyp}; these are the data of the case of
+   \stepref{s335possibilities}.~\qed\end{proof}
+  \step{s335coords}{There are surjective linear isometries $\iota:W\to\re^\ell$
+   and $\iota_Y:W_Y\to\re^\ell$; the sets $\iota(\Phi(S))$ and $\iota_Y(\Phi(Y))$ are the
+   root sets of line systems $S'$ and $Y'$ in $\re^\ell$, which satisfy the hypotheses of
+   Theorem~\ref{thm:2.13} and lie in the case of \stepref{s335possibilities}.}
+  \begin{proof}
+   \step{s335basis}{The isometries $\iota$ and $\iota_Y$ exist.}
+   \begin{proof}\pf\ Take the representation \path{OrthonormalBasis.repr} of
+    \path{stdOrthonormalBasis} of $W$ and of $W_Y$, reindexed to $\operatorname{Fin}\ell$
+    by \path{OrthonormalBasis.reindex} along \path{finCongr}, using $\dim W=\ell$ and
+    \stepref{s335modelhyp}.~\qed\end{proof}
+   \step{s335imagelines}{$S'$ and $Y'$ are line systems in $\re^\ell$, and $\iota$ and
+    $\iota_Y$ restrict to bijections of root sets that preserve inner products.}
+   \begin{proof}\pf\ A linear isometry is injective, commutes with negation and
+    preserves inner products, by \path{LinearIsometry.inner_map_map}; the conditions of
+    the line-system definition in Section~\ref{def:line-system} are of these kinds.~\qed\end{proof}
+   \step{s335imagespan}{$\Phi(S')$ and $\Phi(Y')$ span $\re^\ell$.}
+   \begin{proof}\pf\ By \path{Submodule.span_image}, the span of an image is the image
+    of the span, which is the whole of $\re^\ell$ for a surjective map; use
+    \stepref{s335restrict} and \stepref{s335modelhyp}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Lemma~\ref{lem:sec3-transport}, applied to the bijections of
+    \stepref{s335imagelines}, carries nonemptiness, indecomposability, star-closure, the
+    number of lines and the marked-star data from $S|_W$ and $Y|_{W_Y}$, which have them
+    by \stepref{s335restrict}, \stepref{s335possibilities}, \stepref{s335modelhyp} and
+    \stepref{s335samecase}; \stepref{s335imagespan} gives spanning.~\qed\end{proof}
+  \end{proof}
+  \step{s335orthogonal}{There is an orthogonal transformation $O$ of $\re^\ell$ with
+   $O(\Phi(S'))=\Phi(Y')$.}
+  \begin{proof}\pf\ Apply the uniqueness assertion of Theorem~\ref{thm:2.13}, for the
+   ambient space $\re^\ell$, to \stepref{s335coords}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Put $F=\iota_Y^{-1}\circ O\circ\iota$, a surjective linear isometry
+   $W\to W_Y$ by \path{LinearIsometryEquiv.symm} and \path{LinearIsometryEquiv.trans};
+   \stepref{s335coords} and \stepref{s335orthogonal} give
+   $F(\Phi(S))=\Phi(Y)$.~\qed\end{proof}
+ \end{proof}
+ \step{s335reverse}{\assume{$S$ is isomorphic to a listed model.}
+  \prove{$S$ is indecomposable and star-closed.}}
+ \begin{proof}\pf\ C4 gives these properties for the model; apply
+  Lemma~\ref{lem:sec3-transport}.~\qed\end{proof}
+ \step{s335unique}{Different listed types are not isomorphic.}
+ \begin{proof}
+  \step{s335rank}{Isomorphic models have the same rank.}
+  \begin{proof}\pf\ Apply Lemma~\ref{lem:sec3-transport}.~\qed\end{proof}
+  \step{s335AD}{At a common rank $\ell\geq4$, the $\typ D$ count exceeds the $\typ A$ count by $\ell(\ell-3)/2>0$.}
+  \begin{proof}\pf\ Subtract the formulas in Lemma~\ref{lem:3.4}.~\qed\end{proof}
+  \step{s335exceptionalcounts}{At ranks $6,7,8$ the respective $(\typ A,\typ D,\typ E)$ counts are
+   $(21,30,36)$, $(28,42,63)$, $(36,56,120)$, with strict inequalities in each row.}
+  \begin{proof}\pf\ Substitute those ranks in Lemma~\ref{lem:3.4}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Line count is an isomorphism invariant by
+   Lemma~\ref{lem:sec3-transport}; \stepref{s335rank}--\stepref{s335exceptionalcounts}
+   distinguish every pair of listed types.~\qed\end{proof}
+ \end{proof}
+ \step{s335atmost}{The system $S$ cannot be isomorphic to two different listed types.}
+ \begin{proof}\pf\ Compose one span isometry with the inverse of the other from
+  Lemma~\ref{lem:sec3-transport}. The resulting isometry between the two models
+  contradicts \stepref{s335unique}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s335forward}, \stepref{s335reverse}, and
+  \stepref{s335atmost} prove the equivalence and uniqueness. C3 identifies the
+  three $\typ E_8$ models independently.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(a maximal extension in the span)}\label{lem:sec3-extension}
+ \lean{LineSystem.exists_maximal_extension_span}
+ \uses{def:line-system,def:indecomposable,def:2.2,lem:2.3,facts:inner}
+ \assume{$S$ is a nonempty indecomposable line system in a finite-dimensional
+ real inner product space, $W=\operatorname{span}\Phi(S)$, and $S$ is not maximal in $W$.}
+ \prove{There is a line system $T$ in $W$ with
+ $\Phi(S)\subsetneq\Phi(T)$, spanning $W$, that is maximal in $W$,
+ indecomposable, and star-closed.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ For the second omission in Gap 13 we will bound all candidate
+ roots by their finite signatures against $\Phi(S)$, maximize the size of an extension,
+ and prove indecomposability using the equality of spans.
+ \pflet{$K=\{\Zx\in W:(\Zx,\Zx)=2,\ (\Zx,\Zr)\in\{-2,-1,0,1,2\}
+ \text{ for every }\Zr\in\Phi(S)\}$.}
+ \step{s3extfinite}{$K$ is finite.}
+ \begin{proof}
+  \step{s3extsignature}{The signature map $\Zx\mapsto((\Zx,\Zr))_{\Zr\in\Phi(S)}$ is injective on $K$.}
+  \begin{proof}
+   \step{s3extdifference}{Equal signatures make $\Zx-\Zy$ orthogonal to $W$.}
+   \begin{proof}\pf\ Use bilinearity and the finite-span lemma in Section~\ref{facts:inner}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Since $\Zx-\Zy\in W$, \stepref{s3extdifference} gives zero
+    squared norm, so $\Zx=\Zy$ by Section~\ref{facts:inner}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ The signatures lie in a set of $5^{|\Phi(S)|}$ functions.
+   Apply \path{Set.Finite.of_injOn} to \stepref{s3extsignature}.~\qed\end{proof}
+ \end{proof}
+ \step{s3extchoose}{Choose a largest-cardinality subset $\Psi\subseteq K$ containing
+  $\Phi(S)$ that is the signed root set of a line system.}
+ \begin{proof}\pf\ The eligible subsets form a nonempty finite family: it contains
+  $\Phi(S)$ and is contained in the powerset of the finite $K$. Apply
+  \path{Finset.exists_max_image} to their cardinalities.~\qed\end{proof}
+ \pflet{$T$ be this line system with root set $\Psi$.}
+ \step{s3extmaximal}{$T$ is maximal within $W$.}
+ \begin{proof}
+  \step{s3extcandidate}{\assume{$\Zx\in W$ has squared norm 2 and allowed products with $\Psi$.}
+   \prove{$\Zx\in\Psi$.}}
+  \begin{proof}
+   \step{s3extinK}{$\Zx,-\Zx\in K$.}
+   \begin{proof}\pf\ The candidate products include those with $\Phi(S)\subseteq\Psi$;
+    the allowed product set is closed under negation.~\qed\end{proof}
+   \step{s3extadjoin}{$\Psi\cup\{\Zx,-\Zx\}$ is eligible in \stepref{s3extchoose}.}
+   \begin{proof}\pf\ Old-new products are allowed by \asm{2}, and the new-new
+    products are $\pm2$; use \stepref{s3extinK} for containment in $K$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Maximal cardinality in \stepref{s3extchoose} forbids a proper
+    enlargement by \stepref{s3extadjoin}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{s3extcandidate} is Definition~\ref{def:2.2}.~\qed\end{proof}
+ \end{proof}
+ \step{s3extspan}{$\operatorname{span}\Psi=W$.}
+ \begin{proof}\pf\ $\Phi(S)\subseteq\Psi\subseteq W$ and $\Phi(S)$ spans $W$.~\qed\end{proof}
+ \step{s3extindec}{$T$ is indecomposable.}
+ \begin{proof}
+  \step{s3extpartition}{\assume{$P\cup Q=\Psi$ and $P\perp Q$.}
+   \prove{$P=\varnothing$ or $Q=\varnothing$.}}
+  \begin{proof}
+   \step{s3extoldpart}{All roots of $S$ lie in one of $P,Q$.}
+   \begin{proof}\pf\ Intersect the partition with $\Phi(S)$ and use its indecomposability.~\qed\end{proof}
+   \step{s3extempty}{The other part is empty.}
+   \begin{proof}\pf\ Each root there is orthogonal to the spanning $\Phi(S)$,
+    thus to itself by Section~\ref{facts:inner}; its norm would be zero.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Use \stepref{s3extempty}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Apply the indecomposability definition in Section~\ref{def:indecomposable} to \stepref{s3extpartition}.~\qed\end{proof}
+ \end{proof}
+ \step{s3extproper}{$\Phi(S)\subsetneq\Psi$.}
+ \begin{proof}\pf\ Equality would make $S$ maximal by \stepref{s3extmaximal},
+  contrary to the hypothesis.~\qed\end{proof}
+ \step{s3extclosed}{$T$ is star-closed.}
+ \begin{proof}\pf\ Lemma~\ref{lem:2.3} applies to \stepref{s3extmaximal}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Combine \stepref{s3extspan}, \stepref{s3extindec},
+  \stepref{s3extproper}, and \stepref{s3extclosed}.~\qed\end{proof}
+\end{proof}
+The finiteness and maximum declarations used here are in
+\path{Mathlib/Data/Set/Finite/Basic.lean} and \path{Mathlib/Data/Finset/Max.lean}.
+
+\begin{namedresult}{Lemma}{(marked inclusions)}\label{lem:sec3-marked-inclusion}
+ \lean{LineSystem.Hyp24.orthGraph_embedding_of_subset}
+ \uses{hyp:2.4,lem:sec3-transport}
+ \assume{$S,T$ are indecomposable star-closed line systems and a linear isometry
+ of spans sends $\Phi(S)$ into $\Phi(T)$. Choose $\Za,\Zb\in\Phi(S)$ with
+ $(\Za,\Zb)=-1$, and mark $T$ by their images.}
+ \prove{The isometry induces an injection from the source $\Ga$ to the target
+ $\Ga$ that preserves both adjacency and nonadjacency in their orthogonality graphs.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We state the induced-embedding direction needed for C5 separately
+ from the isomorphism assertion of Lemma 2.12. We will retain the same marked star
+ and use the defining inner products.
+ \step{s3markmembership}{A source member of $\Ga$ maps into the target $\Ga$.}
+ \begin{proof}\pf\ The three defining products of Hypothesis~\ref{hyp:2.4}
+  are preserved, and the image is a target root.~\qed\end{proof}
+ \step{s3markinjection}{The induced map is injective.}
+ \begin{proof}\pf\ A linear isometry is injective.~\qed\end{proof}
+ \step{s3markedges}{For two distinct source vertices, the product is zero if and only if the image product is zero.}
+ \begin{proof}\pf\ The isometry preserves that product.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The three steps give an induced graph embedding.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Computation}{C5}\label{comp:C5}
+ \lean{Computations.C5.inclusions_and_obstructions}
+ \lean{LineSystem.not_embeds_An_Dn}
+ \uses{def:3.1,def:3.2,def:3.3,comp:C3,comp:C4,lem:3.4,lem:sec3-spans,lem:sec3-choices,lem:sec3-marked-inclusion,lem:2.10}
+ \assume{All inclusions are isometric inclusions of the signed models, in their spans.}
+ \prove{There are proper inclusions $\typ A_8\subset \typ E_8$, $\typ D_8\subset \typ E_8$,
+ and $\typ A_7\subset \typ E_7$, all of equal rank. There are no inclusions
+ $\typ A_\ell\subset \typ D_\ell$ for $\ell\geq4$, $\typ A_6\subset \typ E_6$,
+ $\typ D_6\subset \typ E_6$, or $\typ D_7\subset \typ E_7$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will exhibit the inclusions, then obstruct induced marked graphs
+ using coclique sizes and degrees. The $\typ A_\ell$ obstruction fills the first omission in Gap 13.
+ \step{s3c5uniform}{The target marked graphs have the asserted types for every ordered star.}
+ \begin{proof}
+  \step{s3c5Dtransitive}{Signed coordinate permutations of $\typ D_\ell$ are transitive on ordered root pairs of product $-1$.}
+  \begin{proof}
+   \step{s3c5Dsupport}{Such roots share exactly one support position, with opposite signs there.}
+   \begin{proof}\pf\ Equal supports give product $-2,0,2$; disjoint supports give
+    0; a one-position intersection contributes its single sign product.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Send the unshared position of the first root to 1, the shared
+    position to 2, and the unshared position of the second to 3. Choose signs
+    to obtain $\Ze_1-\Ze_2,\Ze_2-\Ze_3$; extend the coordinate permutation and signs arbitrarily.~\qed\end{proof}
+  \end{proof}
+  \step{s3c5Euniform}{Every $\typ E_6$ marked graph is the lattice graph; every $\typ E_7$ marked graph is the disjointness graph on six symbols.}
+  \begin{proof}\pf\ C4 gives constant order and parameters for every star.
+   Lemma~\ref{lem:2.10} identifies its graph with the fixed-star graph, whose
+   labelled type is certified in C4.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ For $\typ D_\ell$ apply C4 after \stepref{s3c5Dtransitive}; for
+   the two exceptional targets use \stepref{s3c5Euniform}.~\qed\end{proof}
+ \end{proof}
+ \step{s3c5Aeight}{$\typ A_8$ embeds properly in $\typ E_8$ with equal rank.}
+ \begin{proof}\pf\ It is a subset of model (i); apply C3. Lemma~\ref{lem:sec3-spans}
+  gives rank 8 on both sides, and Lemma~\ref{lem:3.4} gives $36<120$ lines.~\qed\end{proof}
+ \step{s3c5Deight}{$\typ D_8$ embeds properly in $\typ E_8$ with equal rank.}
+ \begin{proof}\pf\ Definition~\ref{def:3.2}(ii) includes these roots.
+  Their ranks are 8 and their counts satisfy $56<120$ by the same two lemmas.~\qed\end{proof}
+ \step{s3c5Aseven}{\new\ $\typ A_7$ embeds properly in $\typ E_7$ with equal rank. An explicit
+  coordinate inclusion replaces the paper's embedding of marked graphs.}
+ \begin{proof}
+  \pflet{$\Zh=\frac12\mathbf1\in\re^8$.}
+  \step{s3c5Ah}{$\typ A_7\subset \typ E_8\cap\Zh^\perp$.}
+  \begin{proof}\pf\ Its roots are $\Ze_i-\Ze_j$ in $\re^8$, which are $\typ D_8$
+   roots with product zero with $\Zh$. The all-positive half root $\Zh$ belongs to $\typ E_8$.~\qed\end{proof}
+  \step{s3c5Amap}{An $\typ E_8$ automorphism carries this inclusion into $\typ E_7$.}
+  \begin{proof}\pf\ Use the root assertion of Lemma~\ref{lem:sec3-choices}
+   to send $\Zh$ to $\Zr_0$.~\qed\end{proof}
+  \step{s3c5Aproper}{The inclusion has rank 7 on both sides and is proper.}
+  \begin{proof}\pf\ Lemma~\ref{lem:sec3-spans} gives the ranks;
+   Lemma~\ref{lem:3.4} gives $28<63$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Combine \stepref{s3c5Amap} and \stepref{s3c5Aproper}.~\qed\end{proof}
+ \end{proof}
+ \step{s3c5AD}{\repair\ \assume{$\ell\geq4$ and an isometric inclusion $\typ A_\ell\subset \typ D_\ell$ exists.}
+  \prove{FALSE.}}
+ \begin{proof}
+  \step{s3c5ADinduced}{The target friendship graph with $\ell-3$ triangles contains a coclique of size $\ell-2$.}
+  \begin{proof}\pf\ Mark the source by its C4 star and apply
+   Lemma~\ref{lem:sec3-marked-inclusion} and \stepref{s3c5uniform}.~\qed\end{proof}
+  \step{s3c5friendbound}{A friendship graph with $t\geq1$ triangles has no coclique larger than $t$.}
+  \begin{proof}
+   \step{s3c5friendcentre}{A coclique containing the common vertex has size 1.}
+   \begin{proof}\pf\ Every other vertex is adjacent to that vertex.~\qed\end{proof}
+   \step{s3c5friendouter}{A coclique avoiding the common vertex has at most one vertex from each of the $t$ outer pairs.}
+   \begin{proof}\pf\ Each outer pair is an edge.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ These two cases give the bound $t$, since $t\geq1$.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s3c5ADinduced} and \stepref{s3c5friendbound}
+   would give $\ell-2\leq\ell-3$.~\qed\end{proof}
+ \end{proof}
+ \step{s3c5Asix}{\assume{An isometric inclusion $\typ A_6\subset \typ E_6$ exists.}\prove{FALSE.}}
+ \begin{proof}
+  \step{s3c5gridfour}{The $3\times3$ lattice graph contains a 4-coclique.}
+  \begin{proof}\pf\ C4 gives a 4-coclique for $\typ A_6$; use
+   Lemma~\ref{lem:sec3-marked-inclusion} and \stepref{s3c5uniform}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Among four grid positions two share one of the three rows,
+   so those two are adjacent. This contradicts \stepref{s3c5gridfour}.~\qed\end{proof}
+ \end{proof}
+ \step{s3c5Dsix}{\assume{An isometric inclusion $\typ D_6\subset \typ E_6$ exists.}\prove{FALSE.}}
+ \begin{proof}\pf\ The centre in the source marked graph has six neighbours by C4.
+  Its image has at least six distinct neighbours by Lemma~\ref{lem:sec3-marked-inclusion};
+  C4 gives target degree 4.~\qed\end{proof}
+ \step{s3c5Dseven}{\assume{An isometric inclusion $\typ D_7\subset \typ E_7$ exists.}\prove{FALSE.}}
+ \begin{proof}\pf\ The source centre has eight neighbours by C4; the induced
+  injection of Lemma~\ref{lem:sec3-marked-inclusion} contradicts target degree 6.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The three positive inclusions and four obstructions give the assertion.~\qed\end{proof}
+\end{proof}
+\begingroup\raggedright
+The coordinate inclusions already have Lean declarations
+\leancite{LineSystem.An_Φ_subset_E₈viaA₈}{\texttt{LineSystem.\allowbreak An\_\allowbreak \ensuremath{\Phi}\_\allowbreak subset\_\allowbreak E\ensuremath{{}_8}viaA\ensuremath{{}_8}}} and \leancite{LineSystem.Dn_Φ_subset_E₈}{\texttt{LineSystem.\allowbreak Dn\_\allowbreak \ensuremath{\Phi}\_\allowbreak subset\_\allowbreak E\ensuremath{{}_8}}}.
+C5 is proved in Lean, in \path{LineSystem/Inclusions.lean},
+\path{Computations/C5Inclusions.lean}, \path{Computations/C5Dn.lean} and
+\path{Computations/C5.lean}. An isometric inclusion is
+\path{LineSystem.IsometricInclusion}; the lemma on an equal-rank proper inclusion is
+\path{LineSystem.not_isMaximal_of_proper_isometric_inclusion}, and the marked-inclusion lemma
+is \path{LineSystem.Hyp24.orthGraph_embedding_of_subset}. Lean proves
+$\typ A_7\subset\typ E_7$ and $\typ A_8\subset\typ E_8$ by explicit integer coordinate rows,
+\leancite{LineSystem.An.inclusionE₇}{\texttt{LineSystem.\allowbreak An.\allowbreak inclusionE\ensuremath{{}_7}}} and \leancite{LineSystem.An.inclusionE₈}{\texttt{LineSystem.\allowbreak An.\allowbreak inclusionE\ensuremath{{}_8}}}, not
+through C3; $\typ D_8\subset\typ E_8$ is \leancite{LineSystem.Dn.inclusionE₈}{\texttt{LineSystem.\allowbreak Dn.\allowbreak inclusionE\ensuremath{{}_8}}}. Step
+\texttt{s3c5Dtransitive} is \leancite{LineSystem.Dn.exists_isometry_star}{\texttt{LineSystem.\allowbreak Dn.\allowbreak exists\_\allowbreak isometry\_\allowbreak star}}, with
+\leancite{LineSystem.Hyp24.nonempty_orthGraph_iso_of_S_eq_Dn}{\texttt{LineSystem.\allowbreak Hyp24.\allowbreak nonempty\_\allowbreak orthGraph\_\allowbreak iso\_\allowbreak of\_\allowbreak S\_\allowbreak eq\_\allowbreak Dn}}. The four obstructions are
+\leancite{LineSystem.not_embeds_An_Dn}{\texttt{LineSystem.\allowbreak not\_\allowbreak embeds\_\allowbreak An\_\allowbreak Dn}} (for $\ell\geq4$), \leancite{LineSystem.not_embeds_An_E₆}{\texttt{LineSystem.\allowbreak not\_\allowbreak embeds\_\allowbreak An\_\allowbreak E\ensuremath{{}_6}}},
+\leancite{LineSystem.not_embeds_Dn_E₆}{\texttt{LineSystem.\allowbreak not\_\allowbreak embeds\_\allowbreak Dn\_\allowbreak E\ensuremath{{}_6}}} and \leancite{LineSystem.not_embeds_Dn_E₇}{\texttt{LineSystem.\allowbreak not\_\allowbreak embeds\_\allowbreak Dn\_\allowbreak E\ensuremath{{}_7}}}, and
+\leancite{Computations.C5.inclusions_and_obstructions}{\texttt{Computations.\allowbreak C5.\allowbreak inclusions\_\allowbreak and\_\allowbreak obstructions}} bundles the three proper
+inclusions with them. There is no finite search: the grid bound of step \texttt{s3c5Asix} is the
+pigeonhole argument above, and the friendship bound and the two degree contradictions are
+proofs above as well.\par
+\endgroup
+
+\begin{remark}
+ \repair\ The paper derives $\typ A_7\subset\typ E_7$ from the statement that a 5-coclique
+ embeds in the triangular graph $T(6)$ (Error 5). With the orthogonality convention of C4,
+ the graph of $\typ A_7$ is a 5-coclique and the graph of $\typ E_7$ is the disjointness
+ graph $\comp{T(6)}$; the witness is a 5-coclique of $\comp{T(6)}$, equivalently a 5-clique
+ of $T(6)$, and the five pairs $\{1,j\}$ with $2\leq j\leq6$ pairwise intersect. We record
+ the correction only; C5 does not use this witness, since it proves the inclusion by an
+ explicit coordinate inclusion.
+\end{remark}
+
+\begin{cgss}{Theorem}{3.6}\label{thm:3.6}
+ \lean{LineSystem.classification_of_isMaximal}
+ \uses{def:2.2,lem:2.3,thm:3.5,lem:3.4,comp:C4,comp:C5,lem:sec3-spans,lem:sec3-transport,lem:sec3-extension,lem:sec3-proper-inclusion}
+ \assume{$S$ is a nonempty indecomposable line system in a finite-dimensional real
+ inner product space, and $W=\operatorname{span}\Phi(S)$.}
+ \prove{$S$ is maximal within $W$ if and only if it is isomorphic to one of
+ \[
+ \typ A_\ell\ (\ell\geq1,\ \ell\ne7,8),\qquad
+ \typ D_\ell\ (\ell\geq4,\ \ell\ne8),\qquad \typ E_6,\ \typ E_7,\ \typ E_8.
+ \]
+ \repair\ Maximality is within the span (Implicit hypothesis 7), including for
+ $\typ A_\ell\subset\re^{\ell+1}$.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ A maximal system is star-closed. For the converse we will put any
+ hypothetical proper extension inside an indecomposable star-closed system of the
+ same rank, then exhaust its type using counts and C5.
+ \step{s336forward}{\assume{$S$ is maximal within $W$.}
+  \prove{$S$ has a type in the displayed list.}}
+ \begin{proof}
+  \step{s336closed}{$S$ is star-closed.}
+  \begin{proof}\pf\ Apply Lemma~\ref{lem:2.3}.~\qed\end{proof}
+  \step{s336classified}{$S$ has a type from Theorem 3.5.}
+  \begin{proof}\pf\ Apply Theorem~\ref{thm:3.5} to \stepref{s336closed} and the standing hypotheses.~\qed\end{proof}
+  \step{s336excluded}{Its type is not $\typ A_7$, $\typ A_8$, or $\typ D_8$.}
+  \begin{proof}
+   \step{s336exclAseven}{$\typ A_7$ is not maximal within its span.}
+   \begin{proof}\pf\ Apply Lemma~\ref{lem:sec3-proper-inclusion} to the proper
+    isometric inclusion $\typ A_7\subset\typ E_7$ of equal rank in C5.~\qed\end{proof}
+   \step{s336exclAeight}{$\typ A_8$ is not maximal within its span.}
+   \begin{proof}\pf\ Apply Lemma~\ref{lem:sec3-proper-inclusion} to the proper
+    isometric inclusion $\typ A_8\subset\typ E_8$ of equal rank in C5.~\qed\end{proof}
+   \step{s336exclDeight}{$\typ D_8$ is not maximal within its span.}
+   \begin{proof}\pf\ Apply Lemma~\ref{lem:sec3-proper-inclusion} to the proper
+    isometric inclusion $\typ D_8\subset\typ E_8$ of equal rank in C5.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ A span isometry from $S$ to one of these models would carry
+    maximality within $W$, from \asm{1}, to the model, by
+    Lemma~\ref{lem:sec3-transport}; this contradicts \stepref{s336exclAseven},
+    \stepref{s336exclAeight} or \stepref{s336exclDeight}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Remove the three types of \stepref{s336excluded} from
+   \stepref{s336classified}.~\qed\end{proof}
+ \end{proof}
+ \step{s336modelsmaximal}{Every retained model is maximal in its span.}
+ \begin{proof}
+  \step{s336contra}{\assume{$M$ is a retained model and is not maximal in its span.}
+   \prove{FALSE.}}
+  \begin{proof}
+   \step{s336extension}{There is an indecomposable star-closed proper extension $T$ with the same rank as $M$.}
+   \begin{proof}\pf\ C4 gives that $M$ is nonempty and indecomposable;
+    apply Lemma~\ref{lem:sec3-extension} to $M$ in its span.~\qed\end{proof}
+   \step{s336target}{There is a proper isometric inclusion of $M$ in a listed model
+    of Theorem 3.5 of the same rank, with strictly more lines.}
+   \begin{proof}
+    \pflet{$W_M=\operatorname{span}\Phi(M)$.}
+    \step{s336targethyp}{$T$ is a nonempty indecomposable star-closed line system in
+     $W_M$, and $\operatorname{span}\Phi(T)=W_M$.}
+    \begin{proof}\pf\ Lemma~\ref{lem:sec3-extension} gives these properties with the
+     ambient space $W_M$, and $\Phi(M)\subseteq\Phi(T)$ makes $T$ nonempty.~\qed\end{proof}
+    \step{s336targetiso}{There are a listed model $Y$ and a surjective linear isometry
+     $G:W_M\to\operatorname{span}\Phi(Y)$ with $G(\Phi(T))=\Phi(Y)$.}
+    \begin{proof}\pf\ Apply the forward direction of Theorem~\ref{thm:3.5} to $T$ in the
+     finite-dimensional space $W_M$, using \stepref{s336targethyp}; its span is
+     $W_M$.~\qed\end{proof}
+    \step{s336targetmap}{$G$ is an isometric inclusion of $M$ in $Y$ with
+     $G(\Phi(M))\subsetneq\Phi(Y)$.}
+    \begin{proof}\pf\ $G$ is defined on $W_M=\operatorname{span}\Phi(M)$, it is injective,
+     and $\Phi(M)\subsetneq\Phi(T)$ by \stepref{s336extension}; apply
+     \stepref{s336targetiso}.~\qed\end{proof}
+    \step{s336targetrank}{$Y$ has the rank of $M$.}
+    \begin{proof}\pf\ $G$ is a linear bijection $W_M\to\operatorname{span}\Phi(Y)$ by
+     \stepref{s336targetiso}.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ A proper inclusion of finite antipodal sets strictly increases
+     the number of pairs; use \stepref{s336targetmap} and \stepref{s336targetrank}.~\qed\end{proof}
+   \end{proof}
+   \step{s336E}{\case{$M=\typ E_r$ for $r\in\{6,7,8\}$.}}
+   \begin{proof}\pf\ At those ranks the $(\typ A,\typ D,\typ E)$ line counts in
+    Lemma~\ref{lem:3.4} are $(21,30,36)$, $(28,42,63)$, and $(36,56,120)$.
+    The $\typ E$ entry is largest in each row, contrary to \stepref{s336target}.~\qed\end{proof}
+   \step{s336A}{\case{$M=\typ A_\ell$, $\ell\ne7,8$.}}
+   \begin{proof}
+    \step{s336Asmall}{\case{$\ell\leq3$.}}
+    \begin{proof}\pf\ Theorem~\ref{thm:3.5} has only $\typ A_\ell$ at this rank,
+     so the strict count increase in \stepref{s336target} is impossible.~\qed\end{proof}
+    \step{s336Alarge}{\case{$\ell\geq4$.}}
+    \begin{proof}
+     \step{s336AD}{The target cannot be $\typ D_\ell$.}
+     \begin{proof}\pf\ C5 excludes $\typ A_\ell\subset \typ D_\ell$ for every $\ell\geq4$.~\qed\end{proof}
+     \step{s336AE}{The target cannot be exceptional.}
+     \begin{proof}\pf\ Rank equality and $\ell\ne7,8$ leave only $\typ E_6$;
+      C5 excludes $\typ A_6\subset \typ E_6$.~\qed\end{proof}
+     \qedstep
+     \begin{proof}\pf\ The only remaining target is $\typ A_\ell$, with equal count,
+      contrary to \stepref{s336target}.~\qed\end{proof}
+    \end{proof}
+    \qedstep
+    \begin{proof}\pf\ Steps \stepref{s336Asmall} and \stepref{s336Alarge} exhaust positive ranks.~\qed\end{proof}
+   \end{proof}
+   \step{s336D}{\case{$M=\typ D_\ell$, $\ell\geq4$, $\ell\ne8$.}}
+   \begin{proof}
+    \step{s336DA}{The target cannot be $\typ A_\ell$ or $\typ D_\ell$.}
+    \begin{proof}\pf\ Their counts are at most that of $\typ D_\ell$, since
+     $\ell(\ell-1)-\ell(\ell+1)/2=\ell(\ell-3)/2>0$;
+     this contradicts \stepref{s336target}.~\qed\end{proof}
+    \step{s336DE}{The target cannot be exceptional.}
+    \begin{proof}\pf\ With equal ranks and $\ell\ne8$, only $\typ D_6\subset \typ E_6$
+     and $\typ D_7\subset \typ E_7$ remain; C5 excludes both.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ Theorem~\ref{thm:3.5} has no further target types.~\qed\end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ The retained model list is exhausted by
+    \stepref{s336E}, \stepref{s336A}, and \stepref{s336D}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{s336contra} rules out nonmaximality of any retained model.~\qed\end{proof}
+ \end{proof}
+ \step{s336reverse}{\assume{$S$ is isomorphic to a retained model.}
+  \prove{$S$ is maximal within $W$.}}
+ \begin{proof}\pf\ Transport \stepref{s336modelsmaximal} by
+  Lemma~\ref{lem:sec3-transport}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s336forward} and \stepref{s336reverse} give the equivalence.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Definition}{(signings and the matrix convention)}\label{def:sec3-signing}
+ \lean{LineSystem.Signing}\lean{LineSystem.signedAdj}\lean{LineSystem.nonempty_signing}
+ \uses{def:line-system,facts:inner}
+ \assume{$S$ is a line system, $W=\operatorname{span}\Phi(S)$, and $I$ is a finite index set.}
+ \new\ We make ``one vector per line'' an explicit bijection.
+ \pflet{A signing is a family $\sigma:I\to\Phi(S)$ for which
+ $(i,\epsilon)\mapsto\epsilon\sigma(i)$ is a bijection
+ $I\times\{1,-1\}\to\Phi(S)$. Put $N=|I|$,
+ $M(i,j)=(\sigma(i),\sigma(j))$, and $C=M-2I_N$.}
+ Thus $N$ is the number of lines. The diagonal of $C$ is zero, and its off-diagonal
+ entries lie in $\{0,1,-1\}$ by Section~\ref{facts:inner}. A change of signs conjugates
+ $C$ by a diagonal matrix of signs, and a reordering conjugates by a permutation matrix.
+ We use $I_N$ for the identity matrix, to distinguish it from the index set $I$.
+ Every line system has a signing indexed by $\{1,\dots,N\}$, where $N$ is its number of lines:
+ choose one of the two vectors on each line (\path{LineSystem.nonempty_signing}). Thus the
+ equations of Theorem 3.7, which hold for every signing, are not vacuous.
+\end{namedresult}
+
+\begin{namedresult}{Computation}{C6}\label{comp:C6}
+ \lean{Computations.C6.coordinate_frame_matrices}
+ \uses{def:3.1,def:3.2,def:3.3,lem:sec3-integer,comp:C2}
+ \assume{$R$ is the complete, duplicate-free list of raw signed roots from
+ Lemma~\ref{lem:sec3-integer}, with the coordinate cuts for $\typ E_7,\typ E_6$ from
+ Definition~\ref{def:3.3}. Write
+ $K=\sum_{v\in R}vv^T$ and let $J_m$ be the $m\times m$ all-one matrix.}
+ \prove{The following are exact integer matrix identities:
+ \[
+ \begin{array}{c|c|c}
+ \text{model}&q&K\\\hline
+ \typ A_\ell&1&2((\ell+1)I_{\ell+1}-J_{\ell+1})\\
+ \typ D_\ell&1&4(\ell-1)I_\ell\\
+ \typ E_8\text{ (i)}&9&540I_9-60J_9\\
+ \typ E_8\text{ (ii)}&4&240I_8\\
+ \typ E_8\text{ (iii)}&2&120I_8\\
+ \typ E_7&4&\operatorname{diag}(144I_6,72J_2)\\
+ \typ E_6&4&\operatorname{diag}(96I_5,32J_3).
+ \end{array}
+ \]}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We replace spectral calculations by small coordinate frame
+ matrices. The classical rows are parametric; the exceptional rows use the
+ existing Gram checker on the columns of the raw root table.
+ \step{s3c6A}{The $\typ A_\ell$ identity holds for every $\ell\geq1$.}
+ \begin{proof}
+  \step{s3c6Adiag}{$K(i,i)=2\ell$.}
+  \begin{proof}\pf\ There are $\ell$ difference roots with entry 1 at $i$ and
+   $\ell$ with entry $-1$ there.~\qed\end{proof}
+  \step{s3c6Aoff}{For $i\ne j$, $K(i,j)=-2$.}
+  \begin{proof}\pf\ Only $\Ze_i-\Ze_j$ and its negative contribute; both products are $-1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ These entries are those of $2((\ell+1)I-J)$.~\qed\end{proof}
+ \end{proof}
+ \step{s3c6D}{The $\typ D_\ell$ identity holds for every $\ell\geq4$.}
+ \begin{proof}
+  \step{s3c6Ddiag}{$K(i,i)=4(\ell-1)$.}
+  \begin{proof}\pf\ Each support $\{i,j\}$ with $j\ne i$ has four sign choices, each contributing 1.~\qed\end{proof}
+  \step{s3c6Doff}{For $i\ne j$, $K(i,j)=0$.}
+  \begin{proof}\pf\ The four signs on the only contributing support $\{i,j\}$
+   give products $1,-1,-1,1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The entries in the two steps give $4(\ell-1)I$.~\qed\end{proof}
+ \end{proof}
+ \step{s3c6exceptional}{The five exceptional raw identities hold.}
+ \begin{proof}
+  \pflet{$P_i=(v_i)_{v\in R}$ be the $i$th column of the raw root table, in its
+   list order. The list $P$ has length equal to the ambient dimension.}
+  \step{s3c6one}{For model (i), \texttt{checkGram} accepts $P$ and $540I_9-60J_9$.}
+  \begin{proof}\pf\ C6 checks \path{Computations.checkGram} with vector
+   dimension 240 and nine columns, from the pair and signed-triple list of C2.~\qed\end{proof}
+  \step{s3c6two}{For model (ii), \texttt{checkGram} accepts $P$ and $240I_8$.}
+  \begin{proof}\pf\ C6 applies that checker with dimension 240 and eight columns
+   of the doubled pair and even-sign list.~\qed\end{proof}
+  \step{s3c6three}{For model (iii), \texttt{checkGram} accepts $P$ and $120I_8$.}
+  \begin{proof}\pf\ C6 applies that checker with dimension 240 and eight columns
+   of the axis and block-sign list.~\qed\end{proof}
+  \step{s3c6seven}{For $\typ E_7$, \texttt{checkGram} accepts $P$ and $\operatorname{diag}(144I_6,72J_2)$.}
+  \begin{proof}\pf\ C6 applies that checker with dimension 126 and eight columns
+   of the doubled list filtered by $v_7=v_8$.~\qed\end{proof}
+  \step{s3c6six}{For $\typ E_6$, \texttt{checkGram} accepts $P$ and $\operatorname{diag}(96I_5,32J_3)$.}
+  \begin{proof}\pf\ C6 applies that checker with dimension 72 and eight columns
+   of the doubled list filtered by $v_6=v_7=v_8$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ For each accepted table,
+   \path{Computations.checkGram_sound} gives
+   $K(i,j)=P_i\cdot P_j=\sum_{v\in R}v_iv_j$, including diagonal entries.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The two parametric cases and five column-Gram checks cover
+  the seven rows.~\qed\end{proof}
+\end{proof}
+
+\begingroup\raggedright
+C6 is proved in Lean, in \path{LineSystem/Frame.lean} and \path{Computations/C6Classical.lean},
+\path{Computations/C6E8.lean}, \path{Computations/C6E7E6.lean} and \path{Computations/C6.lean}.
+Lean states C6 as the frame property on the span, \path{LineSystem.IsFrame}, equivalent to the
+column-Gram form by \path{LineSystem.isFrame_iff_gram} and transported by
+\path{LineSystem.Iso.isFrame}. The two parametric rows are \path{Computations.C6.an_frame_matrix}
+and \path{Computations.C6.dn_frame_matrix}, giving \path{LineSystem.isFrame_An} and
+\path{LineSystem.isFrame_Dn}; the exceptional matrices are checked by \texttt{decide +kernel} over
+structured indices, not by \path{Computations.checkGram}, and give
+\leancite{LineSystem.isFrame_E₈}{\texttt{LineSystem.\allowbreak isFrame\_\allowbreak E\ensuremath{{}_8}}}, \leancite{LineSystem.isFrame_E₇}{\texttt{LineSystem.\allowbreak isFrame\_\allowbreak E\ensuremath{{}_7}}} and \leancite{LineSystem.isFrame_E₆}{\texttt{LineSystem.\allowbreak isFrame\_\allowbreak E\ensuremath{{}_6}}}.
+The bundle is \path{Computations.C6.coordinate_frame_matrices}. The checker
+\path{Computations.checkGram} is defined in \path{Computations/ListData.lean}, and its
+soundness theorem \path{Computations.checkGram_sound} is in \path{Computations/Checkers.lean};
+C6 does not use them. The frame lemma and Theorem~3.7 below are proved in Lean as well, the
+frame lemma with the rank of the model (\path{LineSystem.frame_identity}) and with the rank of
+the span (\path{LineSystem.frame_identity_span}). The three span lemmas are in Lean:
+\texttt{LineSystem.\allowbreak Iso.\allowbreak spanIsometry} with the transport of
+the predicates and of the marked sets, \texttt{LineSystem.\allowbreak restrictSpan} (with
+\texttt{LineSystem.\allowbreak Iso.\allowbreak restrictSpan} and \texttt{LineSystem.\allowbreak Iso.\allowbreak ofSpanIsometry},
+the interface of the final step of Theorem~3.5) in \path{LineSystem/SpanTransport.lean}, and
+\texttt{LineSystem.\allowbreak exists\_\allowbreak maximal\_\allowbreak extension\_\allowbreak span} in
+\path{LineSystem/SpanExtension.lean}; \path{LineSystem/SpanAudit.lean} prints their axioms. The Lean
+proofs of C5 and C6 transport along \texttt{LineSystem.Iso} and use the model's rank.\par
+Theorems~3.5 and~3.6 are in Lean. Theorem~3.5 is
+\texttt{LineSystem.\allowbreak classification} in \path{LineSystem/Classification.lean}, with its
+forward direction \texttt{LineSystem.\allowbreak exists\_\allowbreak iso\_\allowbreak rootType};
+Theorem~3.6 is \texttt{LineSystem.\allowbreak classification\_\allowbreak of\_\allowbreak isMaximal}
+in \path{LineSystem/ClassificationMaximal.lean}, with the form that Section~4 uses,
+\texttt{LineSystem.\allowbreak IsMaximal.\allowbreak exists\_\allowbreak iso\_\allowbreak rootType}.
+Both rest on the unconditional Theorem~2.13,
+\texttt{LineSystem.\allowbreak five\_\allowbreak possibilities'}, whose inputs from Section~3 are
+the packaged facts \texttt{LineSystem.\allowbreak modelInputs}, proved from C2 and C4
+without either classification, in \path{LineSystem/ClassificationModels.lean}.
+Lemma (a connected spanning set) is
+\texttt{LineSystem.\allowbreak isIndecomposable\_\allowbreak of\_\allowbreak connected\_\allowbreak spanning}
+in \path{LineSystem/ClassificationConnected.lean}, and the perpendicular choices of
+Lemma (independence of the perpendicular choices) in the default model are
+\leancite{LineSystem.E₈.nonempty_iso_E₇_orthogonalTo}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_8}.\allowbreak nonempty\_\allowbreak iso\_\allowbreak E\ensuremath{{}_7}\_\allowbreak orthogonalTo}},
+\leancite{LineSystem.E₈.nonempty_iso_E₆_orthogonalTo}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_8}.\allowbreak nonempty\_\allowbreak iso\_\allowbreak E\ensuremath{{}_6}\_\allowbreak orthogonalTo}}
+and
+\leancite{LineSystem.E₈.exists_isometry_of_ordered_star}{\texttt{LineSystem.\allowbreak E\ensuremath{{}_8}.\allowbreak exists\_\allowbreak isometry\_\allowbreak of\_\allowbreak ordered\_\allowbreak star}}
+in \path{LineSystem/ClassificationChoices.lean}. The Lean departs from the proofs above in three
+places. The ambient space of Theorems~3.5 and~3.6 need not be finite-dimensional, since the
+span of the finite root set is, and Theorem~2.13 is applied there. The forward direction of
+Theorem~3.5 is shorter: the isomorphisms of Theorem~2.13 go directly to the named models and are
+composed with \texttt{LineSystem.\allowbreak Iso.\allowbreak restrictSpan}, so steps
+\texttt{s335coords} and \texttt{s335orthogonal} of the proof below are not needed. The retained list of
+Theorem~3.6 is stated as an explicit disjunction of the five families.\par
+The two remaining pieces are in Lean as well, and their modules are imported by
+\path{LineGraphs.lean}. The bundles
+\texttt{Computations.\allowbreak C2.\allowbreak model\_\allowbreak presentations} and
+\texttt{Computations.\allowbreak C2.\allowbreak line\_\allowbreak counts} of
+Lemma (integer realizations) and C2 are in \path{Computations/C2.lean}, with the cuts
+\leancite{LineSystem.T₇}{\texttt{LineSystem.\allowbreak T\ensuremath{{}_7}}} and
+\leancite{LineSystem.T₆}{\texttt{LineSystem.\allowbreak T\ensuremath{{}_6}}} of
+Definition~3.3; Lean checks their 126 and 72 roots in the kernel, as for $\typ E_7$
+and $\typ E_6$. The assertions of Lemma (independence of the perpendicular choices) for the
+other two $\typ E_8$ models, with $T_7\cong\typ E_7$ and $T_6\cong\typ E_6$, are in
+\path{LineSystem/ClassificationChoicesModels.lean}. In the final step the Lean departs from the
+proof above: a C3 isomorphism is a bijection of roots, not a map of the ambient space, so Lean
+carries the automorphisms of the default model across it through the span isometry of
+Lemma (transport on spans), extended to the whole space (for model (i), from the zero-sum
+hyperplane to $\re^9$). The file \path{Computations/C2ChoicesAudit.lean} prints the axioms of
+all these declarations.\par
+\endgroup
+
+\begin{namedresult}{Lemma}{(the frame identity within the span)}\label{lem:sec3-frame}
+ \lean{LineSystem.frame_identity}
+ \uses{comp:C6,comp:C2,lem:sec3-spans,def:sec3-signing,lem:sec3-transport,facts:inner}
+ \assume{$S$ is one of the listed models, or an isometric copy of it;
+ $W=\operatorname{span}\Phi(S)$ has rank $\ell>0$ and $N$ lines.
+ Let $\sigma:I\to\Phi(S)$ be any signing.}
+ \prove{For every $\Zx\in W$,
+ \[
+ \sum_{\Zr\in\Phi(S)}(\Zr,\Zx)\Zr=\frac{4N}{\ell}\Zx,
+ \qquad
+ \sum_{i\in I}(\sigma(i),\Zx)\sigma(i)=\frac{2N}{\ell}\Zx.
+ \]
+ \repair\ These formulas are asserted on $W$, not on a larger coordinate space
+ (Implicit hypothesis 7 and the model-span correction).}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ We will divide C6 by the raw scale $q$, restrict to the known span,
+ and halve the sum using antipodal pairs.
+ \step{s3frameoperator}{For a coordinate model, the full signed-root operator is $K/q$.}
+ \begin{proof}\pf\ Substitute $\Zr=c\Zv$ in the sum, using $c^2=1/q$.
+  The exact no-multiplicity transfer is \leancite{LineSystem.IntegerModel.sum_Φ}{\texttt{LineSystem.\allowbreak IntegerModel.\allowbreak sum\_\allowbreak \ensuremath{\Phi}}}.~\qed\end{proof}
+ \step{s3framerestrict}{The operator is scalar on $W$, with scalar $4N/\ell$.}
+ \begin{proof}
+  \step{s3frameA}{On the $\typ A_\ell$ span, $K/q=2(\ell+1)I$.}
+  \begin{proof}\pf\ $J\Zx=0$ on the zero-sum span in Lemma~\ref{lem:sec3-spans};
+   use the first row of C6.~\qed\end{proof}
+  \step{s3frameD}{On the $\typ D_\ell$ span, $K/q=4(\ell-1)I$.}
+  \begin{proof}\pf\ Its C6 matrix has that value on the whole coordinate space.~\qed\end{proof}
+  \step{s3frameEi}{On model (i)'s span, $K/q=60I$.}
+  \begin{proof}\pf\ Its span has sum zero, so $(540I-60J)\Zx/9=60\Zx$.~\qed\end{proof}
+  \step{s3frameEii}{On model (ii)'s span, $K/q=60I$.}
+  \begin{proof}\pf\ Divide $240I_8$ by $q=4$.~\qed\end{proof}
+  \step{s3frameEiii}{On model (iii)'s span, $K/q=60I$.}
+  \begin{proof}\pf\ Divide $120I_8$ by $q=2$.~\qed\end{proof}
+  \step{s3frameSeven}{On the $\typ E_7$ span, $K/q=36I$.}
+  \begin{proof}\pf\ On a last-coordinate pair $(t,t)$, $72J_2(t,t)=144(t,t)$;
+   the first block is $144I_6$. Divide by 4.~\qed\end{proof}
+  \step{s3frameSix}{On the $\typ E_6$ span, $K/q=24I$.}
+  \begin{proof}\pf\ On $(t,t,t)$, $32J_3(t,t,t)=96(t,t,t)$;
+   the first block is $96I_5$. Divide by 4.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Substitution of the C2 line counts gives $4N/\ell$ in each row.~\qed\end{proof}
+ \end{proof}
+ \step{s3framecopies}{The full-root formula holds for isometric copies in their spans.}
+ \begin{proof}\pf\ Conjugate the full-root operator through the span isometry
+  of Lemma~\ref{lem:sec3-transport}; reindex by its root bijection.~\qed\end{proof}
+ \step{s3framehalf}{The full-root sum equals twice the signing sum.}
+ \begin{proof}
+  \step{s3framepair}{The roots $\Zr,-\Zr$ contribute the same summand.}
+  \begin{proof}\pf\ $(-\Zr,\Zx)(-\Zr)=(\Zr,\Zx)\Zr$ by bilinearity.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Reindex the full-root sum by the signing bijection in
+   Definition~\ref{def:sec3-signing} and use \stepref{s3framepair}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The full formula follows from \stepref{s3frameoperator}--\stepref{s3framecopies};
+  divide the equality in \stepref{s3framehalf} by 2 for the signing formula.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the Gram polynomial from a frame)}\label{lem:sec3-gram-polynomial}
+ \lean{LineSystem.signedAdj_quadratic_of_frame}
+ \uses{def:sec3-signing,facts:inner}
+ \assume{\begin{pfenum}
+  \item $S$ is a line system and $W=\operatorname{span}\Phi(S)$.
+  \item $\sigma:I\to\Phi(S)$ is a signing.
+  \item $t\in\re$ satisfies $\sum_i(\sigma(i),\Zx)\sigma(i)=t\Zx$ for every $\Zx\in W$.
+ \end{pfenum}}
+ \prove{With $M=2I_N+C$ as in Definition~\ref{def:sec3-signing},
+ $M^2=tM$ and $(C+2I_N)(C-(t-2)I_N)=0$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We isolate the algebraic passage from a frame to the signed
+ Gram polynomial. We will apply the frame equation to each root and take its product
+ with each other root. This avoids choosing an ambient orthonormal basis.
+ \step{s3gramentry}{For all $i,j\in I$, $(M^2)(i,j)=tM(i,j)$.}
+ \begin{proof}
+  \step{s3gramsum}{$(M^2)(i,j)=(\sigma(i),\sum_k(\sigma(k),\sigma(j))\sigma(k))$.}
+  \begin{proof}\pf\ Expand matrix multiplication and then bilinearity from Section~\ref{facts:inner}.~\qed\end{proof}
+  \step{s3gramapply}{The vector sum in \stepref{s3gramsum} is $t\sigma(j)$.}
+  \begin{proof}\pf\ Apply the assumed frame identity to $\sigma(j)\in\Phi(S)\subseteq W$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Substitute \stepref{s3gramapply} into \stepref{s3gramsum} and use scalar linearity.~\qed\end{proof}
+ \end{proof}
+ \step{s3grammatrix}{$M(M-tI_N)=0$.}
+ \begin{proof}\pf\ Step \stepref{s3gramentry} gives $M^2=tM$ entry by entry;
+  distribute multiplication by $M-tI_N$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Substitute $M=C+2I_N$ in \stepref{s3grammatrix};
+  then $M-tI_N=C-(t-2)I_N$.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Theorem}{3.7}\label{thm:3.7}
+ \lean{LineSystem.signedAdj_quadratic_An}\lean{LineSystem.signedAdj_quadratic_Dn}
+ \lean{LineSystem.signedAdj_quadratic_E₈}\lean{LineSystem.signedAdj_quadratic_E₇}
+ \lean{LineSystem.signedAdj_quadratic_E₆}
+ \uses{def:sec3-signing,lem:3.4,lem:sec3-spans,comp:C6,lem:sec3-frame,lem:sec3-gram-polynomial}
+ \assume{$S$ is $\typ A_\ell$ with $\ell\geq1$, $\typ D_\ell$ with $\ell\geq4$, or one
+ of $\typ E_8,\typ E_7,\typ E_6$, in any isometric realization. Choose one vector of squared
+ norm 2 on each line, and let $2I_N+C$ be their Gram matrix.}
+ \prove{For every choice and ordering of those vectors,
+ \[
+ \begin{array}{rcl}
+ \typ A_\ell:&(C+2I_N)(C-(\ell-1)I_N)&=0,\\
+ \typ D_\ell:&(C+2I_N)(C-2(\ell-2)I_N)&=0,\\
+ \typ E_8:&(C+2I_N)(C-28I_N)&=0,\\
+ \typ E_7:&(C+2I_N)(C-16I_N)&=0,\\
+ \typ E_6:&(C+2I_N)(C-10I_N)&=0.
+ \end{array}
+ \]
+ \repair\ The $\typ E_8$ constant is 28, correcting the printed 18 (Error 1).}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will use C6's frame identity within the span. The second factor
+ has constant $\theta=2N/\ell-2$, with $\ell$ the rank, not the number of ambient coordinates.
+ \step{s337general}{$(C+2I_N)(C-(2N/\ell-2)I_N)=0$.}
+ \begin{proof}\pf\ Apply Lemma~\ref{lem:sec3-gram-polynomial} to the signing
+  formula of Lemma~\ref{lem:sec3-frame}.~\qed\end{proof}
+ \step{s337A}{For $\typ A_\ell$, $2N/\ell-2=\ell-1$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:3.4} gives $N=\ell(\ell+1)/2$;
+  cancel the positive $\ell$.~\qed\end{proof}
+ \step{s337D}{For $\typ D_\ell$, $2N/\ell-2=2(\ell-2)$.}
+ \begin{proof}\pf\ Substitute $N=\ell(\ell-1)$ and cancel $\ell>0$.~\qed\end{proof}
+ \step{s337Eeight}{For $\typ E_8$, $2N/\ell-2=28$.}
+ \begin{proof}\pf\ The rank and count are 8 and 120 by
+  Lemmas~\ref{lem:sec3-spans} and~\ref{lem:3.4}; $240/8-2=28$.~\qed\end{proof}
+ \step{s337Eseven}{For $\typ E_7$, $2N/\ell-2=16$.}
+ \begin{proof}\pf\ Its rank and count are 7 and 63, so $126/7-2=16$.~\qed\end{proof}
+ \step{s337Esix}{For $\typ E_6$, $2N/\ell-2=10$.}
+ \begin{proof}\pf\ Its rank and count are 6 and 36, so $72/6-2=10$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Substitute the five constants into \stepref{s337general}.
+  The frame lemma applies to every signing and every isometric copy, so no
+  additional switching or eigenvalue calculation is needed.~\qed\end{proof}
+\end{proof}
+\endgroup

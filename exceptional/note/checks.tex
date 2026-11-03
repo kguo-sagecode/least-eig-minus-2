@@ -1,0 +1,47 @@
+Since the computation is large, we made a few sanity checks of the program and of its output;
+the scripts are in the repository, with the database. For $n\le10$, an exact test of every
+connected graph on $n$ vertices from nauty's \ml{geng -c} finds exactly the graphs of $\cL_n$. A
+second program rereads the files and checks, with PARI~\cite{PARI}, that every listed graph is
+exceptional, in the right list and listed once. A SageMath script finds the seven exceptional
+strongly regular graphs~\cite[Theorem~3.12.4]{BCN89} in list (A), and none of $34$ small
+generalized line graphs in the lists.
+
+\subsection*{Comparison with the literature}
+List (B) has, on $6$, $7$ and $8$ vertices, the numbers of graphs that~\cite[\S2.3 and
+Table~A2]{CRS04} and~\cite{DC79} give for the exceptional graphs with $\lmin>-2$
+(Section~\ref{sec:intro}), and the numbers of maximal exceptional graphs (Section~\ref{sec:counts}) agree
+with~\cite{CLRS02} and~\cite{Cve04}. Cvetkovi\'c
+continues the passage of~\cite{Cve04} quoted in Section~\ref{sec:intro} with ``Minimal
+exceptional graphs, all having 6 vertices, were found some 25 years ago'' (see
+also~\cite{CRS04}). Every exceptional graph on $6$ vertices is minimal, since an exceptional
+graph has at least $6$ vertices by Proposition~\ref{prop:types}; thus the minimal exceptional
+graphs are exactly the exceptional graphs on $6$ vertices, and there are $20$ of them in list
+(B), as~\cite{Cve04} states.
+
+Cvetkovi\'c also writes that ``Most of the maximal exceptional graphs (432 of them) are 29 vertex
+cones''~\cite{Cve04}. The maximal exceptional graphs are divided in~\cite[Chapter~6]{CRS04}, as
+reported in~\cite[\S3]{DBvV26}, into three types: (a) those with largest valency $28$, the
+largest valency possible~\cite[Theorem~4.3]{CGSS}, and exactly $29$ vertices; (b) those with
+largest valency $28$ and more than $29$ vertices; and (c) those with largest valency less than
+$28$. De Bruyn and van Veluw state that there are $430$ graphs of type (a), $37$ of type (b) and
+$6$ of type (c); a graph of type (a) is a cone (a graph with a vertex adjacent to all the others),
+since its vertex of valency $28$ is adjacent to all the others. Our counts agree exactly: $430$ of
+our maximal exceptional graphs have $29$ vertices and a vertex of valency $28$, $37$ have more
+than $29$ vertices and a vertex of valency $28$, and $6$ have largest valency less than $28$. Two
+of the last $6$ have $29$ vertices, and both have largest valency $26$:
+\begin{center}
+\small
+\verb!\??GWWJ@}[ThijhfxLuIzom}`vx{]AyXdYijTeUxrLNEiizKkrnS[N^}@~~{~~~~Z~~~{!\\
+\verb!\@G?GGBEDkLp\R[jthtTZkY|hfyk}C[xeTYjcmUyYlNHUizS[rna[N^~B~~}N^~~N~~~{!
+\end{center}
+Thus exactly $430$ of the $432$ maximal exceptional graphs on $29$ vertices are cones: the
+number $432$ of~\cite{Cve04} is the number of all maximal exceptional graphs on $29$ vertices.
+
+The program \ml{count_regular.py} finds $187$ regular graphs in the lists, all in list (A), in
+agreement with the $187$ regular exceptional graphs of Bussemaker, Cvetkovi\'c and
+Seidel~\cite{BCS} (see~\cite[\S3.11]{BCN89} and~\cite{DBvV26}). With $k$ the valency, $163$ of
+them have $n=2(k+2)$, $21$ have $n=3(k+2)/2$ and $3$ have $n=4(k+2)/3$, as they must
+by~\cite[Theorem~3.12.2]{BCN89}. Hoffman's ratio bound on the independence number of a
+$k$-regular graph on $n$ vertices with least eigenvalue $-2$ is $2n/(k+2)$, so these are the
+classes of $163$, $21$ and $3$ regular exceptional graphs of~\cite{DBvV26}, with ratio bounds
+$4$, $3$ and $8/3$.

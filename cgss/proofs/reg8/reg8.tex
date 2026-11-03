@@ -1,0 +1,448 @@
+\documentclass[11pt]{amsart}
+\usepackage[margin=27mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{array,booktabs}
+\usepackage[obeyspaces,spaces]{url}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+% The author's macros.
+%
+% some calligraphy
+%
+\newcommand\cA{{\mathcal A}}
+\newcommand\cB{{\mathcal B}}
+\newcommand\cC{{\mathcal C}}
+\newcommand\cD{{\mathcal D}}
+\newcommand\cE{{\mathcal E}}
+\newcommand\cF{{\mathcal F}}
+\newcommand\cG{{\mathcal G}}
+\newcommand\cH{{\mathcal H}}
+\newcommand\cI{{\mathcal I}}
+\newcommand\cJ{{\mathcal J}}
+\newcommand\cK{{\mathcal K}}
+\newcommand\cL{{\mathcal L}}
+\newcommand\cM{{\mathcal M}}
+\newcommand\cN{{\mathcal N}}
+\newcommand\cP{{\mathcal P}}
+\newcommand\cQ{{\mathcal Q}}
+\newcommand\cR{{\mathcal R}}
+\newcommand\cS{{\mathcal S}}
+\newcommand\cT{{\mathcal T}}
+\newcommand\cU{{\mathcal U}}
+\newcommand\cV{{\mathcal V}}
+
+%
+% fields and rings (and a semigroup)
+%
+\newcommand\cx{{\mathbb C}}% complexes
+\newcommand\fld{{\mathbb F}}
+\newcommand\flde{{\mathbb E}}
+\newcommand\ints{{\mathbb Z}}
+\newcommand\nn{{\mathbb N}}%non-negative integers
+\newcommand\re{{\mathbb R}}%reals
+\newcommand\rats{{\mathbb Q}}
+
+\newcommand\Zu{{\mathbf u}}
+\newcommand\Zv{{\mathbf v}}
+\newcommand\Zw{{\mathbf w}}
+\newcommand\Zy{{\mathbf y}}
+\newcommand\Zz{{\mathbf z}}
+\newcommand\Zx{{\mathbf x}}
+\newcommand\Zj{{\mathbf j}}
+
+
+%
+% the really useful stuff
+%
+%\newcommand\opk[1]{\mathop{\hbox{\rm #1}}\nolimits} %% old version
+\newcommand\opk[1]{\mathop{\mathrm{#1}}\nolimits}
+\newcommand\comp[1]{{\mkern2mu\overline{\mkern-2mu#1}}}
+\newcommand\diff{\mathbin{\mkern-1.5mu\setminus\mkern-1.5mu}}% for \setminus
+\newcommand\gbin[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}}
+\newcommand\inv{^{-1}}
+\newcommand\res{\mathbin{\mkern-2.0mu\restriction\mkern-2.0mu}}% ch2
+\newcommand\sbs{\subseteq}
+\newcommand\sps{\supseteq}
+\newcommand\seq[3]{#1_{#2},\ldots,#1_{#3}}
+\newcommand\supp{\opk{supp}}
+\newcommand\im{\opk{im}}
+\newcommand\row{\opk{row}}
+\newcommand\pmat[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\newcommand\cprod{\mathbin{\square}}
+%
+% matrix theory
+%
+\newcommand\ip[2]{\langle#1,#2\rangle}
+\newcommand\one{{\bf1}}
+\newcommand\rk{\opk{rk}}
+\newcommand\tr{\opk{tr}}
+\newcommand\col{\opk{col}}
+\newcommand\mat[3]{\mathrm{Mat}_{#1\times #2}(#3)}
+
+%
+% some group theory
+%
+\newcommand\aut[1]{{\rm Aut}(#1)}
+\newcommand\fx[1]{{\rm fix}(#1)}% ch2
+\newcommand\grp[1]{\langle #1\rangle}
+\newcommand\nrml{\vartriangleleft}
+\newcommand\nrmleq{\trianglelefteq}
+\newcommand\alt[1]{\opk{Alt}(#1)}
+\DeclareMathOperator{\Sym}{Sym}
+% End of the author's macros.
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\DeclareRobustCommand{\ml}[1]{\ifmmode\text{\normalfont\small\ttfamily\detokenize{#1}}\else{\normalfont\small\nolinkurl{#1}}\fi}
+\newcommand{\nb}{N}
+\emergencystretch=2em
+\title[Regular graphs of small valency on 8 vertices]{The regular graphs of valency at most 3 on 8 vertices}
+\date{28 September 2026}
+
+\begin{document}
+\raggedbottom
+\begin{abstract}
+Up to isomorphism, the regular graphs of valency at most 3 on 8 vertices are the empty graph,
+$4K_2$, $C_8$, $C_3+C_5$, $2C_4$, $2K_4$, and five connected cubic graphs: the cube, the Wagner
+graph, $K_{3,3}$ with one vertex replaced by a triangle, $K_4$ with two vertices replaced by
+triangles, and two diamonds joined by a matching. This is prerequisite SE4 of
+\ml{cgss/prerequisites.md}, used in the case $\mathrm E_8$ of Remark 4.14 of [CGSS]. We give a
+proof by cases on a single vertex, explicit isomorphisms, invariants that separate the graphs,
+a check with SageMath, and the shape of the Lean statements.
+\end{abstract}
+\maketitle
+
+\section{Statement}\label{sec:statement}
+
+All graphs are simple and finite. For a vertex $v$ of a graph $X$ we will write $\nb(v)$ for its
+neighbourhood, and $u\sim w$ when $u$ and $w$ are adjacent. We will write $X+Y$ for the disjoint
+union and $mX$ for $m$ disjoint copies of $X$.
+
+We will describe each connected cubic graph on 8 vertices as the 8-cycle
+$0\sim1\sim2\sim\cdots\sim7\sim0$ on the vertex set $\{0,\dots,7\}$ together with four
+\emph{chords}, a perfect matching of non-consecutive pairs. We will write $C_8[P]$ for the
+8-cycle with the set $P$ of chords. We will say that a cubic graph $Y$ arises from a cubic graph
+$Z$ by \emph{truncating} a vertex $x$ with neighbours $y_1,y_2,y_3$ if we delete $x$ and add a
+triangle $z_1z_2z_3$ with $z_i\sim y_i$.
+
+\begin{definition}\label{def:graphs}
+We will use the following cubic graphs on $\{0,\dots,7\}$.
+\begin{enumerate}
+\item The \emph{cube} $Q_3=C_8[\{03,16,25,47\}]$.
+\item The \emph{Wagner graph} (the M\"obius ladder on 8 vertices) $M_8=C_8[\{04,15,26,37\}]$.
+\item $Y_1=C_8[\{02,15,36,47\}]$, which is $K_{3,3}$ with one vertex truncated.
+\item $Y_2=C_8[\{02,15,37,46\}]$, which is $K_4$ with two vertices truncated.
+\item $Y_4=C_8[\{02,13,46,57\}]$, which is two copies of the diamond $K_4-e$ with the two vertices
+of valency 2 of the one joined by a matching to those of the other.
+\end{enumerate}
+The subscript of $Y_t$ is its number of triangles. We will also use $2K_4$, with the parts
+$\{0,1,2,3\}$ and $\{4,5,6,7\}$.
+\end{definition}
+
+The descriptions by truncation and by diamonds are not needed below; they are checked in
+Section~\ref{sec:sage}, and we will prove everything from the chord descriptions.
+
+\begin{theorem}\label{thm:main}
+Let $X$ be a $k$-regular graph on 8 vertices, with $k\le3$. Then $X$ is isomorphic to exactly one
+of the following graphs:
+\begin{enumerate}
+\item for $k=0$, the empty graph $\overline{K_8}$;
+\item for $k=1$, $4K_2$;
+\item for $k=2$, $C_8$, $C_3+C_5$ or $2C_4$; and
+\item for $k=3$, $2K_4$, $Q_3$, $M_8$, $Y_1$, $Y_2$ or $Y_4$.
+\end{enumerate}
+\end{theorem}
+
+Since the complement of a $k$-regular graph on 8 vertices is $(7-k)$-regular, we obtain that up to
+isomorphism and complementation there are exactly 11 regular graphs on 8 vertices; these are the
+11 graphs $Y$ of step $\langle1\rangle10$ of Remark 4.14, where $T(8)$ is switched with respect to
+the edge set of $Y$ (computation C22).
+
+Each graph of the list is clearly $k$-regular on 8 vertices, so Theorem~\ref{thm:main} has two
+halves: every $k$-regular graph is isomorphic to one on the list (Sections~\ref{sec:small}
+and~\ref{sec:cubic}), and no two graphs on the list are isomorphic (Section~\ref{sec:inv}).
+
+\section{Valency at most 2}\label{sec:small}
+
+For $k=0$ there is nothing to prove. For $k=1$ every vertex has exactly one neighbour, so the edges
+of $X$ form a perfect matching $\{u_1w_1,\dots,u_4w_4\}$, and $u_i\mapsto 2i-2$, $w_i\mapsto
+2i-1$ is an isomorphism onto $4K_2=\{01,23,45,67\}$.
+
+\begin{lemma}\label{lem:cycle}
+A connected 2-regular graph $X$ on $m$ vertices is isomorphic to $C_m$, and $m\ge3$.
+\end{lemma}
+
+\begin{proof}
+Choose a vertex $v_0$ and a neighbour $v_1$ of $v_0$, and for $i\ge1$ let $v_{i+1}$ be the
+neighbour of $v_i$ other than $v_{i-1}$. Let $r$ be the least index such that
+$v_r\in\{v_0,\dots,v_{r-1}\}$, say $v_r=v_j$. If $j\ge1$, then $v_j$ is adjacent to $v_{j-1}$,
+$v_{j+1}$ and $v_{r-1}$; these are distinct, since $r-1\ne j\pm1$ (for $r-1=j+1$ we would have
+$v_r=v_{j}=v_{r-2}$, which $v_r$ is chosen to avoid), and this contradicts 2-regularity. Thus
+$j=0$, and $v_0,\dots,v_{r-1}$ are distinct and form a cycle, with $r\ge3$ since $X$ is simple.
+Every vertex on this cycle has both of its neighbours on it, so the cycle is a connected component
+of $X$, and since $X$ is connected, it is all of $X$. Thus $r=m$, and $v_i\mapsto i$ is an
+isomorphism onto $C_m$.
+\end{proof}
+
+Let $X$ be 2-regular on 8 vertices. Each connected component of $X$ is 2-regular, and so is a
+cycle of length at least 3 by Lemma~\ref{lem:cycle}. The lengths form a partition of 8 into parts
+of size at least 3; these are $8$, $5+3$ and $4+4$, since three parts would need at least 9
+vertices. Thus $X$ is isomorphic to $C_8$, $C_3+C_5$ or $2C_4$.
+
+\section{Valency 3}\label{sec:cubic}
+
+Let $X$ be a cubic graph on 8 vertices. For a vertex $v$, we will write $R(v)$ for the set of the
+four vertices other than $v$ that are not adjacent to $v$, and $e(v)$ for the number of edges with
+both ends in $\nb(v)$; equivalently, $e(v)$ is the number of triangles through $v$. For disjoint
+sets $S$ and $T$ of vertices, $e(S)$ is the number of edges inside $S$ and $e(S,T)$ the number of
+edges between $S$ and $T$.
+
+\begin{lemma}\label{lem:count}
+Let $X$ be a cubic graph on 8 vertices and $v$ a vertex of $X$. Then
+\[
+e(\nb(v),R(v))=6-2e(v),\qquad e(R(v))=3+e(v).
+\]
+Each vertex of $\nb(v)$ has exactly $2-(\text{its valency in }\nb(v))$ neighbours in $R(v)$, and
+each vertex of $R(v)$ has exactly $3-(\text{its valency in }R(v))$ neighbours in $\nb(v)$.
+\end{lemma}
+
+\begin{proof}
+The last sentence holds since $v$ is adjacent to every vertex of $\nb(v)$ and to no vertex of
+$R(v)$. Summing the valencies over $\nb(v)$ gives $9=3+2e(v)+e(\nb(v),R(v))$, and summing them
+over $R(v)$ gives $12=2e(R(v))+e(\nb(v),R(v))$; the result follows.
+\end{proof}
+
+We will also use the graphs on 4 vertices with a given number of edges, which a reader can list
+by hand, and a kernel can list by deciding over the 64 graphs on $\{1,2,3,4\}$.
+
+\begin{lemma}\label{lem:four}
+A graph $Z$ on 4 vertices with $6$, $5$ or $4$ edges is $K_4$, $K_4-e$, or one of $C_4$ and the
+\emph{paw} (a triangle with a pendant edge), respectively. A triangle-free graph on 4 vertices
+with 3 edges is $K_{1,3}$ or the path $P_4$.
+\end{lemma}
+
+\begin{proof}
+With 4 edges, the complement has 2 edges, which are disjoint (and $Z=C_4$) or share a vertex
+(and $Z$ is the paw). With 3 edges and no triangle: if a vertex has valency 3, then $Z=K_{1,3}$.
+Otherwise every vertex has valency at most 2, so $Z$ is a disjoint union of paths and cycles; a
+cycle would be a triangle or would have 4 edges, so $Z$ is a forest with 4 vertices and 3
+edges, and so a tree of maximum valency 2, which is $P_4$.
+\end{proof}
+
+Let $m=\max_v e(v)\in\{0,1,2,3\}$, and choose a vertex $v$ with $e(v)=m$. Write $R=R(v)$. By
+Lemma~\ref{lem:count}, $e(R)=3+m$. In each case below we will label $\nb(v)=\{x_1,x_2,x_3\}$ and
+$R=\{w_1,w_2,w_3,w_4\}$ and determine all edges; the conclusion is a Hamiltonian cycle
+$y_0y_1\cdots y_7$ of $X$ for which $y_i\mapsto i$ is an isomorphism onto the model, which the
+reader can check by comparing the four remaining edges with the chords.
+
+\subsection*{\texorpdfstring{Case $m=3$}{Case m=3}}
+Then $\nb(v)$ is a triangle, so $\{v\}\cup\nb(v)$ spans $K_4$ and $e(\nb(v),R)=0$. Thus
+$e(R)=6$ and $R$ spans $K_4$, and $X\cong2K_4$ (send $v,x_1,x_2,x_3$ to $0,1,2,3$ and
+$w_1,\dots,w_4$ to $4,\dots,7$).
+
+\subsection*{\texorpdfstring{Case $m=2$}{Case m=2}}
+The two edges in $\nb(v)$ share a vertex; label them $x_1x_2$ and $x_2x_3$, so $x_1\not\sim x_3$.
+Since $e(R)=5$, $R$ spans $K_4-e$ (Lemma~\ref{lem:four}); label it so that $w_1\not\sim w_2$. By
+Lemma~\ref{lem:count}, $x_2$ has no neighbour in $R$, $x_1$ and $x_3$ have one each, $w_3$ and
+$w_4$ have no neighbour in $\nb(v)$, and $w_1$ and $w_2$ have one each. Thus the two edges between
+$\nb(v)$ and $R$ form a matching of $\{x_1,x_3\}$ with $\{w_1,w_2\}$, and after exchanging $w_1$
+and $w_2$ we may assume that $x_1\sim w_1$ and $x_3\sim w_2$. All edges are now determined, and
+$x_3\,v\,x_2\,x_1\,w_1\,w_3\,w_4\,w_2$ is a Hamiltonian cycle whose remaining edges $vx_1$,
+$x_2x_3$, $w_1w_4$, $w_3w_2$ are the chords $13$, $20$, $46$, $57$. Thus $X\cong Y_4$.
+
+\subsection*{\texorpdfstring{Case $m=1$}{Case m=1}}
+Here every vertex $u$ satisfies $e(u)\le1$. Label $\nb(v)$ so that $x_1\sim x_2$ is its edge. By
+Lemma~\ref{lem:count}, $x_1$ and $x_2$ have one neighbour in $R$ each, and $x_3$ has two. Since
+$e(R)=4$, $R$ spans $C_4$ or the paw (Lemma~\ref{lem:four}).
+
+\emph{The paw.} Label $R$ so that $w_1w_2w_3$ is the triangle and $w_3\sim w_4$. By
+Lemma~\ref{lem:count}, $w_3$ has no neighbour in $\nb(v)$, $w_1$ and $w_2$ have one each, and
+$w_4$ has two. If $x_3\not\sim w_4$, then $w_4\sim x_1$ and $w_4\sim x_2$, and $\nb(x_1)=
+\{v,x_2,w_4\}$ contains the edges $vx_2$ and $x_2w_4$, so $e(x_1)=2$, a contradiction. Thus
+$x_3\sim w_4$, and after exchanging $x_1$ and $x_2$ we may assume that the other neighbour of $w_4$
+in $\nb(v)$ is $x_1$. The vertex $x_2$ and the second $R$-neighbour of $x_3$ now lie in
+$\{w_1,w_2\}$, each of which has exactly one neighbour in $\nb(v)$; so after exchanging $w_1$ and
+$w_2$ we may assume that $x_2\sim w_2$ and $x_3\sim w_1$. Then $v\,x_2\,x_1\,w_4\,w_3\,w_2\,w_1\,x_3$
+is a Hamiltonian cycle whose remaining edges $vx_1$, $x_2w_2$, $w_4x_3$, $w_3w_1$ are the chords
+$02$, $15$, $37$, $46$. Thus $X\cong Y_2$.
+
+\emph{The 4-cycle.} Label $R$ as the cycle $w_1w_2w_3w_4$. By Lemma~\ref{lem:count}, every $w_i$
+has exactly one neighbour in $\nb(v)$. The two neighbours of $x_3$ in $R$ are adjacent or opposite
+on this cycle.
+
+If they are adjacent, then after a rotation of the cycle they are $w_1$ and $w_2$. Thus $x_1$ and
+$x_2$ are matched with $w_3$ and $w_4$, and after the reflection of the cycle that exchanges $w_1$
+with $w_2$ and $w_3$ with $w_4$ we may assume that $x_1\sim w_4$ and $x_2\sim w_3$. Then
+$x_2\,v\,x_1\,w_4\,w_1\,x_3\,w_2\,w_3$ is a Hamiltonian cycle whose remaining edges $x_2x_1$,
+$vx_3$, $w_4w_3$, $w_1w_2$ are the chords $02$, $15$, $37$, $46$. Thus $X\cong Y_2$.
+
+If they are opposite, then after a rotation they are $w_1$ and $w_3$. Thus $x_1$ and $x_2$ are
+matched with $w_2$ and $w_4$, and after exchanging $x_1$ and $x_2$ we may assume that $x_1\sim w_2$
+and $x_2\sim w_4$. Then $x_1\,v\,x_2\,w_4\,w_1\,x_3\,w_3\,w_2$ is a Hamiltonian cycle whose
+remaining edges $x_1x_2$, $vx_3$, $w_4w_3$, $w_1w_2$ are the chords $02$, $15$, $36$, $47$. Thus
+$X\cong Y_1$.
+
+\subsection*{\texorpdfstring{Case $m=0$}{Case m=0}}
+Then $X$ has no triangle. By Lemma~\ref{lem:count}, every $x_i$ has two neighbours in $R$, and
+$e(R)=3$, so $R$ spans $K_{1,3}$ or $P_4$ (Lemma~\ref{lem:four}).
+
+\emph{The star.} Label $R$ so that $w_4$ is the centre. By Lemma~\ref{lem:count}, $w_4$ has no
+neighbour in $\nb(v)$ and $w_1,w_2,w_3$ have two each. Thus the edges between $\{x_1,x_2,x_3\}$ and
+$\{w_1,w_2,w_3\}$ form a 2-regular bipartite graph, whose bipartite complement is a perfect
+matching; after permuting $w_1,w_2,w_3$ we may assume that $x_i\not\sim w_i$ and $x_i\sim w_j$ for
+$i\ne j$. Then $v\,x_1\,w_2\,x_3\,w_1\,w_4\,w_3\,x_2$ is a Hamiltonian cycle whose remaining edges
+$vx_3$, $x_1w_3$, $w_2w_4$, $w_1x_2$ are the chords $03$, $16$, $25$, $47$. Thus $X\cong Q_3$.
+
+\emph{The path.} Label $R$ as the path $w_1w_2w_3w_4$. By Lemma~\ref{lem:count}, $w_1$ and $w_4$
+have two neighbours in $\nb(v)$, and $w_2$ and $w_3$ have one. Since $w_1\sim w_2$ and $X$ has no
+triangle, $w_1$ and $w_2$ have no common neighbour, so their neighbours in $\nb(v)$ partition
+$\nb(v)$; label $\nb(v)$ so that $w_1\sim x_1,x_2$ and $w_2\sim x_3$. The second neighbour of $x_3$
+in $R$ is not $w_1$, and is not $w_3$ (since $x_3w_2w_3$ would be a triangle), so $x_3\sim w_4$. By
+the same argument for $w_3\sim w_4$, the neighbours of $w_3$ and $w_4$ in $\nb(v)$ partition
+$\nb(v)$; after exchanging $x_1$ and $x_2$ we may assume that $w_4\sim x_1$, and then $w_3\sim x_2$.
+Then $v\,x_3\,w_2\,w_1\,x_1\,w_4\,w_3\,x_2$ is a Hamiltonian cycle whose remaining edges $vx_1$,
+$x_3w_4$, $w_2w_3$, $w_1x_2$ are the chords $04$, $15$, $26$, $37$. Thus $X\cong M_8$.
+
+This completes the proof that every cubic graph on 8 vertices is isomorphic to one of $2K_4$,
+$Q_3$, $M_8$, $Y_1$, $Y_2$ and $Y_4$. We note that the graph $Y_2$ arises twice, from different
+vertices; the case split is on a vertex, not on the graph, and the proof does not need to know
+which case a given graph falls in. (The computation of Section~\ref{sec:sage} shows that $Q_3$ and
+$M_8$ have $m=0$, $Y_1$ and $Y_2$ have $m=1$, $Y_4$ has $m=2$, and $2K_4$ has $m=3$.)
+
+\section{Invariants}\label{sec:inv}
+
+We will separate the graphs by two numbers that a kernel computation can evaluate on
+$\{0,\dots,7\}$ by \ml{decide}: the number $t(X)$ of triangles, and the number $q(X)$ of 4-cycles
+(subgraphs isomorphic to $C_4$). If $c(u,w)=\lvert\nb(u)\cap\nb(w)\rvert$, then
+\[
+q(X)=\frac12\sum_{\{u,w\}}\binom{c(u,w)}{2},
+\]
+where the sum runs over the unordered pairs of distinct vertices, since a 4-cycle
+$u\,x\,w\,y$ is counted once at each of its two diagonals $\{u,w\}$ and $\{x,y\}$. The valency
+separates graphs of different valency. Within a valency, the pairs $(t,q)$ are distinct:
+
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+$k=2$ & $C_8$ & $C_3+C_5$ & $2C_4$ \\
+$(t,q)$ & $(0,0)$ & $(1,0)$ & $(0,2)$ \\
+\midrule
+$k=3$ & $2K_4$ & $Q_3$ & $M_8$ & $Y_1$ & $Y_2$ & $Y_4$\\
+$(t,q)$ & $(8,6)$ & $(0,6)$ & $(0,4)$ & $(1,3)$ & $(2,2)$ & $(4,2)$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These are easy to see by hand from the chord descriptions. For instance, in $M_8$ the 4-cycles are
+$i\,(i{+}1)\,(i{+}5)\,(i{+}4)$ for $i=0,1,2,3$, and $M_8$ has no triangle since no chord joins two
+vertices at distance 2 on the 8-cycle. Further invariants, which we do not need, are recorded in
+Section~\ref{sec:sage}: $Q_3$ is the only bipartite cubic graph on the list, $2K_4$ the only
+disconnected one, and the automorphism groups of $2K_4$, $Q_3$, $M_8$, $Y_1$, $Y_2$, $Y_4$ have
+orders $1152$, $48$, $16$, $12$, $4$ and $16$.
+
+\section{The computation}\label{sec:sage}
+
+The script \ml{cgss/proofs/reg8/checks/reg8_check.sage}, run with SageMath~10, does the
+following.
+\begin{enumerate}
+\item It builds the graphs of Definition~\ref{def:graphs} and checks that $Q_3$ is SageMath's
+\ml{graphs.CubeGraph(3)}, that $M_8$ is the 8-cycle with the four long diagonals, that $Y_1$ is
+$K_{3,3}$ with one vertex truncated, that $Y_2$ is $K_4$ with two vertices truncated, and that
+$Y_4$ is the diamond graph of the case $m=2$.
+\item For $k=0,1,2,3$ it lists the $k$-regular graphs on 8 vertices with \ml{nauty_geng("8 -dk
+-Dk")}; it obtains 1, 1, 3 and 6 graphs, and checks that each is isomorphic to exactly one graph
+of Theorem~\ref{thm:main}, and conversely.
+\item It computes $t$, $q$, connectivity, bipartiteness, girth, diameter and the order of the
+automorphism group of each graph, and checks that the pairs $(t,q)$ are distinct within each
+valency.
+\item For each cubic graph it computes $m=\max_v e(v)$ and the shapes of $R(v)$ for the vertices
+with $e(v)=m$, which agree with Section~\ref{sec:cubic}.
+\item It checks the six explicit isomorphisms of Section~\ref{sec:cubic}: each case graph, built
+from the edges determined there, is cubic, and the stated Hamiltonian cycle maps it onto the
+model.
+\end{enumerate}
+All checks pass. We note that the computation is an independent check and not a part of the proof,
+which is complete without it.
+
+\section{Lean}\label{sec:lean}
+\raggedright
+
+We will follow \ml{cgss/notation.md} \S10: the namespace \ml{SimpleGraph}, lowerCamelCase for
+definitions, snake\_case theorems naming their conclusion, and \ml{nonempty_iso} for existence of
+an isomorphism. This section gives the statement shapes that we wrote before the formalization;
+the Lean formalization, in \ml{LineGraphs/Seidel/}, follows them, and \ml{cgss/notation.md}
+(\S10, the row SE4) gives the final names. Mathlib (at commit \ml{082e2d37} of 4 September 2026,
+the version pinned in \ml{lake-manifest.json}) has \ml{cycleGraph}, \ml{circulantGraph}, the
+disjoint sum \ml{SimpleGraph.sum}, \ml{IsRegularOfDegree}, \ml{IsCycles} and Tutte's theorem, but no cube,
+Wagner or truncated graphs, no statement that a connected 2-regular graph is a cycle, and no
+Petersen matching theorem. So all the models below are new, and we define them on \ml{Fin 8} to
+keep adjacency decidable:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+graph & Lean \\
+\midrule
+$4K_2$, $C_3+C_5$, $2C_4$, $2K_4$ & \ml{SimpleGraph.fourK2}, \ml{cycleThreeFive}, \ml{twoC4}, \ml{twoK4} \\
+$C_8[P]$ & \ml{SimpleGraph.cycleWithChords (P : Finset (Sym2 (Fin 8)))}, \\
+& \quad the supremum of \ml{cycleGraph 8} and \ml{fromEdgeSet P} \\
+$Q_3$ & \ml{SimpleGraph.cubeGraph} \\
+$M_8$ & \ml{SimpleGraph.wagnerGraph} \\
+$Y_1$ & \ml{SimpleGraph.truncatedK33Graph} \\
+$Y_2$ & \ml{SimpleGraph.twiceTruncatedK4Graph} \\
+$Y_4$ & \ml{SimpleGraph.twoDiamondsGraph} \\
+$q(X)$ & \ml{SimpleGraph.numFourCycles} \\
+\bottomrule
+\end{tabular}
+\end{center}
+The docstrings record the chords and the other descriptions. We will state the theorems for
+\ml{X : SimpleGraph V} with \ml{[Fintype V] [DecidableEq V] [DecidableRel X.Adj]} and
+\ml{hV : Fintype.card V = 8}. They are
+\begin{verbatim}
+theorem SimpleGraph.IsRegularOfDegree.eq_bot_of_zero
+    (h : X.IsRegularOfDegree 0) : X = bot
+theorem SimpleGraph.IsRegularOfDegree.nonempty_iso_fourK2
+    (hV : Fintype.card V = 8) (h : X.IsRegularOfDegree 1) :
+    Nonempty (Iso X fourK2)
+theorem SimpleGraph.IsRegularOfDegree.nonempty_iso_cycle
+    (hc : X.Connected) (h : X.IsRegularOfDegree 2) :
+    Nonempty (Iso X (cycleGraph (Fintype.card V)))
+\end{verbatim}
+(with \ml{bot} standing for Mathlib's bottom graph, and the last one, Lemma~\ref{lem:cycle}, for
+any finite $V$), together with the following.
+\begin{itemize}
+\item \ml{SimpleGraph.IsRegularOfDegree.nonempty_iso_of_two_of_card_eq_eight}, with conclusion the
+disjunction of \ml{Nonempty (Iso X (cycleGraph 8))}, \ml{Nonempty (Iso X cycleThreeFive)} and
+\ml{Nonempty (Iso X twoC4)};
+\item \ml{SimpleGraph.IsRegularOfDegree.nonempty_iso_of_three_of_card_eq_eight}, with conclusion the
+disjunction over \ml{twoK4}, \ml{cubeGraph}, \ml{wagnerGraph}, \ml{truncatedK33Graph},
+\ml{twiceTruncatedK4Graph} and \ml{twoDiamondsGraph};
+\item the helpers \ml{SimpleGraph.IsRegularOfDegree.card_edges_neighborFinset_compl} and
+\ml{card_edges_compl_neighborFinset} for Lemma~\ref{lem:count}, and the four-vertex list of
+Lemma~\ref{lem:four} by \ml{decide} on \ml{SimpleGraph (Fin 4)};
+\item the invariants: \ml{(cubeGraph.cliqueFinset 3).card = 0}, \ml{cubeGraph.numFourCycles = 6},
+and so on for the table of Section~\ref{sec:inv}, each by \ml{decide}; and from these
+\ml{SimpleGraph.cubic_eight_pairwise_not_iso} and \ml{two_regular_eight_pairwise_not_iso}, via
+the invariance of both counts under isomorphism (\ml{SimpleGraph.Iso}).
+\end{itemize}
+
+\emph{Why this route.} We chose the case split on a vertex $v$ maximizing $e(v)$ because every step
+is local: one counting lemma, a list of graphs on 4 vertices, and at most two exchanges of labels
+per case, so that a Lean proof chooses $v$, names $x_1,x_2,x_3,w_1,\dots,w_4$ by
+\ml{Finset} choices, and ends by writing down the Hamiltonian cycle as an explicit
+\ml{Fin 8}-valued bijection whose adjacency the kernel checks by \ml{decide}. The alternatives are
+longer. A route through a perfect matching needs Petersen's theorem, which Mathlib does not have
+(it has Tutte's theorem, from which Petersen's theorem is a further argument about bridgeless
+graphs), and after removing the matching it leaves $C_8$, $C_3+C_5$ or $2C_4$ together with a
+choice of matching, which is more cases. The complement is 4-regular with 16 edges, and its local
+structure is richer. A brute-force \ml{decide} over graphs on \ml{Fin 8} is out of reach: even after
+fixing $\nb(0)=\{1,2,3\}$, there remain $2^{21}$ edge sets on the other pairs.
+
+\begin{thebibliography}{9}
+\bibitem{CGSS} P.~J. Cameron, J.-M. Goethals, J.~J. Seidel and E.~E. Shult, Line graphs, root
+systems, and elliptic geometry, \emph{J. Algebra} \textbf{43} (1976), 305--327.
+\end{thebibliography}
+
+\end{document}

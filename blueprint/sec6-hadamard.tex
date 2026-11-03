@@ -1,0 +1,1037 @@
+% Section 6 of the blueprint: Hadamard matrices.
+% Local macros; macros.tex is shared and is not edited here.
+\providecommand{\scl}{\opk{sc}}
+\providecommand{\jp}{\Zj^\perp}
+\providecommand{\agr}{\opk{ag}}
+
+\section{Hadamard matrices}\label{sec:6}
+\begingroup
+\emergencystretch=3em
+\raggedbottom
+
+We will follow Section 6 of [CGSS]. Throughout, $n\geq1$ is an integer, the rows and the columns
+of an $n\times n$ matrix are indexed by $\{1,\dots,n\}$, and $H$ is a Hadamard matrix of order
+$n$: an integer matrix with entries $\pm1$ and $HH^T=H^TH=nI$. This is Mathlib's
+\texttt{Matrix.IsHadamard} over $\ints$ (\path{Mathlib/LinearAlgebra/Matrix/HadamardMatrix.lean}),
+whose fields are \texttt{apply\_mem}, \texttt{mul\_conjTranspose} and
+\texttt{conjTranspose\_mul}; over $\ints$ the first says that every entry is $1$ or $-1$
+(\path{Unitary.mem_iff_eq_one_or_eq_neg_one}). The paper writes $H_n$; we write $H$, and
+$H_i\in\re^n$ for its row $i$, so that $H_i(c)=H(i,c)$. As in the rest of the blueprint,
+$(\Zx,\Zy)$ is the standard inner product of $\re^n$
+(\texttt{EuclideanSpace \ensuremath{\mathbb R} (Fin n)} in
+Lean), $\Zj$ is the all-ones vector and $J$ the all-ones matrix. The paper's matrix $A$ with
+$PP^T=nI+xA$ is our $C_H$ (\path{cgss/notation.md}, Section 7), since $A$ is an adjacency matrix
+elsewhere and $C_H$ is the matrix $C$ of Theorem~\ref{thm:3.7} when $d=2$.
+
+The paper's background paragraph asserts five things: the formula for $P^TP$, the quadratic
+equation for $C_H$, the divisibility $x\mid n$, that the lines lie in $\jp$, and that the lines
+through a fixed row are mutually orthogonal. We will prove each of them. The equations
+$xAJ=-nJ$ and $AJ=-dJ$ are false in general (errata, Error 9), and we will not use them; the
+divisibility comes instead from the count of fourth rows, which the paper also states. The
+paragraph also gives the eigenvalues of $P^TP$ and of $PP^T$, and two claims about the Sylvester
+matrices: that they satisfy Hypothesis 6.1 for every order $2^s$, and what their lines are. These
+are side claims, which Theorem 6.2 does not use; we prove them in \path{LineGraphs/SideClaims/},
+and we will record them in the remark after Lemma~\ref{lem:6-P} and in the last remark of this
+section. Norman's theorem and the uniqueness of $H_{12}$ are side claims that the author has set
+aside (\path{cgss/prerequisites.md}, Section 10). The examples of orders 2, 4, 8, 12 and 16
+belong to computation C16, which Theorem 6.2 does not use either; we will record what it proves
+in the first remark after the proof of Theorem 6.2.
+
+The proof of Theorem 6.2 in the paper has two gaps. It assumes $n>9$ (errata, Gap 10), and it
+asserts without proof that the lines form an indecomposable set (errata, Gap 17). We will fill
+both. Only the orders with $16\mid n$ need an argument (Lemma~\ref{lem:6-small}). For these we
+will split the lines into the components of their graph of non-orthogonality, and show that
+each component of rank $m$ has exactly $\frac12nm$ lines (Lemma~\ref{lem:6-components}). The
+classification of Theorem~\ref{thm:3.5} and the line counts of Lemma~\ref{lem:3.4} then leave
+two possibilities (Lemma~\ref{lem:6-decomposition}): a single component, of type
+$\typ A_{n-1}$ or $\typ D_{n-1}$, which the paper's own argument excludes
+(Lemma~\ref{lem:6-orthogonal}); or $n=16$ and a component of type $\typ E_7$, which a count of
+stars excludes (Lemma~\ref{lem:6-E7}). The last lemma is new.
+
+The Lean names of Hypothesis 6.1 and Theorem 6.2, and of the matrices $P$ and $C_H$, are the
+settled names of \path{cgss/notation.md}, Section 10, which also lists the other names of this
+section.
+
+\medskip\noindent\textbf{Inputs.}\label{input:sec6}
+\begingroup\raggedright
+We will use the following facts from other sections and from Mathlib.
+\begin{itemize}
+ \item \factlabel{LN3}{in6:LN3}(LN3 of \path{cgss/prerequisites.md}, deferred to the opening of
+  Section 4.) Let $\Sigma$ be a finite set of vectors of squared norm 2 in a finite-dimensional
+  real inner product space, with $\Sigma=-\Sigma$ and pairwise inner products in
+  $\{0,\pm1,\pm2\}$. There is a smallest star-closed set $\scl(\Sigma)\supseteq\Sigma$ of vectors
+  of squared norm 2; it is the vector set of a line system, it spans the same subspace as
+  $\Sigma$, and it is indecomposable if the graph on $\Sigma$ in which two vectors are adjacent
+  when their inner product is nonzero is connected. Lean: \path{LineSystem.starClosure}.
+ \item \factlabel{Section 3}{in6:sec3}(Section 3.) Theorem~\ref{thm:3.5}, with the isomorphism
+  induced by a surjective linear isometry of spans; the ranks of the models, $\ell$ for
+  $\typ A_\ell$ and $\typ D_\ell$ and $6,7,8$ for $\typ E_6,\typ E_7,\typ E_8$
+  (Lemma~\ref{lem:sec3-spans}); the line counts of Lemma~\ref{lem:3.4}; the coordinates of
+  Definition~\ref{def:3.1}; and Theorem~\ref{thm:3.7} for $\typ E_7$, with
+  Definition~\ref{def:sec3-signing}. An isomorphism of line systems is a bijection of vector sets
+  that preserves inner products (Section~\ref{sec:2}), so it preserves orthogonality and the sets
+  $N_\Zr=\{\Zu\in\Phi:(\Zu,\Zr)=1\}$. Lean: \path{LineSystem.classification},
+  \path{LineSystem.RootType.rank},
+  \leancite{LineSystem.numLines_E₇}{\texttt{LineSystem.numLines\_E\ensuremath{{}_7}}}
+  and the other counts,
+  \leancite{LineSystem.signedAdj_quadratic_E₇}%
+   {\texttt{LineSystem.signedAdj\_quadratic\_E\ensuremath{{}_7}}};
+  and, for $|N_\Zr|=32$ in the model,
+  \leancite{LineSystem.E₇.card_N}{\texttt{LineSystem.E\ensuremath{{}_7}.card\_N}}
+  (C20, \path{LineGraphs/Computations/C20E7.lean}).
+ \item \factlabel{Mathlib}{in6:mathlib}(Mathlib.) \path{Matrix.IsHadamard.four_dvd_card}: an
+  integer Hadamard matrix of order greater than 2 has order divisible by 4.
+  \path{linearIndependent_of_ne_zero_of_inner_eq_zero}
+  (\path{Mathlib/Analysis/InnerProductSpace/Basic.lean}): nonzero pairwise orthogonal vectors
+  are linearly independent. \path{LinearIndependent.fintype_card_le_finrank}
+  (\path{Mathlib/LinearAlgebra/Dimension/Finite.lean}),
+  \path{LinearIndependent.span_eq_top_of_card_eq_finrank}
+  (\path{Mathlib/LinearAlgebra/FiniteDimensional/Lemmas.lean}), \path{finrank_span_eq_card}
+  (\path{Mathlib/LinearAlgebra/Dimension/Constructions.lean}) and
+  \path{finrank_euclideanSpace_fin}. \path{ext_inner_left} and \path{inner_self_eq_zero}.
+  \path{Nat.pow_dvd_pow_iff}: for $k\neq0$, $a^k\mid b^k$ if and only if $a\mid b$.
+  \path{Nat.Coprime.dvd_of_dvd_mul_left}. The identities of Section~\ref{facts:inner}.
+\end{itemize}
+\endgroup
+
+\subsection{The Hadamard products of pairs of rows}
+
+\begin{namedresult}{Definition}{(Hadamard products and agreements)}\label{def:6-pairs}
+ \lean{Matrix.hadamardPairs}\lean{Matrix.fourRowAgreeCount}\uses{}
+ \assume{$H$ is an $n\times n$ Hadamard matrix.}
+ \pflet{$\cP$ be the set of 2-subsets of $\{1,\dots,n\}$, so $|\cP|=\frac12n(n-1)$. For
+ $\{i,j\}\in\cP$ let $\Zp_{ij}=H_i\circ H_j\in\re^n$, the \emph{Hadamard product} of the rows,
+ with $\Zp_{ij}(c)=H(i,c)H(j,c)$. Let $P$ be the $\cP\times n$ matrix with rows $\Zp_{ij}$. For
+ distinct rows $i,j,k,l$ let $\agr(i,j,k,l)$ be the number of columns $c$ with
+ $H(i,c)=H(j,c)=H(k,c)=H(l,c)$; we say that the four rows \emph{agree} in these places.}
+ Thus $\Zp_{ij}=\Zp_{ji}$, and $\agr$ is symmetric in its four arguments. In Lean the index
+ type of $\cP$ is a proposal for the declaration \texttt{Matrix.hadamardPairs}; the pairs
+ $(i,j)$ with $i<j$ will do.
+\end{namedresult}
+
+\begin{namedresult}{Lemma}{(the inner products of the Hadamard products)}\label{lem:6-gram}
+ \lean{Matrix.IsHadamard.inner_hadamardPairs_self}
+ \lean{Matrix.IsHadamard.inner_hadamardPairs_of_card_inter_eq_one}
+ \lean{Matrix.IsHadamard.inner_hadamardPairs_of_disjoint}
+ \lean{Matrix.IsHadamard.inner_hadamardPairs_one}
+ \uses{def:6-pairs,in6:mathlib}
+ \assume{\begin{pfenum}
+  \item $H$ is a Hadamard matrix of order $n$.
+  \item $\Zp_{ij}$, $\cP$ and $\agr$ are as in Definition~\ref{def:6-pairs}.
+ \end{pfenum}}
+ \prove{\begin{pfenum}
+  \item Every entry of every $\Zp_{ij}$ is $\pm1$, and $(\Zp_{ij},\Zp_{ij})=n$.
+  \item If $j\ne k$ and $i\notin\{j,k\}$, then $(\Zp_{ij},\Zp_{ik})=0$.
+  \item If $i,j,k,l$ are distinct, then $(\Zp_{ij},\Zp_{kl})=8\agr(i,j,k,l)-n$.
+  \item $(\Zp_{ij},\Zj)=0$ for every $\{i,j\}\in\cP$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Each part is a sum over the columns. Part 3 is the one computation; it rests on an
+ identity for four signs.
+ \step{s6gorth}{For distinct rows $u,w$, $\sum_cH(u,c)H(w,c)=0$.}
+ \begin{proof}\pf\ This is the $(u,w)$ entry of $HH^T=nI$.~\qed\end{proof}
+ \step{s6gsq}{For all $u$ and $c$, $H(u,c)^2=1$.}
+ \begin{proof}\pf\ The entries are $\pm1$.~\qed\end{proof}
+ \step{s6gone}{Part 1 holds.}
+ \begin{proof}\pf\ $\Zp_{ij}(c)$ is a product of two signs, and
+  $(\Zp_{ij},\Zp_{ij})=\sum_cH(i,c)^2H(j,c)^2=n$ by \stepref{s6gsq}.~\qed\end{proof}
+ \step{s6gtwo}{Part 2 holds.}
+ \begin{proof}\pf\ $(\Zp_{ij},\Zp_{ik})=\sum_cH(i,c)^2H(j,c)H(k,c)=\sum_cH(j,c)H(k,c)$ by
+  \stepref{s6gsq}, and this is 0 by \stepref{s6gorth}, since $j\neq k$.~\qed\end{proof}
+ \step{s6gthree}{Part 3 holds.}
+ \begin{proof}
+  \step{s6gsigns}{For $s_1,s_2,s_3,s_4\in\{1,-1\}$,
+   \[
+    8\,[s_1=s_2=s_3=s_4]=1+\sum_{1\leq a<b\leq4}s_as_b+s_1s_2s_3s_4,
+   \]
+   where $[\,\cdot\,]$ is 1 if the condition holds and 0 otherwise.}
+  \begin{proof}\pf\ A check of the 16 sign vectors (in Lean, \texttt{decide}). If all four
+   are equal, the right side is $1+6+1$; if exactly one differs, it is $1+(3-3)-1$; if two
+   differ from the other two, it is $1+(2-4)+1$.~\qed\end{proof}
+  \step{s6gsum}{$8\agr(i,j,k,l)=n+\sum_{\{u,w\}}\sum_cH(u,c)H(w,c)+(\Zp_{ij},\Zp_{kl})$,
+   where $\{u,w\}$ runs over the six 2-subsets of $\{i,j,k,l\}$.}
+  \begin{proof}\pf\ Sum \stepref{s6gsigns} over the columns $c$, with
+   $s=(H(i,c),H(j,c),H(k,c),H(l,c))$; the left side sums to $8\agr(i,j,k,l)$ by
+   Definition~\ref{def:6-pairs}, and $\sum_cH(i,c)H(j,c)H(k,c)H(l,c)=(\Zp_{ij},\Zp_{kl})$.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ The six inner sums in \stepref{s6gsum} vanish by \stepref{s6gorth}, since
+   the four rows are distinct.~\qed\end{proof}
+ \end{proof}
+ \step{s6gfour}{Part 4 holds.}
+ \begin{proof}\pf\ $(\Zp_{ij},\Zj)=\sum_cH(i,c)H(j,c)=0$ by \stepref{s6gorth}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s6gone}, \stepref{s6gtwo}, \stepref{s6gthree} and
+  \stepref{s6gfour} are the four parts.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the matrix $P$)}\label{lem:6-P}
+ \lean{Matrix.IsHadamard.transpose_hadamardPairs_mul}
+ \lean{Matrix.IsHadamard.hadamardPairs_mulVec_one}
+ \lean{Matrix.IsHadamard.hadamardPairs_gram_sq}
+ \uses{def:6-pairs,lem:6-gram}
+ \assume{$H$ is an $n\times n$ Hadamard matrix, $P$ is as in Definition~\ref{def:6-pairs}, and
+ $G=PP^T$.}
+ \prove{\begin{pfenum}
+  \item $P^TP=\frac12n^2I-\frac12nJ$.
+  \item $P\Zj=0$.
+  \item $G^2=\frac12n^2G$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ Part 1 is the paper's display; we compute an entry as a sum over pairs of rows,
+ through the square of a sum. Part 3 follows from parts 1 and 2 by associativity.
+ \step{s6Pone}{Part 1 holds.}
+ \begin{proof}
+  \pflet{$c,c'$ be columns, and $u_i=H(i,c)H(i,c')$ for each row $i$.}
+  \step{s6Pentry}{$(P^TP)(c,c')=\sum_{\{i,j\}\in\cP}u_iu_j$.}
+  \begin{proof}\pf\ By Definition~\ref{def:6-pairs}, we have that
+   \[\Zp_{ij}(c)\Zp_{ij}(c')=H(i,c)H(i,c')H(j,c)H(j,c').~\qed\]
+  \end{proof}
+  \step{s6Psquare}{$2\sum_{\{i,j\}\in\cP}u_iu_j=\bigl(\sum_iu_i\bigr)^2-\sum_iu_i^2$.}
+  \begin{proof}\pf\ Expand the square of the sum.~\qed\end{proof}
+  \step{s6Psums}{$\sum_iu_i=(H^TH)(c,c')$, which is $n$ if $c=c'$ and 0 otherwise, and
+   $\sum_iu_i^2=n$.}
+  \begin{proof}\pf\ $H^TH=nI$, and each $u_i$ is $\pm1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ By \stepref{s6Pentry}, \stepref{s6Psquare} and \stepref{s6Psums},
+   $(P^TP)(c,c')$ is $\frac12(n^2-n)$ if $c=c'$ and $-\frac12n$ otherwise; these are the entries
+   of $\frac12n^2I-\frac12nJ$.~\qed\end{proof}
+ \end{proof}
+ \step{s6Ptwo}{Part 2 holds.}
+ \begin{proof}\pf\ The entry of $P\Zj$ at $\{i,j\}$ is $(\Zp_{ij},\Zj)$, which is 0 by
+  Lemma~\ref{lem:6-gram}, part 4.~\qed\end{proof}
+ \step{s6Pthree}{Part 3 holds.}
+ \begin{proof}\pf\ We have that
+  \[
+   G^2=P(P^TP)P^T=\tfrac12n^2PP^T-\tfrac12n(P\Zj)(P\Zj)^T=\tfrac12n^2G,
+  \]
+  by associativity, by \stepref{s6Pone} with $J=\Zj\Zj^T$, and by \stepref{s6Ptwo}.~\qed
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s6Pone}, \stepref{s6Ptwo} and \stepref{s6Pthree}.~\qed\end{proof}
+\end{proof}
+
+\begin{remark}
+ \lean{Matrix.IsHadamard.charpoly_transpose_hadamardPairs_mul}
+ \lean{Matrix.IsHadamard.charpoly_hadamardPairs_mul_transpose}
+ \lean{Matrix.IsHadamard.spectrumMultiset_transpose_hadamardPairs_mul}
+ \lean{Matrix.IsHadamard.spectrumMultiset_hadamardPairs_mul_transpose}
+ \lean{Matrix.IsHadamard.eigenvalueMultiplicity_transpose_hadamardPairs_mul_zero}
+ \lean{Matrix.IsHadamard.eigenvalueMultiplicity_transpose_hadamardPairs_mul_half_sq}
+ \lean{Matrix.IsHadamard.eigenvalueMultiplicity_hadamardPairs_mul_transpose_zero}
+ \lean{Matrix.IsHadamard.eigenvalueMultiplicity_hadamardPairs_mul_transpose_half_sq}
+ \lean{Matrix.IsHadamard.finrank_eigenspace_transpose_hadamardPairs_mul_zero}
+ \lean{Matrix.IsHadamard.finrank_eigenspace_transpose_hadamardPairs_mul_half_sq}
+ \lean{Matrix.IsHadamard.finrank_eigenspace_hadamardPairs_mul_transpose_zero}
+ \lean{Matrix.IsHadamard.finrank_eigenspace_hadamardPairs_mul_transpose_half_sq}
+The paper deduces from part 1 that $P^TP$ has the eigenvalue 0, which is simple, and the
+eigenvalue $\frac12n^2$, of multiplicity $n-1$; and that $PP^T$ has the eigenvalues 0 and
+$\frac12n^2$, with multiplicities $\frac12(n-1)(n-2)$ and $n-1$. The second also follows from
+part 3, since $\frac2{n^2}G$ is then an idempotent symmetric matrix whose trace, by
+Lemma~\ref{lem:6-gram}, part 1, is $\frac2{n^2}\cdot n\cdot\frac12n(n-1)=n-1$. These are side
+claims, and we prove them in \path{LineGraphs/SideClaims/HadamardSpectra.lean} for every $n\geq1$,
+in the three forms of the spectral toolkit: the characteristic polynomials, the multisets of
+eigenvalues, and the multiplicities, which are the dimensions of the eigenspaces. For instance,
+\path{Matrix.IsHadamard.spectrumMultiset_hadamardPairs_mul_transpose} gives the spectrum of
+$PP^T$. We will not use the spectrum in the proof of Theorem 6.2.
+\end{remark}
+
+\begin{namedresult}{Lemma}{(the lines through a fixed row)}\label{lem:6-fixedrow}
+ \lean{Matrix.IsHadamard.hadamardPairs_orthogonal_of_mem}
+ \lean{Matrix.IsHadamard.eq_sum_inner_hadamardPairs}
+ \uses{def:6-pairs,lem:6-gram,in6:mathlib,facts:inner}
+ \assume{\begin{pfenum}
+  \item $H$ is an $n\times n$ Hadamard matrix, with $n\geq2$, and $\Zp_{ij}$ is as in
+   Definition~\ref{def:6-pairs}.
+  \item $i$ is a row.
+ \end{pfenum}}
+ \prove{\begin{pfenum}
+  \item The $n-1$ vectors $\Zp_{ij}$ with $j\neq i$ are nonzero and pairwise orthogonal, and
+   every $\Zp_{kl}$ lies in $\jp$.
+  \item For every $\Zv\in\jp$,
+   \[
+    \Zv=\frac1n\sum_{j\neq i}(\Zv,\Zp_{ij})\,\Zp_{ij}.
+   \]
+  \item The vectors $\Zp_{ij}$ with $j\neq i$ span $\jp$, which has dimension $n-1$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ The $n$ vectors $\Zj$ and $\Zp_{ij}$ ($j\neq i$) are nonzero and pairwise orthogonal
+ in $\re^n$, and thus a basis. We will expand in this basis.
+ \step{s6frone}{Part 1 holds.}
+ \begin{proof}\pf\ Lemma~\ref{lem:6-gram}: part 1 gives $(\Zp_{ij},\Zp_{ij})=n\neq0$, part 2
+  orthogonality, and part 4 that $\Zp_{kl}\in\jp$.~\qed\end{proof}
+ \step{s6frbasis}{The $n$ vectors $\Zj$ and $\Zp_{ij}$ ($j\neq i$) are linearly independent and span
+  $\re^n$.}
+ \begin{proof}
+  \step{s6frind}{They are linearly independent.}
+  \begin{proof}\pf\ They are nonzero and pairwise orthogonal by \stepref{s6frone} and
+   $(\Zj,\Zj)=n$; apply \path{linearIndependent_of_ne_zero_of_inner_eq_zero}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Independence is \stepref{s6frind}. There are $n=\dim\re^n$ of them, so
+   \path{LinearIndependent.span_eq_top_of_card_eq_finrank} applied to \stepref{s6frind} gives
+   the span.~\qed\end{proof}
+ \end{proof}
+ \step{s6frtwo}{\assume{$\Zv\in\jp$.}\prove{Part 2 holds for $\Zv$.}}
+ \begin{proof}
+  \pflet{$\Zw=\Zv-\frac1n\sum_{j\neq i}(\Zv,\Zp_{ij})\Zp_{ij}$.}
+  \step{s6frwp}{$(\Zw,\Zp_{ik})=0$ for each $k\neq i$.}
+  \begin{proof}\pf\ By bilinearity and \stepref{s6frone}, only the term $j=k$ of the sum
+   survives, and it gives $(\Zw,\Zp_{ik})=(\Zv,\Zp_{ik})-\frac1n(\Zv,\Zp_{ik})\,n$.~\qed
+  \end{proof}
+  \step{s6frwj}{$(\Zw,\Zj)=0$.}
+  \begin{proof}\pf\ $\Zv\in\jp$ by \asm{1}, and each $\Zp_{ij}\in\jp$ by \stepref{s6frone}.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ By \stepref{s6frwp}, \stepref{s6frwj} and \stepref{s6frbasis}, $\Zw$ is
+   orthogonal to a spanning set, so $(\Zw,\Zw)=0$ and $\Zw=0$ by \path{inner_self_eq_zero}.~\qed
+  \end{proof}
+ \end{proof}
+ \step{s6frthree}{Part 3 holds.}
+ \begin{proof}\pf\ Part 2 writes each $\Zv\in\jp$ in the span, and the vectors lie in $\jp$ by
+  part 1. By \stepref{s6frbasis} they are $n-1$ linearly independent vectors, and thus
+  the dimension is $n-1$
+  by \path{finrank_span_eq_card}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s6frone}, \stepref{s6frtwo} and \stepref{s6frthree}.~\qed
+ \end{proof}
+\end{proof}
+
+\subsection{Hypothesis 6.1}
+
+\begin{cgss}{Hypothesis}{6.1}\label{hyp:6.1}
+ \lean{Matrix.IsHadamard.FourRowAgreement}\uses{def:6-pairs}
+ \assume{$H$ is an $n\times n$ Hadamard matrix and $x\geq0$ is an integer.}
+ We say that $H$ satisfies Hypothesis 6.1 with parameter $x$ if, for all distinct rows
+ $i,j,k,l$,
+ \[
+  8\agr(i,j,k,l)\in\{n,\ n-x,\ n+x\}.
+ \]
+ The paper allows $x\in\ints$; replacing $x$ by $-x$ does not change the condition, so we take
+ $x\geq0$, as in the Lean statement \texttt{H.FourRowAgreement x} with
+ \texttt{x : \ensuremath{\mathbb N}}.
+\end{cgss}
+
+\begin{namedresult}{Definition}{(the matrix $C_H$)}\label{def:6-CH}
+ \lean{Matrix.hadamardSignedAdj}\uses{def:6-pairs}
+ \assume{$H$ is an $n\times n$ Hadamard matrix, $x>0$ is an integer, and $P$ is as in
+ Definition~\ref{def:6-pairs}.}
+ \pflet{$C_H$ be the $\cP\times\cP$ matrix with $C_H=\frac1x(PP^T-nI)$.}
+ Thus $PP^T=nI+xC_H$, which is the paper's display with $C_H$ for $A$. The diagonal of $C_H$ is
+ 0 by Lemma~\ref{lem:6-gram}, part 1. The Lean declaration takes $x$ as an argument,
+ \texttt{Matrix.hadamardSignedAdj H x}, the settled name of \path{cgss/notation.md}, which
+ now takes $x$.
+\end{namedresult}
+
+\begin{namedresult}{Lemma}{(the entries of $C_H$)}\label{lem:6-CHentries}
+ \lean{Matrix.IsHadamard.FourRowAgreement.hadamardSignedAdj_mem}
+ \uses{def:6-CH,hyp:6.1,lem:6-gram}
+ \assume{\begin{pfenum}
+  \item $H$ is an $n\times n$ Hadamard matrix and $x>0$ is an integer.
+  \item $H$ satisfies Hypothesis 6.1 with parameter $x$.
+ \end{pfenum}}
+ \prove{Every entry of $C_H$ lies in $\{0,1,-1\}$. For $\{i,j\}\neq\{k,l\}$ we have
+ $C_H(\{i,j\},\{k,l\})=0$ when the two pairs meet, and $C_H(\{i,j\},\{k,l\})=0$ exactly when
+ $8\agr(i,j,k,l)=n$ when they are disjoint.}
+\end{namedresult}
+\begin{proof}
+ \step{s6Cdiag}{The diagonal entries are 0.}
+ \begin{proof}\pf\ Definition~\ref{def:6-CH}.~\qed\end{proof}
+ \step{s6Cmeet}{\case{The pairs are distinct and meet.}}
+ \begin{proof}\pf\ They share exactly one row, and $(\Zp_{ij},\Zp_{kl})=0$ by
+  Lemma~\ref{lem:6-gram}, part 2.~\qed\end{proof}
+ \step{s6Cdisj}{\case{The pairs are disjoint.}}
+ \begin{proof}\pf\ $xC_H(\{i,j\},\{k,l\})=(\Zp_{ij},\Zp_{kl})=8\agr(i,j,k,l)-n$ by
+  Lemma~\ref{lem:6-gram}, part 3, and this lies in $\{0,-x,x\}$ by \asm[2]{0}, with 0 exactly
+  when $8\agr(i,j,k,l)=n$; divide by $x>0$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Two entries are on the diagonal or are indexed by two distinct pairs, which
+  meet or are disjoint.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the quadratic equation)}\label{lem:6-quadratic}
+ \lean{Matrix.IsHadamard.hadamardSignedAdj_quadratic}
+ \uses{def:6-CH,lem:6-P}
+ \assume{$H$ is an $n\times n$ Hadamard matrix, $x>0$ is an integer, and $d=n/x\in\rats$.}
+ \prove{\[
+  (xC_H+nI)\bigl(xC_H-\tfrac12n(n-2)I\bigr)=0,\qquad
+  (C_H+dI)\bigl(C_H-\tfrac12d(n-2)I\bigr)=0.
+ \]}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ This is Lemma~\ref{lem:6-P}, part 3, rewritten. It does not need Hypothesis 6.1,
+ which only makes $C_H$ a $(0,\pm1)$ matrix.
+ \pflet{$G=PP^T$.}
+ \step{s6qG}{$G(G-\frac12n^2I)=0$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:6-P}, part 3.~\qed\end{proof}
+ \step{s6qsub}{$G=xC_H+nI$ and $G-\frac12n^2I=xC_H-\frac12n(n-2)I$.}
+ \begin{proof}\pf\ Definition~\ref{def:6-CH}, and $n-\frac12n^2=-\frac12n(n-2)$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Substituting \stepref{s6qsub} in \stepref{s6qG} gives the first equation;
+  dividing it by $x^2>0$ gives the second.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the fourth rows)}\label{lem:6-fourth}
+ \lean{Matrix.IsHadamard.FourRowAgreement.card_fourthRows}
+ \lean{Matrix.IsHadamard.FourRowAgreement.dvd_card}
+ \uses{hyp:6.1,lem:6-gram,lem:6-fixedrow,in6:mathlib}
+ \assume{\begin{pfenum}
+  \item $H$ is an $n\times n$ Hadamard matrix, with $n\geq3$, and $x>0$ is an integer.
+  \item $H$ satisfies Hypothesis 6.1 with parameter $x$.
+  \item $i,k,l$ are distinct rows, and $m$ is the number of rows $j\notin\{i,k,l\}$ with
+   $8\agr(i,j,k,l)\neq n$.
+ \end{pfenum}}
+ \prove{$mx^2=n^2$. Thus $x\mid n$, and $d=n/x$ is an integer with $d^2=m$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ The paper derives $x\mid n$ from $xAJ=-nJ$, which is false (errata,
+ Error 9). We will expand $\Zp_{kl}$ in the orthogonal basis of $\jp$ attached to the row $i$,
+ and compare squared norms. This is the paper's remark that $d^2$ is the number of fourth rows
+ agreeing with three given rows in $\frac18(n\pm x)$ places.
+ \step{s6fparseval}{$n^2=\sum_{j\neq i}(\Zp_{kl},\Zp_{ij})^2$.}
+ \begin{proof}\pf\ Take the inner product of the expansion of Lemma~\ref{lem:6-fixedrow}, part 2,
+  for $\Zv=\Zp_{kl}\in\jp$, with $\Zp_{kl}$; the left side is $(\Zp_{kl},\Zp_{kl})=n$ by
+  Lemma~\ref{lem:6-gram}, part 1. Multiply by $n$.~\qed\end{proof}
+ \step{s6fkl}{The terms $j=k$ and $j=l$ vanish.}
+ \begin{proof}\pf\ The pairs $\{i,k\}$ and $\{k,l\}$ share only $k$, and $\{i,l\}$ and
+  $\{k,l\}$ share only $l$; apply Lemma~\ref{lem:6-gram}, part 2.~\qed\end{proof}
+ \step{s6fother}{For $j\notin\{i,k,l\}$, $(\Zp_{kl},\Zp_{ij})^2$ is $x^2$ if
+  $8\agr(i,j,k,l)\neq n$ and 0 otherwise.}
+ \begin{proof}\pf\ By Lemma~\ref{lem:6-gram}, part 3, $(\Zp_{ij},\Zp_{kl})=8\agr(i,j,k,l)-n$,
+  which is $0$ or $\pm x$ by \asm[2]{0}.~\qed\end{proof}
+ \step{s6fcount}{$mx^2=n^2$.}
+ \begin{proof}\pf\ Substitute \stepref{s6fkl} and \stepref{s6fother} in \stepref{s6fparseval},
+  and use \asm[3]{0}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s6fcount}, $x^2\mid n^2$, so $x\mid n$ by
+  \path{Nat.pow_dvd_pow_iff}; then $d^2=n^2/x^2=m$.~\qed\end{proof}
+\end{proof}
+
+\begin{remark}
+\repair\ (Errata, Error 9.) The paper's equation $xAJ=-nJ$ says that $P^T\Zj=0$. The entry of
+$P^T\Zj$ at a column $c$ is $\frac12(\sigma(c)^2-n)$, where $\sigma(c)$ is the sum of column $c$
+of $H$, by the computation of Lemma~\ref{lem:6-P}, part 1, with $u_i=H(i,c)$. It vanishes only
+if every column sum is $\pm\sqrt n$, which fails unless $n$ is a square. None of our results uses
+it. A second route to $x\mid n$ for $n>2$: the eigenvalue $-n/x$ of the integer matrix $C_H$ is
+rational and is a root of its monic characteristic polynomial, so it is an integer by the
+rational root theorem ([ST, Theorem 9.6]; [ST, Theorem 10.4] proves $P^TP$ and $x\mid n$ by this
+route).
+\end{remark}
+
+\subsection{Theorem 6.2}
+
+Theorem 6.2 is the case $x=\frac12n$, $d=2$: any four rows agree in $\frac n{16}$, $\frac n8$ or
+$\frac{3n}{16}$ places. We will first dispose of the orders not divisible by 16, then build the
+line system and study its components.
+
+\begin{namedresult}{Lemma}{(orders not divisible by 16)}\label{lem:6-small}
+ \lean{Matrix.IsHadamard.sixteen_dvd_of_agree_sixteenths}
+ \uses{def:6-pairs,lem:6-gram,in6:mathlib}
+ \assume{\begin{pfenum}
+  \item $H$ is an $n\times n$ Hadamard matrix, with $n>2$.
+  \item For all distinct rows $i,j,k,l$, $16\agr(i,j,k,l)\in\{n,2n,3n\}$.
+ \end{pfenum}}
+ \prove{$16\mid n$, and $n\geq16$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ (Errata, Gap 10; \path{cgss/prerequisites.md}, HD1.) If $16\nmid n$, every
+ four rows agree in exactly $\frac n8$ places, and then the $\frac12n(n-1)$ vectors $\Zp_{ij}$
+ are pairwise orthogonal in $\re^n$, which is too many.
+ \step{s6sfour}{$4\mid n$, so $n\geq4$.}
+ \begin{proof}\pf\ \path{Matrix.IsHadamard.four_dvd_card} with \asm[1]{0}.~\qed\end{proof}
+ \step{s6scontra}{\assume{$16\nmid n$.}\prove{FALSE.}}
+ \begin{proof}
+  \step{s6stwo}{For all distinct rows $i,j,k,l$, $16\agr(i,j,k,l)=2n$.}
+  \begin{proof}
+   \step{s6sone}{$16\agr(i,j,k,l)\neq n$.}
+   \begin{proof}\pf\ Otherwise $16\mid n$, against \asm{1}.~\qed\end{proof}
+   \step{s6sthree}{$16\agr(i,j,k,l)\neq3n$.}
+   \begin{proof}\pf\ Otherwise $16\mid3n$, so $16\mid n$ by
+    \path{Nat.Coprime.dvd_of_dvd_mul_left}, since 3 and 16 are coprime, against
+    \asm{1}.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ \asm[2]{0}, \stepref{s6sone} and \stepref{s6sthree}.~\qed\end{proof}
+  \end{proof}
+  \step{s6sorth}{The vectors $\Zp_\pi$, $\pi\in\cP$, are nonzero and pairwise orthogonal.}
+  \begin{proof}\pf\ Nonzero by Lemma~\ref{lem:6-gram}, part 1. Two distinct pairs meet in one row
+   or are disjoint; Lemma~\ref{lem:6-gram}, parts 2 and 3, gives inner product 0, or
+   $8\agr-n=0$ by \stepref{s6stwo}.~\qed\end{proof}
+  \step{s6sbound}{$\frac12n(n-1)\leq n$.}
+  \begin{proof}\pf\ \path{linearIndependent_of_ne_zero_of_inner_eq_zero} makes the family of
+   \stepref{s6sorth}, indexed by $\cP$, linearly independent, and
+   \path{LinearIndependent.fintype_card_le_finrank} with \path{finrank_euclideanSpace_fin}
+   bounds $|\cP|$ by $n$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ \stepref{s6sbound} gives $n\leq3$, against \stepref{s6sfour}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s6scontra}, $16\mid n$; and $n>0$, so $n\geq16$.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the line system of $H$)}\label{lem:6-lines}
+ \lean{Matrix.IsHadamard.lineSystem}\lean{Matrix.IsHadamard.lineSystem_signedAdj}
+ \lean{Matrix.IsHadamard.card_adj_lineSystem}
+ \uses{def:6-pairs,lem:6-gram,hyp:6.1,def:6-CH,lem:6-CHentries,lem:6-quadratic,lem:6-fixedrow,
+ def:line-system,def:sec3-signing,facts:inner}
+ \assume{\begin{pfenum}
+  \item $H$ is an $n\times n$ Hadamard matrix, with $16\mid n$ and $n\geq16$.
+  \item For all distinct rows $i,j,k,l$, $16\agr(i,j,k,l)\in\{n,2n,3n\}$.
+ \end{pfenum}}
+ \pflet{$\Zr_\pi=\sqrt{2/n}\,\Zp_\pi$ for $\pi\in\cP$, and $\Phi_H=\{\pm\Zr_\pi:\pi\in\cP\}$.}
+ \prove{\begin{pfenum}
+  \item $H$ satisfies Hypothesis 6.1 with parameter $x=\frac12n$, and then $d=2$.
+  \item $(\Zr_\pi,\Zr_\pi)=2$, and for $\pi\neq\pi'$,
+   $(\Zr_\pi,\Zr_{\pi'})=C_H(\pi,\pi')\in\{0,1,-1\}$.
+  \item $\Phi_H$ is the vector set of a line system $S_H$ in $\re^n$ with $\frac12n(n-1)$ lines,
+   and $\pi\mapsto\Zr_\pi$ is a signing of $S_H$ whose matrix $C$ of
+   Definition~\ref{def:sec3-signing} is $C_H$.
+  \item $(C_H+2I)(C_H-(n-2)I)=0$.
+  \item For each $\pi\in\cP$ there are exactly $2n-4$ pairs $\pi'\neq\pi$ with
+   $(\Zr_\pi,\Zr_{\pi'})\neq0$.
+  \item Every entry of every $\Zr_\pi$ is $\pm\sqrt{2/n}$; every vector of $\Phi_H$ lies in
+   $\jp$; and for each row $i$, the vectors $\Zr_{ij}$, $j\neq i$, are pairwise orthogonal.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ With $x=\frac12n$ we rescale the Hadamard products to squared norm 2, and read off
+ each part from the lemmas above.
+ \step{s6lone}{Part 1 holds.}
+ \begin{proof}\pf\ $x=\frac12n$ is an integer, and $\{n,2n,3n\}/16=\{n-x,n,n+x\}/8$; so
+  \asm[2]{0} is Hypothesis 6.1. Then $d=n/x=2$.~\qed\end{proof}
+ \step{s6ltwo}{Part 2 holds.}
+ \begin{proof}\pf\ $(\Zr_\pi,\Zr_{\pi'})=\frac2n(\Zp_\pi,\Zp_{\pi'})$. For $\pi=\pi'$ this is
+  $\frac2n\cdot n$ by Lemma~\ref{lem:6-gram}, part 1. For $\pi\neq\pi'$ it is
+  $\frac2n\cdot xC_H(\pi,\pi')=C_H(\pi,\pi')$ by Definition~\ref{def:6-CH}, and
+  Lemma~\ref{lem:6-CHentries} with \stepref{s6lone} gives the values.~\qed\end{proof}
+ \step{s6lthree}{Part 3 holds.}
+ \begin{proof}
+  \step{s6lls}{$\Phi_H$ is a line system.}
+  \begin{proof}\pf\ It is finite and $\Phi_H=-\Phi_H$ by definition. By \stepref{s6ltwo} and
+   bilinearity, the vectors have squared norm 2 and pairwise inner products in
+   $\{0,\pm1,\pm2\}$; this is the definition in Section~\ref{sec:2}.~\qed\end{proof}
+  \step{s6ldistinct}{For $\pi\neq\pi'$, $\Zr_{\pi'}\neq\pm\Zr_\pi$.}
+  \begin{proof}\pf\ By \stepref{s6ltwo}, $(\Zr_\pi,\Zr_{\pi'})\neq\pm2$; apply
+   \eqref{eq:endpoints}.~\qed\end{proof}
+  \step{s6lsigning}{$\pi\mapsto\Zr_\pi$ is a signing of $S_H$, and $S_H$ has $|\cP|$ lines.}
+  \begin{proof}\pf\ By \stepref{s6ldistinct}, $(\pi,\epsilon)\mapsto\epsilon\Zr_\pi$ is a
+   bijection $\cP\times\{1,-1\}\to\Phi_H$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ By \stepref{s6lsigning}, the matrix $C$ of the signing has off-diagonal
+   entries $(\Zr_\pi,\Zr_{\pi'})=C_H(\pi,\pi')$ by \stepref{s6ltwo}, and zero diagonal, as $C_H$
+   has.~\qed\end{proof}
+ \end{proof}
+ \step{s6lfour}{Part 4 holds.}
+ \begin{proof}\pf\ Lemma~\ref{lem:6-quadratic} with $d=2$ by \stepref{s6lone}:
+  $\frac12d(n-2)=n-2$.~\qed\end{proof}
+ \step{s6lfive}{Part 5 holds.}
+ \begin{proof}
+  \step{s6lsq}{$C_H^2=(n-4)C_H+2(n-2)I$.}
+  \begin{proof}\pf\ Expand \stepref{s6lfour}.~\qed\end{proof}
+  \step{s6ldiag}{$C_H^2(\pi,\pi)=\sum_{\pi'}C_H(\pi,\pi')^2$ is the number of $\pi'$ with
+   $C_H(\pi,\pi')\neq0$.}
+  \begin{proof}\pf\ $C_H$ is symmetric with entries in $\{0,\pm1\}$ by
+   Lemma~\ref{lem:6-CHentries}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The diagonal of the right side of \stepref{s6lsq} is $2(n-2)$, since
+   $C_H(\pi,\pi)=0$; use \stepref{s6ldiag}, \stepref{s6ltwo}, and that such $\pi'$ differ from
+   $\pi$.~\qed\end{proof}
+ \end{proof}
+ \step{s6lsix}{Part 6 holds.}
+ \begin{proof}\pf\ Scale Lemma~\ref{lem:6-gram}, part 1, and Lemma~\ref{lem:6-fixedrow},
+  part 1, by $\pm\sqrt{2/n}$.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s6lone} to \stepref{s6lsix}.~\qed\end{proof}
+\end{proof}
+
+We keep the hypotheses of Lemma~\ref{lem:6-lines} and its notation for the rest of the section.
+Let $\Lambda_H$ be the graph on $\cP$ in which $\pi\neq\pi'$ are adjacent when
+$(\Zr_\pi,\Zr_{\pi'})\neq0$. A \emph{component} is the vertex set $\cK\sbs\cP$ of a connected
+component of $\Lambda_H$ (\texttt{SimpleGraph.ConnectedComponent}); it is nonempty. For a
+component $\cK$ we write $\Phi(\cK)=\{\pm\Zr_\pi:\pi\in\cK\}$, $U_\cK$ for its span,
+$m_\cK=\dim U_\cK$ for its \emph{rank}, and $R_\cK=\scl(\Phi(\cK))$ (LN3).
+
+\begin{namedresult}{Lemma}{(the components)}\label{lem:6-components}
+ \lean{Matrix.IsHadamard.card_component_row}\lean{Matrix.IsHadamard.two_mul_card_component}
+ \lean{Matrix.IsHadamard.component_rootType}
+ \uses{lem:6-lines,lem:6-fixedrow,in6:LN3,in6:sec3,thm:3.5,lem:3.4,lem:sec3-spans,in6:mathlib,
+ facts:inner}
+ \assume{\begin{pfenum}
+  \item $H$ is an $n\times n$ Hadamard matrix, with $16\mid n$ and $n\geq16$.
+  \item For all distinct rows $i,j,k,l$, $16\agr(i,j,k,l)\in\{n,2n,3n\}$.
+  \item $\cK$ is a component of $\Lambda_H$, with rank $m=m_\cK$.
+ \end{pfenum}}
+ \prove{\begin{pfenum}
+  \item For every row $i$, the number of rows $j$ with $\{i,j\}\in\cK$ is $m$.
+  \item $2|\cK|=nm$.
+  \item $1\leq m\leq n-1$.
+  \item $R_\cK$ is a nonempty indecomposable star-closed line system in $\re^n$, with
+   $\Phi(\cK)\sbs\Phi(R_\cK)$, $|\Phi(\cK)|=2|\cK|$, and span $U_\cK$.
+  \item There is a type $t$ of Theorem~\ref{thm:3.5}, namely $\typ A_\ell$ ($\ell\geq1$),
+   $\typ D_\ell$ ($\ell\geq4$), $\typ E_6$, $\typ E_7$ or $\typ E_8$, with an isomorphism
+   $R_\cK\cong t$ induced by a surjective linear isometry of spans; $t$ is unique, by
+   Theorem~\ref{thm:3.5}, and we call it the \emph{type} of $\cK$. The rank of $t$ is $m$,
+   $R_\cK$ and $t$ have the same number $L_t$ of lines, and $\frac12nm\leq L_t$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ (Errata, Gap 17.) For a fixed row $i$, the vectors $\Zr_{ij}$ with
+ $\{i,j\}\in\cK$ are an orthogonal basis of $U_\cK$, by the expansion of
+ Lemma~\ref{lem:6-fixedrow}; so each row lies in exactly $m$ pairs of $\cK$. The rest is double
+ counting and Theorem~\ref{thm:3.5}.
+ \step{s6cone}{Part 1 holds.}
+ \begin{proof}
+  \pflet{$i$ be a row, $B=\{\{i,j\}\in\cK\}$, and $U_B$ the span of $\{\Zr_\beta:\beta\in B\}$.}
+  \step{s6cexp}{\assume{$\pi\in\cK$.}\prove{$\Zr_\pi\in U_B$.}}
+  \begin{proof}
+   \step{s6cterm}{If $(\Zr_\pi,\Zr_{ij})\neq0$ for a row $j\neq i$, then $\{i,j\}\in B$.}
+   \begin{proof}\pf\ Either $\{i,j\}=\pi$, or $\{i,j\}\neq\pi$ is adjacent to $\pi$ in
+    $\Lambda_H$; in both cases $\{i,j\}$ lies in the component $\cK$ of $\pi$.~\qed\end{proof}
+   \step{s6csum}{$\Zr_\pi=\frac12\sum_{j\neq i}(\Zr_\pi,\Zr_{ij})\Zr_{ij}$.}
+   \begin{proof}\pf\ Scale the expansion of Lemma~\ref{lem:6-fixedrow}, part 2, for
+    $\Zv=\Zp_\pi\in\jp$ by $\sqrt{2/n}$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ By \stepref{s6cterm} each term of \stepref{s6csum} with a nonzero
+    coefficient lies in $U_B$.~\qed\end{proof}
+  \end{proof}
+  \step{s6cspan}{$U_B=U_\cK$.}
+  \begin{proof}\pf\ $U_B\sbs U_\cK$ since $B\sbs\cK$; $U_\cK\sbs U_B$ by \stepref{s6cexp},
+   since $U_B$ is closed under negation.~\qed\end{proof}
+  \step{s6cind}{The vectors $\Zr_\beta$, $\beta\in B$, are linearly independent.}
+  \begin{proof}\pf\ They are nonzero and pairwise orthogonal by Lemma~\ref{lem:6-lines}, part 6;
+   apply \path{linearIndependent_of_ne_zero_of_inner_eq_zero}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ $|B|=\dim U_B=m$ by \stepref{s6cind}, \path{finrank_span_eq_card} and
+   \stepref{s6cspan}.~\qed\end{proof}
+ \end{proof}
+ \step{s6ctwo}{Part 2 holds.}
+ \begin{proof}\pf\ Count the pairs (row $i$, pair $\pi\in\cK$ with $i\in\pi$) in two ways: each
+  $\pi$ has two rows, and each row lies in $m$ pairs of $\cK$ by \stepref{s6cone}.~\qed
+ \end{proof}
+ \step{s6cthree}{Part 3 holds.}
+ \begin{proof}\pf\ $\cK$ is nonempty, so $2|\cK|=nm>0$ by \stepref{s6ctwo}; and a row $i$ lies in
+  at most $n-1$ pairs, so $m\leq n-1$ by \stepref{s6cone}.~\qed\end{proof}
+ \step{s6cfour}{Part 4 holds.}
+ \begin{proof}
+  \step{s6cfsigma}{$\Phi(\cK)$ satisfies the hypotheses of LN3, and its graph of nonzero inner
+   products is connected.}
+  \begin{proof}\pf\ Lemma~\ref{lem:6-lines}, parts 2 and 3, give the norms and inner products
+   and $\Phi(\cK)=-\Phi(\cK)$. The vectors $\Zr_\pi$ and $-\Zr_\pi$ have inner product $-2$, and
+   $\pm\Zr_\pi$, $\pm\Zr_{\pi'}$ are joined when $\pi,\pi'$ are adjacent in $\Lambda_H$; $\cK$ is
+   connected in $\Lambda_H$.~\qed\end{proof}
+  \step{s6cfcard}{$|\Phi(\cK)|=2|\cK|$.}
+  \begin{proof}\pf\ The vectors $\epsilon\Zr_\pi$ are distinct by Lemma~\ref{lem:6-lines},
+   part 3.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Apply LN3 to \stepref{s6cfsigma}; its span is that of $\Phi(\cK)$, which is
+   $U_\cK$; use \stepref{s6cfcard}.~\qed\end{proof}
+ \end{proof}
+ \step{s6cfive}{Part 5 holds.}
+ \begin{proof}
+  \step{s6ctype}{There is exactly one type $t$ with $R_\cK\cong t$, and the isomorphism is
+   induced by a surjective linear isometry from $U_\cK$ onto the span of the model of $t$.}
+  \begin{proof}\pf\ Theorem~\ref{thm:3.5}, applied to \stepref{s6cfour} in $V=\re^n$.~\qed
+  \end{proof}
+  \step{s6crank}{The rank of $t$ is $m$.}
+  \begin{proof}\pf\ A surjective linear isometry preserves dimension; the rank of the model is
+   the dimension of its span (Lemma~\ref{lem:sec3-spans}), and $\dim U_\cK=m$.~\qed\end{proof}
+  \step{s6clines}{$R_\cK$ has $L_t$ lines, and $|\cK|\leq L_t$.}
+  \begin{proof}\pf\ An isomorphism is a bijection of vector sets, so the numbers of lines agree
+   (Lemma~\ref{lem:3.4} gives $L_t$); and $2|\cK|=|\Phi(\cK)|\leq|\Phi(R_\cK)|=2L_t$ by
+   \stepref{s6cfour}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s6ctype}, \stepref{s6crank} and \stepref{s6clines}, with
+   $|\cK|=\frac12nm$ by \stepref{s6ctwo}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s6cone} to \stepref{s6cfive}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(the possible decompositions)}\label{lem:6-decomposition}
+ \lean{Matrix.IsHadamard.component_cases}
+ \uses{lem:6-components,lem:3.4,thm:3.5,lem:sec3-spans}
+ \assume{\begin{pfenum}
+  \item $H$ is an $n\times n$ Hadamard matrix, with $16\mid n$ and $n\geq16$.
+  \item For all distinct rows $i,j,k,l$, $16\agr(i,j,k,l)\in\{n,2n,3n\}$.
+ \end{pfenum}}
+ \prove{One of the following holds.
+ \begin{pfenum}
+  \item $\cP$ is a single component, and its type in Lemma~\ref{lem:6-components} is
+   $\typ A_{n-1}$ or $\typ D_{n-1}$.
+  \item $n=16$, and some component has type $\typ E_7$.
+ \end{pfenum}}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ This is the analysis in Gap 17 of the errata. Each type forces a bound on the rank
+ through $\frac12nm\leq L_t$, and the ranks of the components add up to $n-1$.
+ \step{s6dsum}{The ranks of the components add up to $n-1$.}
+ \begin{proof}\pf\ The $n-1$ pairs $\{1,j\}$ lie in the components, each in exactly one, and a
+  component $\cK$ contains $m_\cK$ of them by Lemma~\ref{lem:6-components}, part 1.~\qed
+ \end{proof}
+ \step{s6dtypes}{\assume{$\cK$ is a component, with rank $m$ and type $t$.}
+  \prove{\begin{pfenum}
+   \item If $t=\typ A_m$, then $m=n-1$.
+   \item If $t=\typ D_m$, then $m\geq\frac12n+1$.
+   \item $t\neq\typ E_6$.
+   \item If $t$ is $\typ E_7$ or $\typ E_8$, then $n=16$.
+  \end{pfenum}}}
+ \begin{proof}
+  \step{s6dA}{Part 1 holds.}
+  \begin{proof}\pf\ $\frac12nm\leq\frac12m(m+1)$ by Lemma~\ref{lem:6-components}, part 5, and
+   Lemma~\ref{lem:3.4}; divide by $\frac12m>0$ to get $n-1\leq m$, and $m\leq n-1$ by part 3 of
+   that lemma.~\qed\end{proof}
+  \step{s6dD}{Part 2 holds.}
+  \begin{proof}\pf\ $\frac12nm\leq m(m-1)$ in the same way; divide by $m>0$.~\qed\end{proof}
+  \step{s6dEsix}{Part 3 holds.}
+  \begin{proof}\pf\ Otherwise $m=6$ and $3n\leq36$, so $n\leq12$, against \asm[1]{0}.~\qed
+  \end{proof}
+  \step{s6dEseveneight}{Part 4 holds.}
+  \begin{proof}\pf\ For $\typ E_7$, $m=7$ and $\frac72n\leq63$, so $n\leq18$; for $\typ E_8$,
+   $m=8$ and $4n\leq120$, so $n\leq30$. The only multiple of 16 in $[16,30]$ is 16.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s6dA} to \stepref{s6dEseveneight}.~\qed\end{proof}
+ \end{proof}
+ \step{s6dcaseA}{\case{Some component $\cK$ has type $\typ A_m$.}}
+ \begin{proof}\pf\ Then $m=n-1$ by \stepref{s6dtypes}. By \stepref{s6dsum} every other component
+  has rank 0, which Lemma~\ref{lem:6-components}, part 3, forbids; so $\cK=\cP$, and
+  alternative 1 holds.~\qed\end{proof}
+ \step{s6dcaseD}{\case{Some component $\cK$ has type $\typ D_m$.}}
+ \begin{proof}
+  \step{s6dalone}{$\cK$ is the only component.}
+  \begin{proof}
+   \step{s6dother}{\assume{$\cK'\neq\cK$ is a component, of rank $m'$ and type $t'$.}
+    \prove{FALSE.}}
+   \begin{proof}
+    \step{s6dsmall}{$m'\leq\frac12n-2$.}
+    \begin{proof}\pf\ $m+m'\leq n-1$ by \stepref{s6dsum}, and $m\geq\frac12n+1$ by
+     \stepref{s6dtypes}.~\qed\end{proof}
+    \step{s6dnotAD}{$t'$ is neither $\typ A_{m'}$ nor $\typ D_{m'}$.}
+    \begin{proof}\pf\ By \stepref{s6dtypes}, these would give $m'=n-1$ or
+     $m'\geq\frac12n+1$, against \stepref{s6dsmall}.~\qed\end{proof}
+    \step{s6dnotE}{$t'$ is not exceptional.}
+    \begin{proof}\pf\ By \stepref{s6dtypes}, $t'\neq\typ E_6$, and for $\typ E_7$ or $\typ E_8$
+     we get $n=16$ and $m'\geq7>6=\frac12n-2$, against \stepref{s6dsmall}.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ Theorem~\ref{thm:3.5} has no other types.~\qed\end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ Step \stepref{s6dother}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ By \stepref{s6dalone} and \stepref{s6dsum}, $\cK=\cP$ and $m=n-1$;
+   alternative 1 holds.~\qed\end{proof}
+ \end{proof}
+ \step{s6dcaseE}{\case{No component has type $\typ A_m$ or $\typ D_m$.}}
+ \begin{proof}
+  \step{s6dEonly}{$n=16$, and every component has rank 7 or 8.}
+  \begin{proof}\pf\ $\cP$ is nonempty, so there is a component. Each component $\cK$ has a type
+   $t$ by Lemma~\ref{lem:6-components}, part 5, of rank $m_\cK$, and the model $\typ A_\ell$
+   or $\typ D_\ell$ has rank $\ell$ (Lemma~\ref{lem:sec3-spans}); so $t$ is neither
+   $\typ A_{m_\cK}$ nor $\typ D_{m_\cK}$ by the case hypothesis, and not $\typ E_6$ by
+   \stepref{s6dtypes}, part 3. In the list of Theorem~\ref{thm:3.5} this leaves $\typ E_7$ and
+   $\typ E_8$, of ranks 7 and 8 (Lemma~\ref{lem:sec3-spans}); then $n=16$ by
+   \stepref{s6dtypes}, part 4.~\qed\end{proof}
+  \step{s6dseven}{Some component has rank 7.}
+  \begin{proof}\pf\ Otherwise the ranks are all 8 and add up to $15$ by \stepref{s6dsum}, but
+   $8\nmid15$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ The component of \stepref{s6dseven} has type $\typ E_7$, the only type of
+   rank 7 left; alternative 2 holds.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ The three cases are exhaustive.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(orthogonal lines in $\typ A_\ell$ and $\typ D_\ell$)}
+ \label{lem:6-orthogonal}
+ \lean{LineSystem.An.not_card_pairwise_orthogonal}
+ \lean{LineSystem.Dn.even_of_card_pairwise_orthogonal}
+ \uses{def:3.1,facts:inner}
+ \assume{\begin{pfenum}
+  \item $\ell\geq2$ is an integer, and $M$ is the model $\typ A_\ell$ in $\re^{\ell+1}$ or
+   $\typ D_\ell$ in $\re^\ell$ of Definition~\ref{def:3.1}.
+  \item $F\sbs\Phi(M)$ has $\ell$ elements, and any two distinct elements of $F$ are orthogonal.
+ \end{pfenum}}
+ \prove{$M$ is not $\typ A_\ell$, and if $M$ is $\typ D_\ell$, then $\ell$ is even.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ The paper states this without proof, and no result of Section 3 contains it;
+ it needs only the coordinates of Definition~\ref{def:3.1}. Each root has a support of two
+ coordinates, and two orthogonal roots have disjoint supports in $\typ A_\ell$, and disjoint or
+ equal supports in $\typ D_\ell$. Theorem 3.6 is not needed.
+ \pflet{the support of a root be the set of its two nonzero coordinates.}
+ \step{s6oA}{\assume{$M=\typ A_\ell$.}\prove{FALSE.}}
+ \begin{proof}
+  \step{s6oAdisj}{Distinct $\Zr,\Zs\in F$ have disjoint supports.}
+  \begin{proof}\pf\ For $\Zr=\Ze_a-\Ze_b$ and $\Zs=\Ze_c-\Ze_e$,
+   $(\Zr,\Zs)=[a=c]-[a=e]-[b=c]+[b=e]$. If the supports share exactly one coordinate, this is
+   $\pm1$; if they are equal, it is $\pm2$; neither is 0, against \asm[2]{0}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ By \stepref{s6oAdisj}, the $\ell$ supports are disjoint 2-subsets of
+   $\{1,\dots,\ell+1\}$, so $2\ell\leq\ell+1$ and $\ell\leq1$, against \asm[1]{0}.~\qed\end{proof}
+ \end{proof}
+ \step{s6oD}{\assume{$M=\typ D_\ell$.}\prove{$\ell$ is even.}}
+ \begin{proof}
+  \step{s6oDsupp}{Distinct $\Zr,\Zs\in F$ have disjoint or equal supports.}
+  \begin{proof}\pf\ If the supports share exactly one coordinate, $(\Zr,\Zs)$ is the product of
+   the two entries there, which is $\pm1$, against \asm[2]{0}.~\qed\end{proof}
+  \step{s6oDtwo}{At most two elements of $F$ have a given support $\{a,b\}$.}
+  \begin{proof}
+   \step{s6oDperp}{If $\Zr,\Zs\in F$ are distinct with support $\{a,b\}$, then
+    $\Zs=\pm(\Zr(a)\Ze_a-\Zr(b)\Ze_b)$.}
+   \begin{proof}\pf\ $0=(\Zr,\Zs)=\Zr(a)\Zs(a)+\Zr(b)\Zs(b)$ with all four entries $\pm1$, so
+    $\Zs(a)\Zs(b)=-\Zr(a)\Zr(b)$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ If $\Zr,\Zs,\Zt\in F$ were distinct with support $\{a,b\}$, then
+    $\Zs=\pm\Zt$ by \stepref{s6oDperp}, so $(\Zs,\Zt)=\pm2\neq0$, against \asm[2]{0}.~\qed
+   \end{proof}
+  \end{proof}
+  \pflet{$k$ be the number of distinct supports of the elements of $F$.}
+  \step{s6oDk}{$2k\leq\ell$ and $\ell\leq2k$.}
+  \begin{proof}\pf\ The $k$ supports are pairwise disjoint 2-subsets of $\{1,\dots,\ell\}$ by
+   \stepref{s6oDsupp}; and $|F|=\ell$ with at most two elements per support by
+   \stepref{s6oDtwo}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ By \stepref{s6oDk}, $\ell=2k$.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{s6oA} and \stepref{s6oD}.~\qed\end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(no component of type $\typ E_7$)}\label{lem:6-E7}
+ \lean{Matrix.IsHadamard.not_component_E₇}
+ \uses{lem:6-lines,lem:6-components,in6:LN3,in6:sec3,thm:3.7,lem:3.4,def:2.1,def:sec3-signing,
+ facts:inner}
+ \assume{\begin{pfenum}
+  \item $H$ is a $16\times16$ Hadamard matrix.
+  \item For all distinct rows $i,j,k,l$, $\agr(i,j,k,l)\in\{1,2,3\}$.
+  \item $\cK$ is a component of $\Lambda_H$ whose type in Lemma~\ref{lem:6-components} is
+   $\typ E_7$, and $R=R_\cK$.
+ \end{pfenum}}
+ \prove{FALSE.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ \repair\ (Errata, Gap 17, the repair.) Two vectors $\Zr,\Zr'$ of
+ $\Phi(\cK)$ with $(\Zr,\Zr')=-1$ span a star of $R$ whose third vector $\Zr+\Zr'$ has zero
+ entries, so it lies in $R$ but not in $\Phi(\cK)$; and $\Zr$ lies in
+ $N_{\Zr+\Zr'}$. Thus the 3136 such ordered pairs inject into the 448 pairs $(\Zt,\Zu)$ with
+ $\Zt\in\Phi(R)\diff\Phi(\cK)$ and $\Zu\in N_\Zt$. This is the errata's count $784\leq7\cdot16$,
+ of pairs of lines against the 16 stars through each of the 7 lines of $R$ outside $\cK$,
+ multiplied by 4; we count signed vectors so that no choice of orientation, and no definition of
+ a star as a set of lines, is needed.
+ \step{s6ehyp}{The hypotheses of Lemmas~\ref{lem:6-lines} and~\ref{lem:6-components} hold,
+  with $n=16$.}
+ \begin{proof}\pf\ $16\mid16$, and $\agr\in\{1,2,3\}$ is $16\agr\in\{n,2n,3n\}$ for $n=16$;
+  use \asm[1]{0}, \asm[2]{0} and \asm[3]{0}.~\qed\end{proof}
+ \pflet{$\Phi=\Phi(\cK)$ and $Q=\{(\Zr,\Zr')\in\Phi\times\Phi:(\Zr,\Zr')=-1\}$.}
+ \step{s6ecounts}{$|\Phi|=112$ and $|\Phi(R)|=126$, so $|\Phi(R)\diff\Phi|=14$.}
+ \begin{proof}\pf\ The rank of $\cK$ is 7, the rank of $\typ E_7$, so $|\Phi|=2|\cK|=16\cdot7=112$
+  by Lemma~\ref{lem:6-components}, parts 2, 4 and 5; $R$ has 63 lines by that lemma and
+  Lemma~\ref{lem:3.4}; and $\Phi\sbs\Phi(R)$.~\qed\end{proof}
+ \step{s6eQ}{$|Q|=112\cdot28=3136$.}
+ \begin{proof}
+  \step{s6eQr}{\assume{$\Zr\in\Phi$.}\prove{Exactly 28 vectors $\Zr'\in\Phi$ satisfy
+   $(\Zr,\Zr')=-1$.}}
+  \begin{proof}
+   \pflet{$\Zr=\epsilon\Zr_\pi$, with $\pi\in\cK$ and $\epsilon=\pm1$.}
+   \step{s6eQlines}{Exactly $2n-4=28$ pairs $\pi'\neq\pi$ have $(\Zr_\pi,\Zr_{\pi'})\neq0$, and
+    they lie in $\cK$.}
+   \begin{proof}\pf\ Lemma~\ref{lem:6-lines}, part 5; such $\pi'$ are adjacent to $\pi$ in
+    $\Lambda_H$.~\qed\end{proof}
+   \step{s6eQone}{For each such $\pi'$, exactly one of $\pm\Zr_{\pi'}$ has inner product $-1$
+    with $\Zr$.}
+   \begin{proof}\pf\ $(\Zr,\Zr_{\pi'})=\pm1$ by Lemma~\ref{lem:6-lines}, part 2, and
+    $(\Zr,-\Zr_{\pi'})=-(\Zr,\Zr_{\pi'})$.~\qed\end{proof}
+   \step{s6eQnone}{No other vector of $\Phi$ has inner product $-1$ with $\Zr$.}
+   \begin{proof}\pf\ $(\Zr,\pm\Zr_\pi)=\pm2$, and $(\Zr,\pm\Zr_{\pi'})=0$ for the remaining
+    $\pi'$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ Steps \stepref{s6eQlines}, \stepref{s6eQone} and \stepref{s6eQnone}, with
+    the distinctness of Lemma~\ref{lem:6-lines}, part 3.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Sum \stepref{s6eQr} over the 112 vectors of \stepref{s6ecounts}.~\qed
+  \end{proof}
+ \end{proof}
+ \step{s6ethird}{\assume{$(\Zr,\Zr')\in Q$, and $\Zw=\Zr+\Zr'$.}
+  \prove{$\Zw\in\Phi(R)\diff\Phi$, and $\Zr\in N_\Zw(R)$.}}
+ \begin{proof}
+  \step{s6einR}{$\Zw\in\Phi(R)$.}
+  \begin{proof}\pf\ $\Zr,\Zr'\in\Phi\sbs\Phi(R)$ have inner product $-1$, and $R$ is star-closed
+   (Lemma~\ref{lem:6-components}, part 4, and Definition~\ref{def:2.1}).~\qed\end{proof}
+  \step{s6eentries}{Every entry of $\Zw$ is $0$ or $\pm2\sqrt{2/16}$, and at most four are
+   nonzero.}
+  \begin{proof}\pf\ Each entry of $\Zr$ and of $\Zr'$ is $\pm\sqrt{2/16}$ by
+   Lemma~\ref{lem:6-lines}, part 6, so each entry of the sum is $0$ or $\pm2\sqrt{2/16}$. A
+   nonzero entry contributes $4\cdot\frac2{16}=\frac12$ to $(\Zw,\Zw)$, which is $2+2-2=2$ by
+   bilinearity; so there are exactly four.~\qed\end{proof}
+  \step{s6enotK}{$\Zw\notin\Phi$.}
+  \begin{proof}\pf\ Every vector of $\Phi$ has 16 nonzero entries by Lemma~\ref{lem:6-lines},
+   part 6, and $\Zw$ has four by \stepref{s6eentries}.~\qed\end{proof}
+  \step{s6eN}{$(\Zr,\Zw)=1$.}
+  \begin{proof}\pf\ $(\Zr,\Zr)+(\Zr,\Zr')=2-1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{s6einR}, \stepref{s6enotK} and \stepref{s6eN}, and
+   $\Zr\in\Phi(R)$.~\qed\end{proof}
+ \end{proof}
+ \step{s6eNt}{For every $\Zt\in\Phi(R)$, $|N_\Zt(R)|=32$.}
+ \begin{proof}
+  \step{s6eNsign}{$R$ has a signing $\sigma:I\to\Phi(R)$, $|I|=63$, whose matrix $C$
+   satisfies $(C+2I_{63})(C-16I_{63})=0$.}
+  \begin{proof}\pf\ Choose one vector on each line. $R\cong\typ E_7$ through a surjective
+   linear isometry of spans by Lemma~\ref{lem:6-components}, part 5, so $R$ is an isometric
+   realization of $\typ E_7$; apply Theorem~\ref{thm:3.7}.~\qed\end{proof}
+  \step{s6eNrow}{Each row of $C$ has exactly 32 nonzero entries.}
+  \begin{proof}\pf\ From \stepref{s6eNsign}, $C^2=14C+32I_{63}$; the diagonal entry
+   $C^2(a,a)=\sum_bC(a,b)^2$ counts the nonzero entries of row $a$, since the entries of $C$ lie
+   in $\{0,\pm1\}$ and $C(a,a)=0$ (Definition~\ref{def:sec3-signing}).~\qed\end{proof}
+  \pflet{$\Zt=\delta\sigma(a)$ with $a\in I$ and $\delta=\pm1$.}
+  \step{s6eNone}{For $b\in I$, exactly one of $\pm\sigma(b)$ lies in $N_\Zt(R)$ if
+   $C(a,b)\neq0$, and neither does otherwise.}
+  \begin{proof}\pf\ $(\pm\sigma(b),\Zt)=\pm\delta C(a,b)$ for $b\neq a$, and
+   $(\pm\sigma(a),\Zt)=\pm2$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Every vector of $\Phi(R)$ is $\pm\sigma(b)$ for some $b\in I$; so
+   $|N_\Zt(R)|=32$ by \stepref{s6eNone} and \stepref{s6eNrow}. (In Lean the leaf may instead
+   transport \leancite{LineSystem.E₇.card_N}{\texttt{LineSystem.E\ensuremath{{}_7}.card\_N}}
+   of C20 through the isomorphism, which preserves the sets $N_\Zt$.)~\qed\end{proof}
+ \end{proof}
+ \step{s6einj}{The map $(\Zr,\Zr')\mapsto(\Zr+\Zr',\Zr)$ is an injection of $Q$ into
+  $T=\{(\Zt,\Zu):\Zt\in\Phi(R)\diff\Phi,\ \Zu\in N_\Zt(R)\}$.}
+ \begin{proof}\pf\ It maps into $T$ by \stepref{s6ethird}, and $(\Zr,\Zr')$ is recovered from its
+  image $(\Zt,\Zu)$ as $(\Zu,\Zt-\Zu)$.~\qed\end{proof}
+ \step{s6eT}{$|T|=14\cdot32=448$.}
+ \begin{proof}\pf\ Steps \stepref{s6ecounts} and \stepref{s6eNt}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ By \stepref{s6eQ}, \stepref{s6einj} and \stepref{s6eT}, $3136\leq448$, which
+  is false.~\qed\end{proof}
+\end{proof}
+
+\begin{remark}
+The same count excludes the type $\typ A_{n-1}$ without Lemma~\ref{lem:6-orthogonal}: then
+$\cK=\cP$ has $\frac12n(n-1)$ lines, which is all of $\typ A_{n-1}$, so $\Phi(R)\diff\Phi$ is
+empty while $Q$ is not. It does not exclude $\typ D_{n-1}$, nor the component of type
+$\typ E_8$ when $n=16$ (there $|Q|=128\cdot28$ and $|T|=112\cdot56$). We checked the counts of
+$\typ E_7$ (126 vectors, $|N_\Zt|=32$ for each) numerically in model (ii) of
+Definition~\ref{def:3.3}, in a scratch script outside the trust base.
+\end{remark}
+
+\begin{cgss}{Theorem}{6.2}\label{thm:6.2}
+ \lean{Matrix.IsHadamard.not_fourRow_agree_sixteenths}
+ \uses{def:6-pairs,lem:6-small,lem:6-lines,lem:6-components,lem:6-decomposition,lem:6-orthogonal,
+ lem:6-E7,thm:3.5,in6:sec3}
+ \assume{\begin{pfenum}
+  \item $H$ is an $n\times n$ Hadamard matrix, with $n>2$.
+  \item For all distinct rows $i,j,k,l$, $16\agr(i,j,k,l)\in\{n,2n,3n\}$; that is, any four rows
+   agree in $\frac n{16}$, $\frac n8$ or $\frac{3n}{16}$ places.
+ \end{pfenum}}
+ \prove{FALSE. Thus there is no Hadamard matrix of order $n>2$ for which any four rows agree in
+ $\frac n{16}$, $\frac n8$ or $\frac{3n}{16}$ places.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We follow the paper: the $\frac12n(n-1)$ lines lie at $60^\circ$ and $90^\circ$ in
+ $\jp$, and the $n-1$ lines through a fixed row are mutually orthogonal, which the systems
+ $\typ A_{n-1}$ and $\typ D_{n-1}$ do not allow for odd $n-1$. \repair\ The small orders are
+ Lemma~\ref{lem:6-small} (errata, Gap 10), and the indecomposability that the paper asserts is
+ replaced by Lemmas~\ref{lem:6-components}, \ref{lem:6-decomposition} and~\ref{lem:6-E7}
+ (errata, Gap 17). With a single component, the star closure is $\typ A_{n-1}$ or
+ $\typ D_{n-1}$ by Theorem~\ref{thm:3.5}, as the paper says; the paper's appeal to $n>9$ is
+ replaced by the count of lines.
+ \step{s62sixteen}{$16\mid n$ and $n\geq16$.}
+ \begin{proof}\pf\ Lemma~\ref{lem:6-small}, with \asm[1]{0} and \asm[2]{0}.~\qed\end{proof}
+ \step{s62cases}{Alternative 1 or alternative 2 of Lemma~\ref{lem:6-decomposition} holds.}
+ \begin{proof}\pf\ Lemma~\ref{lem:6-decomposition}, with \stepref{s62sixteen} and
+  \asm[2]{0}.~\qed\end{proof}
+ \step{s62single}{\case{$\cP$ is a single component, of type $\typ A_{n-1}$ or
+  $\typ D_{n-1}$.}}
+ \begin{proof}
+  \pflet{$R=R_\cP$, $f:\Phi(R)\to\Phi(M)$ the isomorphism of Lemma~\ref{lem:6-components},
+   part 5, onto the model $M$, and $F=\{f(\Zr_{1j}):2\leq j\leq n\}$.}
+  \step{s62F}{$F$ has $n-1$ elements, and any two distinct elements of $F$ are orthogonal.}
+  \begin{proof}\pf\ The $\Zr_{1j}$ are distinct and pairwise orthogonal vectors of
+   $\Phi(\cP)\sbs\Phi(R)$ by Lemma~\ref{lem:6-lines}, parts 3 and 6, and
+   Lemma~\ref{lem:6-components}, part 4; $f$ is injective and preserves inner products.~\qed
+  \end{proof}
+  \step{s62odd}{$n-1\geq2$ is odd.}
+  \begin{proof}\pf\ $n\geq16$ is even by \stepref{s62sixteen}.~\qed\end{proof}
+  \qedstep
+  \begin{proof}\pf\ Lemma~\ref{lem:6-orthogonal}, with $\ell=n-1$, \stepref{s62F} and
+   \stepref{s62odd}, excludes $M=\typ A_{n-1}$, and gives $n-1$ even if $M=\typ D_{n-1}$,
+   against \stepref{s62odd}.~\qed\end{proof}
+ \end{proof}
+ \step{s62E}{\case{$n=16$, and some component has type $\typ E_7$.}}
+ \begin{proof}\pf\ With $n=16$, \asm[2]{0} says $\agr(i,j,k,l)\in\{1,2,3\}$; apply
+  Lemma~\ref{lem:6-E7}.~\qed\end{proof}
+ \qedstep
+ \begin{proof}\pf\ The two cases are those of \stepref{s62cases}.~\qed\end{proof}
+\end{proof}
+
+\begin{remark}
+ \lean{Computations.C16.h2}\lean{Computations.C16.h4}\lean{Computations.C16.h8}
+ \lean{Computations.C16.h12}\lean{Computations.C16.h16}\lean{Computations.C16.h2_isHadamard}
+ \lean{Computations.C16.h4_isHadamard}\lean{Computations.C16.h8_isHadamard}
+ \lean{Computations.C16.h12_isHadamard}\lean{Computations.C16.h16_isHadamard}
+ \lean{Computations.C16.checkFourRowAgreement_sound}\lean{Computations.C16.fourRow_agreements}
+ \lean{Computations.C16.h2_fourRowAgreement}\lean{Computations.C16.h4_fourRowAgreement}
+ \lean{Computations.C16.h8_fourRowAgreement}\lean{Computations.C16.h12_fourRowAgreement}
+ \lean{Computations.C16.h16_fourRowAgreement}
+ \lean{Computations.C16.h12_transpose_hadamardPairs_mul}
+ \lean{Computations.C16.h12_root_mem_hyperplane}\lean{Computations.C16.h12_hyperplane_finrank}
+ \lean{Computations.C16.h12HyperplaneIsometry}\lean{Computations.C16.h12_lines_injective}
+ \lean{Computations.C16.h12_numLines}\lean{Computations.C16.h12_line_angles}
+ \lean{Computations.C16.h12_inner_values_attained}
+ \uses{def:6-pairs,hyp:6.1,lem:6-gram,lem:6-P,lem:6-fixedrow}
+Computation C16 (\path{LineGraphs/Computations/C16.lean}) concerns the Sylvester matrices of
+orders 2, 4, 8 and 16 and the Paley matrix $H_{12}$ of order 12, given as integer matrices in
+\path{LineGraphs/Computations/C16Data.lean}. We see that each of the five is a Hadamard matrix,
+by \texttt{decide +kernel}. A Boolean checker counts the agreements of every four distinct rows,
+and \path{Computations.C16.checkFourRowAgreement_sound} proves that its answer gives
+Hypothesis~\ref{hyp:6.1}; thus $H_{12}$ satisfies Hypothesis 6.1 with $x=4$, and the Sylvester
+matrix of order $n$ satisfies it with $x=n$ (for $n=2$ the condition is vacuous, since there
+are no four distinct rows). For $H_{12}$, the formula of Lemma~\ref{lem:6-P}, part 1, is
+$P^TP=72I-6J$, a case of \path{Matrix.IsHadamard.transpose_hadamardPairs_mul}. The vectors
+$\sqrt{2/12}\,\Zp_\pi$, for the 66 pairs $\pi\in\cP$, span 66 distinct lines in $\jp$; this
+hyperplane has dimension 11 by Lemma~\ref{lem:6-fixedrow} and is isometric to $\re^{11}$, and
+any two of the lines are at $90^\circ$ or at $\arccos(1/3)$, both angles occurring. We note
+that computation C16 does not prove the uniqueness of $H_{12}$ or Norman's theorem.
+\end{remark}
+
+\begin{remark}
+ \lean{Matrix.sylvester}\lean{Matrix.sylvesterKronecker}
+ \lean{Matrix.isHadamard_sylvester}\lean{Matrix.sylvester_succ}
+ \lean{Matrix.sylvesterKronecker_eq_sylvester}\lean{Matrix.sylvester_fourRowAgreement}
+ \lean{Matrix.hadamardRowProduct_sylvester_sylvesterEquiv}
+ \lean{Matrix.hadamardRowProduct_sylvester}
+ \lean{Matrix.exists_hadamardRowProduct_sylvester_eq}
+ \lean{Matrix.image_hadamardRowProduct_sylvester}
+ \lean{Matrix.card_image_hadamardRowProduct_sylvester}
+ \lean{Matrix.two_mul_card_filter_hadamardRowProduct_sylvester}
+ \lean{Matrix.inner_hadamardRowProduct_sylvester_of_ne}
+ \lean{Matrix.sylvester_lines}
+ \lean{Computations.C16.h2_eq_sylvester}\lean{Computations.C16.h4_eq_sylvester}
+ \lean{Computations.C16.h8_eq_sylvester}\lean{Computations.C16.h16_eq_sylvester}
+The paper says that the only known examples are the Hadamard matrices of Sylvester type, with
+$n=2^s$ and $x=n$, and the unique $H_{12}$, with $n=12$ and $x=4$; and that the Sylvester case
+corresponds to $d=1$ and yields $n-1$ mutually orthogonal lines, each line occurring $\frac12n$
+times. The claims about the Sylvester matrices are side claims, and we prove them for every $s$
+in \path{LineGraphs/SideClaims/Sylvester.lean}; the words ``only known'' are history, and we do
+not formalize them. The Sylvester matrix $H$ of order $n=2^s$ has its rows and columns indexed by
+$\{0,1\}^s$, with $H(a,b)=(-1)^{a\cdot b}$; it is the Kronecker product of $s$ copies of the
+matrix $H_2$ with rows $(1,1)$ and $(1,-1)$ (\path{Matrix.sylvesterKronecker_eq_sylvester}), and
+it is a Hadamard matrix (\path{Matrix.isHadamard_sylvester}). The Hadamard product of rows $a$
+and $b$ is row $a+b$, with addition modulo 2
+(\path{Matrix.hadamardRowProduct_sylvester_sylvesterEquiv}); in Lean the rows are also indexed
+by $\{0,\dots,n-1\}$ through binary digits, and then the product of rows $i$ and $j$ is the row
+of their bitwise exclusive or (\path{Matrix.hadamardRowProduct_sylvester}). Thus
+the rows of $P$ are the $n-1$ rows of $H$ other than the all-ones row, each of them is the
+product of exactly $\frac12n$ pairs of rows, and distinct ones are orthogonal; for the lines
+that the rows of $P$ span, this is \path{Matrix.sylvester_lines}. By Lemma~\ref{lem:6-gram},
+part 3, four distinct rows $i,j,k,l$ then have $8\agr(i,j,k,l)=n+(\Zp_{ij},\Zp_{kl})$, which is
+$n$ or $2n$, and $H$ satisfies Hypothesis~\ref{hyp:6.1} with $x=n$
+(\path{Matrix.sylvester_fourRowAgreement}); so $d=n/x=1$. The four Sylvester matrices of
+computation C16 are these matrices for $s=1,2,3,4$ (\path{Computations.C16.h16_eq_sylvester} and
+the three others).
+\end{remark}
+\endgroup

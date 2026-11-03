@@ -1,0 +1,2027 @@
+\section{Lines at \texorpdfstring{$60^\circ$ and $90^\circ$}{60 and 90 degrees}}\label{sec:2}
+% Long structured steps should leave space at a page foot instead of stretching proof spacing.
+\raggedbottom
+
+We follow Section 2 of [CGSS], with the vector encoding of Section~1.
+We use the graph names and Lean names of \path{cgss/notation.md}; in Lean,
+\texttt{Hyp24} is in the namespace \texttt{LineSystem}. In what follows,
+$V$ is a finite-dimensional real inner product space. We write $(\Zx,\Zy)$ for its inner
+product, as the paper does, since angle brackets are taken by step numbers.
+A \emph{line system} $S$ in $V$ is a finite set $\Phi\subseteq V$ such that
+\[
+ \Phi=-\Phi,\qquad (\Zr,\Zr)=2\quad(\Zr\in\Phi),\qquad
+ (\Zr,\Zs)\in\{-2,-1,0,1,2\}\quad(\Zr,\Zs\in\Phi).
+\]
+\label{def:line-system}\lean{LineSystem}\uses{}
+We count lines as antipodal pairs $\{\Zr,-\Zr\}$, so the number of lines is $|\Phi|/2$.
+\lean{LineSystem.numLines}
+We do not require $\Phi$ to span $V$ until Theorem 2.13.
+We call $S$ \emph{indecomposable} if, for all $P,Q\subseteq V$ with $P\cup Q=\Phi$ and
+$(\Zr,\Zs)=0$ for all $\Zr\in P$, $\Zs\in Q$, we have $P=\varnothing$ or $Q=\varnothing$.
+\label{def:indecomposable}\lean{LineSystem.IsIndecomposable}\uses{def:line-system}
+\new\ This intrinsic definition agrees with the paper's orthogonal-subspace definition
+when $\Phi$ spans $V$; without spanning, the paper's literal wording allows the partition
+into the whole system in its proper span and an empty part. We also require finiteness
+explicitly: in finite dimension this loses no line systems, since their normalized signed
+vectors are pairwise at distance at least 1 on the compact unit sphere.
+An isomorphism of line systems is a bijection of their vector sets preserving inner products.
+\label{def:line-iso}\lean{LineSystem.Iso}\uses{def:line-system}
+
+\paragraph{Elementary identities.}\label{facts:inner}
+We will use bilinearity, symmetry, nonnegativity of squared norm, and the implication
+$(\Zx,\Zx)=0\Rightarrow\Zx=0$. These are, respectively, Mathlib's\par
+\begingroup\raggedright
+\texttt{inner\_add\_left}, \texttt{inner\_add\_right},
+\texttt{inner\_sub\_left}, \texttt{inner\_sub\_right},
+\texttt{inner\_neg\_left}, \texttt{inner\_neg\_right},
+\texttt{real\_inner\_smul\_left}, \texttt{real\_inner\_smul\_right},
+\texttt{real\_inner\_comm}, \texttt{real\_inner\_self\_nonneg}, and
+\texttt{inner\_self\_eq\_zero}, all in
+\path{Mathlib/Analysis/InnerProductSpace/Basic.lean}.\par\endgroup
+Here \texttt{inner\_self\_eq\_zero} is the equivalence
+$(\Zx,\Zx)=0\Longleftrightarrow\Zx=0$; its \texttt{NormedAddCommGroup}
+hypothesis holds for our real inner product spaces.
+In particular, for vectors of squared norm 2,
+\begin{equation}\label{eq:endpoints}
+ (\Zr,\Zs)=2\Longleftrightarrow\Zr=\Zs,
+ \qquad (\Zr,\Zs)=-2\Longleftrightarrow\Zr=-\Zs.
+\end{equation}
+Indeed, $(\Zr-\Zs,\Zr-\Zs)=4-2(\Zr,\Zs)$ and
+$(\Zr+\Zs,\Zr+\Zs)=4+2(\Zr,\Zs)$ by bilinearity; the forward implications follow
+from zero squared norm, and the reverse implications follow by substitution.
+Thus distinct antipodal pairs represent distinct lines with angles $60^\circ$ or $90^\circ$.
+We will also use the \emph{finite-span lemma}: for a finite family $(\Zr_i)_{i\in I}$
+in $V$, every member of its span is $\sum_{i\in I}\alpha(i)\Zr_i$ for some
+$\alpha:I\to\re$. This is
+\path{Submodule.mem_span_range_iff_exists_fun} in
+\path{Mathlib/LinearAlgebra/Finsupp/LinearCombination.lean}.
+
+\begin{cgss}{Definition}{2.1}\label{def:2.1}
+ \lean{LineSystem.IsStarClosed}\uses{def:line-system}
+ \assume{$S$ is a line system in a finite-dimensional real inner product space $V$.}
+ We call $S$ \emph{star-closed} if
+ \[
+  \forall\Zr,\Zs\in\Phi,\quad (\Zr,\Zs)=-1\ \Longrightarrow\ \Zr+\Zs\in\Phi.
+ \]
+ The third line of the star on $\Zr$ and $\Zs$ is the line of $\Zr+\Zs$:
+ its squared norm is $2+2-2=2$, and its inner product with each summand is 1.
+ The three vectors lie in the plane spanned by $\Zr,\Zs$.
+\end{cgss}
+
+\begin{cgss}{Definition}{2.2}\label{def:2.2}
+ \lean{LineSystem.IsMaximal}\uses{def:line-system}
+ \assume{$S$ is a line system in a finite-dimensional real inner product space $V$.}
+ We call $S$ \emph{maximal} if, for every $\Zv\in\operatorname{span}(\Phi)$,
+ \[
+ (\Zv,\Zv)=2\ \text{ and }\
+ \bigl(\forall\Zr\in\Phi,\ (\Zv,\Zr)\in\{-2,-1,0,1,2\}\bigr)
+ \quad\Longrightarrow\quad \Zv\in\Phi.
+ \]
+ We include $\pm2$ to allow a line already in $S$; by \eqref{eq:endpoints} these values
+ occur only on that same line. \repair\ The paper takes the lines to span $\re^n$ (the first
+ paragraph of Section 2) and asks for maximality in $\re^n$; since we do not require $\Phi$ to
+ span $V$, we ask for maximality within $\operatorname{span}(\Phi)$. In the whole of $V$ the
+ condition would be too strong: $\Ze_1+\Ze_2$ is at $60^\circ$ or $90^\circ$ to every line of
+ $\typ{A}_\ell$ in $\re^{\ell+1}$, and Theorem 3.6 would fail (errata, Implicit hypothesis 7). Thus this is
+ Definition 2.2 in the signed vector encoding.
+\end{cgss}
+
+\begin{cgss}{Lemma}{2.3}\label{lem:2.3}
+ \lean{LineSystem.IsMaximal.isStarClosed}\uses{def:2.1,def:2.2,facts:inner}
+ \assume{\begin{pfenum}
+  \item $S$ is a line system in a finite-dimensional real inner product space $V$.
+  \item $S$ is maximal.
+ \end{pfenum}}
+ \prove{$S$ is star-closed.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will orient the two lines so that their inner product is $-1$ and test their
+ sum against every root. This is the angle argument in the paper, including coincident lines.
+ \step{23sum}{\assume{$\Zr,\Zs\in\Phi$ and $(\Zr,\Zs)=-1$.}
+  \prove{$\Zr+\Zs\in\Phi$.}}
+ \begin{proof}
+  \step{23norm}{$(\Zr+\Zs,\Zr+\Zs)=2$.}
+  \begin{proof}
+   \pf\ By bilinearity and \asm{1}, the squared norm is $2-1-1+2=2$.~\qed
+  \end{proof}
+  \step{23test}{\assume{$\Zt\in\Phi$.}
+   \prove{$(\Zr+\Zs,\Zt)\in\{-2,-1,0,1,2\}$.}}
+  \begin{proof}
+   \step{23same}{\case{$\Zt\in\{\Zr,-\Zr,\Zs,-\Zs\}$.}}
+   \begin{proof}
+    \pf\ The four values are $1,-1,1,-1$, respectively, by bilinearity and \asm{1}.~\qed
+   \end{proof}
+   \step{23other}{\case{$\Zt\notin\{\Zr,-\Zr,\Zs,-\Zs\}$.}}
+   \begin{proof}
+    \step{23small}{$(\Zr,\Zt),(\Zs,\Zt)\in\{-1,0,1\}$.}
+    \begin{proof}
+     \pf\ The line-system condition and \eqref{eq:endpoints} exclude $\pm2$.~\qed
+    \end{proof}
+    \qedstep
+    \begin{proof}
+     \pf\ The sum of two integers between $-1$ and 1 is an integer between $-2$ and 2;
+     apply bilinearity to \stepref{23small}.~\qed
+    \end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ The cases \stepref{23same} and \stepref{23other} are exhaustive.~\qed\end{proof}
+  \end{proof}
+  \step{23span}{$\Zr+\Zs\in\operatorname{span}(\Phi)$.}
+  \begin{proof}
+   \pf\ Both $\Zr$ and $\Zs$ lie in $\Phi$ by \asm{1}, and a span is closed under
+   addition.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Apply Definition 2.2 to \stepref{23span}, \stepref{23norm} and
+   \stepref{23test}.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{23sum} is Definition 2.1.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Hypothesis}{2.4}\label{hyp:2.4}
+ \lean{LineSystem.Hyp24}\uses{def:line-system,def:indecomposable,def:2.1}
+ \assume{\begin{pfenum}
+  \item $V$ is a finite-dimensional real inner product space and $S$ is a line system in $V$.
+  \item $S$ is indecomposable and star-closed.
+  \item $\Za,\Zb\in\Phi$ and $(\Za,\Zb)=-1$.
+ \end{pfenum}}
+ \pflet{$\Zc\triangleq-\Za-\Zb$, and}
+ \begin{align*}
+ \Ga&\triangleq\{\Zx\in\Phi:(\Zx,\Za)=0,\ (\Zx,\Zb)=1,\ (\Zx,\Zc)=-1\},\\
+ \Gb&\triangleq\{\Zx\in\Phi:(\Zx,\Zb)=0,\ (\Zx,\Zc)=1,\ (\Zx,\Za)=-1\},\\
+ \Gc&\triangleq\{\Zx\in\Phi:(\Zx,\Zc)=0,\ (\Zx,\Za)=1,\ (\Zx,\Zb)=-1\},\\
+ \Delta&\triangleq\{\Zt\in\Phi:(\Zt,\Za)=(\Zt,\Zb)=(\Zt,\Zc)=0\},\\
+ \Sigma&\triangleq\{\Za,\Zb,\Zc\}\cup\Ga\cup\Gb\cup\Gc\cup\Delta.
+ \end{align*}
+ We will write $X=\opk{Orth}(\Ga)$ for the \emph{orthogonality graph} on $\Ga$: distinct vertices
+ $x,y$ are adjacent exactly when $(\Zx,\Zy)=0$. We will write a vertex as $x$ and
+ its representing vector as $\Zx$.
+ \label{def:gamma-graph}\lean{LineSystem.Hyp24.orthGraph}\uses{hyp:2.4}
+ The represented graph of a vector family uses inner product 1; its
+ \emph{obtuse graph}, denoted $\opk{Obt}$, uses inner product $-1$.
+ We use the orthogonality convention throughout Section 2.
+ The \emph{empty graph} $\comp{K_m}$ has $m$ vertices and no edges, with $m=0$ allowed.
+\end{cgss}
+
+\noindent\repair\ We require the pair $\Za,\Zb$ explicitly (Implicit hypothesis 4 of
+\path{cgss/errata.md}). A one-line system has no such pair;
+we will treat it separately in Lemma 2.12 and Theorem 2.13.
+\repair\ Also, $\Delta=-\Delta$ here (Error 6), so
+$\Sigma$ need not have just one vector on each line. Lemma 2.5 asserts a signed cover.
+
+\begin{namedresult}{Lemma}{(star identities)}\label{lem:star-identities}
+ \lean{LineSystem.Hyp24.c_mem}\lean{LineSystem.Hyp24.inner_b_c}
+ \lean{LineSystem.Hyp24.inner_c_a}\lean{LineSystem.Hyp24.inner_c_b}
+ \uses{hyp:2.4,def:2.1,facts:inner}
+ \assume{Hypothesis 2.4 holds in the finite-dimensional real inner product space $V$.}
+ \prove{$\Zc\in\Phi$ and
+  $(\Za,\Zb)=(\Zb,\Zc)=(\Zc,\Za)=(\Zc,\Zb)=-1$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We will state the star identities separately so that later results
+ can cite them without citing a step inside the proof of Lemma 2.5.
+ \step{25star}{$\Zc\in\Phi$ and all three inner products between $\Za,\Zb,\Zc$ are $-1$.}
+ \begin{proof}
+  \step{25mem}{$\Za+\Zb\in\Phi$, so $\Zc\in\Phi$.}
+  \begin{proof}\pf\ Use star-closure, $(\Za,\Zb)=-1$, and closure under negation.~\qed\end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ By bilinearity, $(\Za,\Zc)=-2+1=-1$ and $(\Zb,\Zc)=1-2=-1$;
+   the remaining products follow from symmetry and the hypothesis $(\Za,\Zb)=-1$.~\qed
+  \end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{25star} and symmetry give the stated identities.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{2.5}\label{lem:2.5}
+ \lean{LineSystem.Hyp24.Φ_eq_sigmaSet_union_neg}
+ \uses{hyp:2.4,lem:star-identities,facts:inner}
+ \assume{Hypothesis 2.4 holds in the finite-dimensional real inner product space $V$.}
+ \prove{$\Phi=\Sigma\cup(-\Sigma)$; equivalently, $S$ consists exactly of the lines of $\Sigma$.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will exclude equal nonzero inner products with $\Za,\Zb$, then choose the
+ sign in each of the remaining seven cases.
+ \step{25equal}{\assume{$\Zu\in\Phi$, $\epsilon\in\{-1,1\}$, and
+   $(\Zu,\Za)=(\Zu,\Zb)=\epsilon$.}
+  \prove{$\Zu=-\epsilon\Zc$.}}
+ \begin{proof}
+  \step{25zero}{$(\Za+\Zb-\epsilon\Zu,\Za+\Zb-\epsilon\Zu)=0$.}
+  \begin{proof}
+   \pf\ Bilinearity gives $2+2\epsilon^2-2\epsilon(2\epsilon)=0$, since
+   $\epsilon^2=1$ and $(\Za+\Zb,\Za+\Zb)=2$.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Zero squared norm gives $\Za+\Zb=\epsilon\Zu$; multiply by $\epsilon$ and use
+   $\Zc=-\Za-\Zb$ and $\epsilon^2=1$.~\qed
+  \end{proof}
+ \end{proof}
+ \step{25switch}{\assume{$\Zv\in\Phi$.}
+  \prove{$\Zv\in\Sigma$ or $-\Zv\in\Sigma$.}}
+ \begin{proof}
+  \step{25onstar}{\case{$\Zv\in\{\pm\Za,\pm\Zb,\pm\Zc\}$.}}
+  \begin{proof}\pf\ Choose the displayed sign of a member of $\{\Za,\Zb,\Zc\}\subseteq\Sigma$.~\qed\end{proof}
+  \step{25offstar}{\case{$\Zv\notin\{\pm\Za,\pm\Zb,\pm\Zc\}$.}}
+  \begin{proof}
+   \step{25poss}{$((\Zv,\Za),(\Zv,\Zb))$ is one of
+    $(0,0),(0,1),(0,-1),(1,0),(-1,0),(1,-1),(-1,1)$.}
+   \begin{proof}
+    \pf\ By \eqref{eq:endpoints}, both entries are in $\{-1,0,1\}$.
+    Step \stepref{25equal} excludes the two pairs $(1,1)$ and $(-1,-1)$.~\qed
+   \end{proof}
+   \step{25table}{We choose representatives by the following table.}
+   \begin{proof}
+    \pf\ In each row $(\Zv,\Zc)=-(\Zv,\Za)-(\Zv,\Zb)$ by bilinearity;
+    substitution gives the defining three inner products of the indicated set.
+    \[
+    \begin{array}{c|rrrrrrr}
+    ((\Zv,\Za),(\Zv,\Zb))&(0,0)&(0,1)&(0,-1)&(1,0)&(-1,0)&(1,-1)&(-1,1)\\\hline
+    \text{representative}&\Zv&\Zv&-\Zv&-\Zv&\Zv&\Zv&-\Zv\\
+    \text{set}&\Delta&\Ga&\Ga&\Gb&\Gb&\Gc&\Gc
+    \end{array}
+    \]
+    Each representative belongs to $\Phi$ by closure under negation.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ Apply \stepref{25table} to the exhaustive list \stepref{25poss}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ The cases \stepref{25onstar} and \stepref{25offstar} are exhaustive.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}
+  \pf\ Step \stepref{25switch} gives $\Phi\subseteq\Sigma\cup(-\Sigma)$.
+  Conversely, the star identities and the definitions give $\Sigma\subseteq\Phi$,
+  and $\Phi=-\Phi$ gives $-\Sigma\subseteq\Phi$.~\qed
+ \end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{2.6}\label{lem:2.6}
+ \lean{LineSystem.Hyp24.ΓaEquivΓb}
+ \lean{LineSystem.Hyp24.ΓbEquivΓc}\lean{LineSystem.Hyp24.ΓcEquivΓa}\lean{LineSystem.Hyp24.inner_eq_zero_or_one}
+ \lean{LineSystem.Hyp24.add_c_mem_Γb}\lean{LineSystem.Hyp24.sub_b_mem_Γc}
+ \lean{LineSystem.Hyp24.inner_ΓaEquivΓb}\lean{LineSystem.Hyp24.inner_ΓbEquivΓc}
+ \lean{LineSystem.Hyp24.inner_ΓcEquivΓa}
+ \lean{LineSystem.Hyp24.inner_eq_zero_or_one_of_mem_Γb}
+ \lean{LineSystem.Hyp24.inner_eq_zero_or_one_of_mem_Γc}
+ \uses{hyp:2.4,lem:star-identities,facts:inner}
+ \assume{Hypothesis 2.4 holds in the finite-dimensional real inner product space $V$.}
+ \prove{\begin{pfenum}
+  \item The maps $\varphi_c(\Zx)=\Zx+\Zc$, $\varphi_a(\Zy)=\Zy+\Za$, and
+   $\varphi_b(\Zz)=\Zz+\Zb$ give inner-product-preserving bijections
+   $\Ga\to\Gb\to\Gc\to\Ga$.
+  \item $\Gb=\Zc+\Ga$ and $\Gc=-\Zb+\Ga$.
+  \item For each $D\in\{\Ga,\Gb,\Gc\}$ and distinct $\Zx,\Zy\in D$,
+   $(\Zx,\Zy)\in\{0,1\}$. Diagonal inner products are 2.
+ \end{pfenum}}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will prove the translation identity for all three cyclic triples at once.
+ Their composite is the identity, so each map is bijective. A negative inner product would
+ give opposite vectors in two incompatible parts of the partition.
+ \step{26cycle}{\assume{$(\Zr,\Zs,\Zt)$ is one of
+  $(\Za,\Zb,\Zc),(\Zb,\Zc,\Za),(\Zc,\Za,\Zb)$, and $\Zx\in\Gamma_r$.}
+  \prove{$\Zx+\Zt\in\Gamma_s$.}}
+ \begin{proof}
+  \step{26root}{$\Zx+\Zt\in\Phi$.}
+  \begin{proof}
+   \pf\ In each of the three listed triples, $(\Zx,\Zt)=-1$ by the definition of
+   $\Gamma_r$; apply star-closure and the star identities.~\qed
+  \end{proof}
+  \step{26values}{$(\Zx+\Zt,\Zr)=-1$, $(\Zx+\Zt,\Zs)=0$, and
+   $(\Zx+\Zt,\Zt)=1$.}
+  \begin{proof}
+   \pf\ By bilinearity, the star identities and the defining products, these values are respectively
+   $0-1$, $1-1$, and $-1+2$.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Steps \stepref{26root} and \stepref{26values} are the definition of $\Gamma_s$.~\qed\end{proof}
+ \end{proof}
+ \step{26bijections}{The three translations are bijections and preserve inner products.}
+ \begin{proof}
+  \step{26inverse}{Each translation has the next two translations as a two-sided inverse.}
+  \begin{proof}
+   \pf\ By \stepref{26cycle} all composites have the stated domains, and every cyclic
+   composite sends $\Zx$ to $\Zx+\Za+\Zb+\Zc=\Zx$.~\qed
+  \end{proof}
+  \step{26gram}{\assume{$(\Zr,\Zs,\Zt)$ is a listed cyclic triple and
+    $\Zx,\Zy\in\Gamma_r$.}
+   \prove{$(\Zx+\Zt,\Zy+\Zt)=(\Zx,\Zy)$.}}
+  \begin{proof}
+   \pf\ By bilinearity the left side is $(\Zx,\Zy)-1-1+2=(\Zx,\Zy)$,
+   using the definition of $\Gamma_r$.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Combine the two-sided inverses in \stepref{26inverse} with \stepref{26gram}.~\qed\end{proof}
+ \end{proof}
+ \step{26positive}{\assume{$(\Zr,\Zs,\Zt)$ is a listed cyclic triple and
+    $\Zx,\Zy\in\Gamma_r$ are distinct.}
+  \prove{$(\Zx,\Zy)\in\{0,1\}$.}}
+ \begin{proof}
+  \step{26endpoints}{$(\Zx,\Zy)\ne2,-2$.}
+  \begin{proof}
+   \pf\ The value 2 contradicts distinctness by \eqref{eq:endpoints}.
+   The value $-2$ gives $\Zy=-\Zx$, contradicting
+   $(\Zx,\Zs)=(\Zy,\Zs)=1$.~\qed
+  \end{proof}
+  \step{26minus}{$(\Zx,\Zy)\ne-1$.}
+  \begin{proof}
+   \step{26opposite}{\assume{$(\Zx,\Zy)=-1$.}
+    \prove{$\Zx=-(\Zy+\Zt)$.}}
+   \begin{proof}
+    \pf\ Step \stepref{26cycle} puts $\Zy+\Zt$ in $\Phi$, and bilinearity gives
+    $(\Zx,\Zy+\Zt)=-1-1=-2$; apply \eqref{eq:endpoints}.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ The equality in \stepref{26opposite} gives
+    $0=(\Zx,\Zr)=-(\Zy+\Zt,\Zr)=1$, by the definition of $\Gamma_r$
+    and $(\Zt,\Zr)=-1$ from the star identities, a contradiction.~\qed
+   \end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ The line-system condition, \stepref{26endpoints}, and \stepref{26minus} leave 0 and 1.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}
+  \pf\ Step \stepref{26bijections} proves part 1. Its first map gives
+  $\Gb=\Zc+\Ga$, and its first two maps give
+  $\Gc=(\Za+\Zc)+\Ga=-\Zb+\Ga$. Step \stepref{26positive} and the norm condition prove part 3.~\qed
+ \end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{2.7}\label{lem:2.7}
+ \lean{LineSystem.Hyp24.Δ_eq_sub}\lean{LineSystem.Hyp24.Φ_eq_of_Γa_eq}
+ \lean{LineSystem.Hyp24.Φ_eq_recovery_union_neg}\lean{LineSystem.Hyp24.sigmaSet_eq_recoverySet}
+ \uses{hyp:2.4,lem:2.5,lem:2.6,def:indecomposable,facts:inner}
+ \assume{Hypothesis 2.4 holds in the finite-dimensional real inner product space $V$.}
+ \prove{\[
+  \Delta=\{\Zx-\Zy:\Zx,\Zy\in\Ga,\ (\Zx,\Zy)=1\}.
+ \]
+ Put
+ \[
+ \cR=\{\Za,\Zb,\Zc\}\cup\Ga\cup(\Zc+\Ga)\cup(-\Zb+\Ga)
+       \cup\{\Zx-\Zy:\Zx,\Zy\in\Ga,\ (\Zx,\Zy)=1\}.
+ \]
+ Then $\Sigma=\cR$ and $\Phi=\cR\cup(-\cR)$.
+ In particular, any two instances of Hypothesis 2.4 in $V$ with the same
+ $\Za,\Zb$ and $\Ga$ have the same signed root set $\Phi$.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will recover $\Gb,\Gc$ by translation and $\Delta$ by differences.
+ A root of $\Delta$ orthogonal to all of $\Ga$ would belong to an orthogonal part of $\Phi$;
+ we will give that partition explicitly.
+ \step{27forward}{\assume{$\Zx,\Zy\in\Ga$ and $(\Zx,\Zy)=1$.}
+  \prove{$\Zx-\Zy\in\Delta$.}}
+ \begin{proof}
+  \step{27root}{$\Zx-\Zy\in\Phi$.}
+  \begin{proof}\pf\ Apply star-closure to $\Zx,-\Zy\in\Phi$, whose inner product is $-1$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ The products of $\Zx-\Zy$ with $\Za,\Zb,\Zc$ are
+   $0-0,1-1,-1-(-1)$, respectively, by bilinearity. With \stepref{27root}, this defines $\Delta$.~\qed
+  \end{proof}
+ \end{proof}
+ \step{27nonzero}{\assume{$\Zt\in\Delta$ and $(\Zt,\Zx)\ne0$ for some $\Zx\in\Ga$.}
+  \prove{$\Zt=\Zu-\Zv$ for some $\Zu,\Zv\in\Ga$ with $(\Zu,\Zv)=1$.}}
+ \begin{proof}
+  \pflet{Choose $\Zx\in\Ga$ with $(\Zt,\Zx)\ne0$.}
+  \step{27sign}{$(\Zt,\Zx)\in\{-1,1\}$.}
+  \begin{proof}
+   \pf\ If the product were $\pm2$, \eqref{eq:endpoints} would give
+   $\Zt=\pm\Zx$, contradicting $(\Zt,\Zb)=0$ and $(\Zx,\Zb)=1$.
+   The line-system condition and the nonzero assumption leave $\pm1$.~\qed
+  \end{proof}
+  \step{27negative}{\case{$(\Zt,\Zx)=-1$.}}
+  \begin{proof}
+   \step{27add}{$\Zx+\Zt\in\Ga$.}
+   \begin{proof}
+    \pf\ Star-closure gives membership in $\Phi$; adding $\Zt$, which is orthogonal to
+    $\Za,\Zb,\Zc$, preserves the three products defining $\Ga$.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ Choose $\Zu=\Zx+\Zt$, $\Zv=\Zx$. Their difference is $\Zt$, and
+    $(\Zu,\Zv)=2-1=1$ by bilinearity and \asm{2}.~\qed
+   \end{proof}
+  \end{proof}
+  \step{27positive}{\case{$(\Zt,\Zx)=1$.}}
+  \begin{proof}
+   \step{27sub}{$\Zx-\Zt\in\Ga$.}
+   \begin{proof}
+    \pf\ Star-closure applies to $\Zx,-\Zt$; subtracting $\Zt$ preserves the
+    three products defining $\Ga$.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ Choose $\Zu=\Zx$, $\Zv=\Zx-\Zt$. Their difference is $\Zt$, and
+    $(\Zu,\Zv)=2-1=1$ by bilinearity and \asm{2}.~\qed
+   \end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{27sign} makes \stepref{27negative} and \stepref{27positive} exhaustive.~\qed\end{proof}
+ \end{proof}
+ \step{27partition}{No root of $\Delta$ is orthogonal to all of $\Ga$.}
+ \begin{proof}
+  \pflet{$P\triangleq\{\Zt\in\Delta:\forall\Zx\in\Ga,\ (\Zt,\Zx)=0\}$ and
+   $Q\triangleq\Phi\diff P$.}
+  \step{27signstable}{$P=-P$ and $\Za\in Q$.}
+  \begin{proof}
+   \pf\ The defining products of $P$ are all zero, and thus invariant under negation.
+   Also $\Za\in\Phi$ and $(\Za,\Za)=2$, so $\Za\notin\Delta$.~\qed
+  \end{proof}
+  \step{27sigma}{\assume{$\Zt\in P$ and $\Zu\in\Sigma\diff P$.}
+   \prove{$(\Zt,\Zu)=0$.}}
+  \begin{proof}
+   \step{27core}{\case{$\Zu\in\{\Za,\Zb,\Zc\}\cup\Ga\cup\Gb\cup\Gc$.}}
+   \begin{proof}
+    \pf\ The definition of $P$ gives orthogonality to $\Za,\Zb,\Zc,\Ga$.
+    Lemma 2.6 gives $\Gb=\Zc+\Ga$ and $\Gc=-\Zb+\Ga$; bilinearity gives zero
+    on each of these translates.~\qed
+   \end{proof}
+   \step{27delta}{\case{$\Zu\in\Delta\diff P$.}}
+   \begin{proof}
+    \step{27witness}{$\Zu=\Zx-\Zy$ for some $\Zx,\Zy\in\Ga$.}
+    \begin{proof}
+     \pf\ Membership in $\Delta\diff P$ gives a nonzero product with a member of $\Ga$;
+     apply \stepref{27nonzero}.~\qed
+    \end{proof}
+    \qedstep
+    \begin{proof}\pf\ By the definition of $P$, $(\Zt,\Zx-\Zy)=0-0=0$.~\qed\end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ The definition of $\Sigma$ makes \stepref{27core} and \stepref{27delta} exhaustive.~\qed\end{proof}
+  \end{proof}
+  \step{27orthogonal}{$(\Zt,\Zu)=0$ for all $\Zt\in P$ and $\Zu\in Q$.}
+  \begin{proof}
+   \pf\ Lemma 2.5 gives $\Zu=\epsilon\Zv$ with $\epsilon\in\{-1,1\}$ and
+   $\Zv\in\Sigma$. By \stepref{27signstable}, $\Zv\notin P$.
+   Step \stepref{27sigma} and bilinearity give $(\Zt,\Zu)=\epsilon\cdot0=0$.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ We have $P\cup Q=\Phi$. Indecomposability and \stepref{27orthogonal} imply
+   $P=\varnothing$ or $Q=\varnothing$; \stepref{27signstable} excludes the second alternative.~\qed
+  \end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}
+  \pf\ Steps \stepref{27forward}, \stepref{27nonzero}, and \stepref{27partition} give both
+  inclusions in the formula for $\Delta$. Substitute this equality and Lemma 2.6
+  into the definition of $\Sigma$ to obtain $\Sigma=\cR$; Lemma 2.5 gives
+  $\Phi=\cR\cup(-\cR)$. Equal $\Za,\Zb,\Ga$ give equal $\Zc=-\Za-\Zb$
+  and equal $\cR$, so they give equal root sets.~\qed
+ \end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{2.8}\label{lem:2.8}
+  \lean{LineSystem.Hyp24.triangle}\uses{hyp:2.4,lem:2.6,lem:star-identities,facts:inner}
+  \assume{\begin{pfenum}
+      \item Hypothesis 2.4 holds in the finite-dimensional real inner product space $V$.
+      \item $\Zx,\Zy\in\Ga$ and $(\Zx,\Zy)=0$.
+    \end{pfenum}}
+  \prove{\begin{pfenum}
+      \item $\Zz\triangleq\Zb-\Zc-\Zx-\Zy$ lies in $\Ga$.
+      \item Each $\Zw\in\Ga\diff\{\Zx,\Zy,\Zz\}$ is orthogonal to exactly one of $\Zx$, $\Zy$,
+        $\Zz$.
+    \end{pfenum}}
+\end{cgss}
+
+\begin{proof}
+  \pfsketch\ The vectors $\Zx+\Zc$ and $\Zy-\Zb$ lie in $\Phi$ and have inner product $-1$, so
+  star-closure puts their sum, which is $-\Zz$, in $\Phi$. Computing inner products places $\Zz$
+  in $\Ga$. For part 2, $(\Zw,\Zx)+(\Zw,\Zy)+(\Zw,\Zz)=2$, and each term is 0 or 1.
+
+  \step{xc}{$\Zx+\Zc\in\Gb$ and $\Zy-\Zb\in\Gc$.}
+  \begin{proof}
+    \pf\ By \asm[2]{0} and Lemma 2.6.~\qed
+  \end{proof}
+
+  \step{ip}{$(\Zx+\Zc,\Zy-\Zb)=-1$.}
+  \begin{proof}
+    \pf\ We use $(\Zb,\Zc)=-1$ from the star identities.
+    \begin{align*}
+      (\Zx+\Zc,\Zy-\Zb)&=(\Zx,\Zy)-(\Zx,\Zb)+(\Zc,\Zy)-(\Zc,\Zb)
+        &&\text{[bilinearity]}\\
+      &=0-1-1+1
+        &&\text{[\asm[2]{0}, the definition of $\Ga$, and $(\Zb,\Zc)=-1$]}\\
+      &=-1.
+    \end{align*}
+    \qed
+  \end{proof}
+
+  \step{zphi}{$\Zz\in\Phi$.}
+  \begin{proof}
+    \pf\ By \stepref{xc}, \stepref{ip} and star-closure, $(\Zx+\Zc)+(\Zy-\Zb)=-\Zz$ lies in
+    $\Phi$; and $\Phi=-\Phi$.~\qed
+  \end{proof}
+
+  \step{zga}{$\Zz\in\Ga$.}
+  \begin{proof}
+    \pf\ We have $(\Zz,\Za)=0$, $(\Zz,\Zb)=1$ and $(\Zz,\Zc)=-1$, by bilinearity, \asm[2]{0} and
+    the definition of $\Ga$; together with \stepref{zphi}, this is the definition of
+    $\Ga$.~\qed
+  \end{proof}
+
+  \step{w}{\assume{$\Zw\in\Ga\diff\{\Zx,\Zy,\Zz\}$.}
+    \prove{$\Zw$ is orthogonal to exactly one of $\Zx$, $\Zy$, $\Zz$.}}
+  \begin{proof}
+    \step{sum}{$(\Zw,\Zx)+(\Zw,\Zy)+(\Zw,\Zz)=2$.}
+    \begin{proof}
+      \pf\
+      \begin{align*}
+        (\Zw,\Zx)+(\Zw,\Zy)+(\Zw,\Zz)&=(\Zw,\Zb-\Zc)&&\text{[the definition of $\Zz$]}\\
+        &=1+1&&\text{[\asm{1} and the definition of $\Ga$]}
+      \end{align*}
+      \qed
+    \end{proof}
+
+    \step{zo}{Each of $(\Zw,\Zx)$, $(\Zw,\Zy)$, $(\Zw,\Zz)$ is 0 or 1.}
+    \begin{proof}
+      \pf\ By \asm{1}, \asm[2]{0}, \stepref{zga} and Lemma 2.6.~\qed
+    \end{proof}
+
+    \qedstep
+    \begin{proof}
+      \pf\ By \stepref{sum} and \stepref{zo}, three numbers in $\{0,1\}$ have sum 2, so exactly
+      one of them is 0.~\qed
+    \end{proof}
+  \end{proof}
+
+  \qedstep
+  \begin{proof}
+    \pf\ By \stepref{zga} and \stepref{w}.~\qed
+  \end{proof}
+\end{proof}
+
+\begin{namedresult}{Definition}{(the triangle property)}\label{def:triangle-property}
+ \lean{SimpleGraph.HasTriangleProperty}\uses{}
+ \assume{$X$ is a simple graph on a set $U$.}
+ We say that $X$ has the \emph{triangle property} if every edge $xy$ has exactly one
+ common neighbour $z$, and every vertex outside $\{x,y,z\}$ is adjacent to exactly one
+ of $x,y,z$. For adjacent $x,y$ we will write $f(x,y)$ for this unique common neighbour;
+ the graph will be clear from the argument.
+ \new\ We name this predicate once so that we can use the graph argument without a vector
+ representation.
+\end{namedresult}
+
+\begin{namedresult}{Corollary}{of Lemma 2.8}\label{cor:triangle-property}
+ \lean{LineSystem.Hyp24.orthGraph_hasTriangleProperty}\uses{hyp:2.4,lem:2.8,def:triangle-property,facts:inner}
+ \assume{Hypothesis 2.4 holds in the finite-dimensional real inner product space $V$, and $X$ is its orthogonality graph on $\Ga$.}
+ \prove{$X$ has the triangle property.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We will record the pairwise orthogonality calculation needed to pass
+ from Lemma 2.8 to graph terminology; it does not change that lemma.
+ \step{28triangle}{\assume{$x,y$ are adjacent vertices of $X$.}
+  \prove{$\Zz\triangleq\Zb-\Zc-\Zx-\Zy$ represents a distinct common neighbour $z$.}}
+ \begin{proof}
+  \step{28products}{$(\Zx,\Zz)=(\Zy,\Zz)=0$.}
+  \begin{proof}
+   \pf\ Bilinearity gives $(\Zx,\Zz)=1-(-1)-2-0=0$ and
+   $(\Zy,\Zz)=1-(-1)-0-2=0$, using adjacency and the definition of $\Ga$.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Lemma 2.8 puts $\Zz$ in $\Ga$. Step \stepref{28products} and squared norm 2
+   give $z\ne x,y$ and $z\sim x,y$.~\qed
+  \end{proof}
+ \end{proof}
+ \step{28unique}{\assume{$w$ is a common neighbour of adjacent $x,y$.}
+  \prove{$\Zw=\Zb-\Zc-\Zx-\Zy$.}}
+ \begin{proof}
+  \pf\ If $w$ differed from the vertex in \stepref{28triangle}, it would lie outside
+  its triangle and be adjacent to two of its vertices, contrary to Lemma 2.8.~\qed
+ \end{proof}
+ \qedstep
+ \begin{proof}
+  \pf\ Steps \stepref{28triangle} and \stepref{28unique} give the unique common neighbour;
+  Lemma 2.8 gives the assertion about every outside vertex.~\qed
+ \end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{2.9}\label{lem:2.9}
+ \lean{LineSystem.Hyp24.orthGraph_iso_friendship_of_forall_adj}\uses{hyp:2.4,def:triangle-property,cor:triangle-property}
+ \assume{\begin{pfenum}
+  \item Hypothesis 2.4 holds in the finite-dimensional real inner product space $V$.
+  \item $X$ is its orthogonality graph and $x\in V(X)$ is adjacent to every other vertex.
+ \end{pfenum}}
+ \prove{There is an integer $m\geq0$ and a partition of $V(X)\diff\{x\}$ into $m$ pairs,
+  each of which makes a triangle with $x$. These are all the edges of $X$; thus $X$ is the friendship graph with $m$ triangles.}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ The unique triangle on each edge through $x$ pairs the other vertices.
+ We will use the outside-vertex condition to exclude edges between different pairs.
+ \step{29mate}{For $y\ne x$, let $f(x,y)$ be the unique common neighbour of $x,y$.
+  Then $f(x,y)\ne y,x$ and $f(x,f(x,y))=y$.}
+ \begin{proof}
+  \step{29exists}{$f(x,y)$ exists and differs from $x,y$.}
+  \begin{proof}\pf\ Apply Corollary~\ref{cor:triangle-property} to the edge $xy$.~\qed\end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ The vertex $y$ is a common neighbour of $x,f(x,y)$, so uniqueness in
+   Corollary~\ref{cor:triangle-property} gives $f(x,f(x,y))=y$.~\qed
+  \end{proof}
+ \end{proof}
+ \step{29pairs}{The sets $\{y,f(x,y)\}$ partition $V(X)\diff\{x\}$ into pairs.}
+ \begin{proof}
+  \pf\ Step \stepref{29mate} gives a fixed-point-free involution: its two-element
+  orbits cover the domain, and intersecting orbits coincide by applying the involution.~\qed
+ \end{proof}
+ \step{29edges}{There is no edge between two different pairs.}
+ \begin{proof}
+  \pf\ A vertex in a different pair lies outside $\{x,y,f(x,y)\}$ and is adjacent to $x$.
+  Corollary~\ref{cor:triangle-property} excludes adjacency to either $y$ or $f(x,y)$.~\qed
+ \end{proof}
+ \qedstep
+ \begin{proof}
+  \pf\ The finite partition in \stepref{29pairs} has some size $m\geq0$.
+  Step \stepref{29mate} supplies the triangle edges, and \stepref{29edges} excludes all others.
+  When $V(X)=\{x\}$ the partition is empty and $m=0$.~\qed
+ \end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(triangle-property normal forms)}\label{lem:triangle-normal-form}
+ \lean{SimpleGraph.HasTriangleProperty.normal_form_of_not_forall_adj}
+ \uses{def:triangle-property}
+ \assume{\begin{pfenum}
+  \item $X$ is a finite simple graph with the triangle property.
+  \item $X$ has an edge.
+  \item No vertex of $X$ is adjacent to every other vertex.
+ \end{pfenum}}
+ \prove{For every pair of distinct nonadjacent vertices $u,v$, put
+ \[
+ \begin{array}{ll}
+ K=\Gamma_1(u)\cap\Gamma_1(v),&L=\Gamma_1(u)\diff\Gamma_1(v),\\
+ M=\Gamma_1(v)\diff\Gamma_1(u),&
+ N=V(X)\diff\bigl(\{u,v\}\cup K\cup L\cup M\bigr),
+ \end{array}
+ \]
+ and put $k=|K|$. Then the following hold.
+ \begin{pfenum}
+  \item $k\in\{2,3,5\}$, $X$ is regular of degree $2k$, $|V(X)|=6k-3$, and
+   \repair\ $X$ is strongly regular with parameters $(6k-3,2k,1,k)$
+   (Error 12 of \path{cgss/errata.md}).
+  \item The sets $\{u\},\{v\},K,L,M,N$ partition $V(X)$, with $|L|=|M|=k$ and
+   $|N|=3k-5$. The labels $x'=f(u,x)$ and $x''=f(v,x)$ give bijections
+   $K\to L$ and $K\to M$.
+  \item $K,L,M$ are independent. For $x,y\in K$, $x\sim y'$ and $x\sim y''$
+   hold exactly when $x=y$, and $x'\sim y''$ holds exactly when $x\ne y$.
+  \item For $w\in N$, put $A(w)=K\diff\Gamma_1(w)$ and
+   $d_K(w)=|K\cap\Gamma_1(w)|$. Then $|A(w)|\in\{0,2\}$,
+   $d_K(w)\in\{k-2,k\}$, and $|N\cap\Gamma_1(w)|=d_K(w)$.
+   For $x\in K$, $w\sim x'$ and $w\sim x''$ hold exactly when $x\in A(w)$.
+  \item The graph on $N$ has $k(k-2)$ edges, each with its third vertex in $K$.
+   Moreover,
+   \[
+    \sum_{w\in N}d_K(w)=k(2k-4),\qquad
+    2|\{w\in N:d_K(w)=k\}|=(k-2)(5-k).
+   \]
+  \item If $k=2$, $N$ consists of one vertex $w$, with $A(w)=K$, and has no edges.
+  \item If $k=3$, the graph on $N$ is a claw with centre $w_0$, where $A(w_0)=\varnothing$.
+   Its leaves are $w_x$ for $x\in K$, with $A(w_x)=K\diff\{x\}$.
+  \item If $k=5$, the map $w\mapsto A(w)$ is a bijection from $N$ to the two-element
+   subsets of $K$, and adjacency in $N$ is disjointness of these labels.
+ \end{pfenum}
+ These rules and the definitions of $K,L,M,N$ specify every adjacency.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \new\ We separate the combinatorial argument from its application to
+ line systems. We will keep the paper's partition and prove regularity for arbitrary
+ pairs. The invariant $d_K$ gives both the bound on $k$ and the three normal forms.
+ All counting identities involving subtraction are read in $\ints$.
+
+ \step{210triangles}{Every edge $xy$ has a unique common neighbour $f(x,y)$.
+  Every vertex has positive degree and has a distinct non-neighbour.}
+ \begin{proof}
+  \step{210third}{The triangle on $xy$ is $\{x,y,f(x,y)\}$ and every outside vertex
+   sees exactly one vertex of it.}
+  \begin{proof}\pf\ Apply the triangle property in \asm[1]{0}.~\qed\end{proof}
+  \step{210positive}{Every vertex has positive degree.}
+  \begin{proof}
+   \pf\ A triangle exists since $X$ has an edge. Its vertices have degree at least 2,
+   and every other vertex has a neighbour in it by \stepref{210third}.~\qed
+  \end{proof}
+  \step{210nouniversal}{Every vertex has a distinct non-neighbour.}
+  \begin{proof}
+   \pf\ This is precisely \asm[3]{0}, the absence of a universal vertex.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Combine \stepref{210third}, \stepref{210positive}, and \stepref{210nouniversal}.~\qed\end{proof}
+ \end{proof}
+
+ \step{210local}{For every pair of distinct nonadjacent vertices $u,v$, define, excluding $u,v$,
+  \[
+  \begin{array}{ll}
+  K=\Gamma_1(u)\cap\Gamma_1(v),&
+  L=\Gamma_1(u)\diff\Gamma_1(v),\\
+  M=\Gamma_1(v)\diff\Gamma_1(u),&
+  N=V(X)\diff\bigl(\{u,v\}\cup K\cup L\cup M\bigr).
+  \end{array}
+  \]
+  These four sets are disjoint. If $k=|K|$, then $|L|=|M|=k>0$ and
+  $\deg(u)=\deg(v)=2k$. They admit labels
+  $L=\{x':x\in K\}$ and $M=\{x'':x\in K\}$ with the following complete edge rules:
+  $K,L,M$ are independent; $x\sim y'$ and $x\sim y''$ exactly when $x=y$;
+  $x'\sim y''$ exactly when $x\ne y$.
+  For $w\in N$, $w\sim x'$ and $w\sim x''$ hold exactly when $w\not\sim x$.}
+ \begin{proof}
+  \step{210pairing}{For $p\in\{u,v\}$ and the other vertex $q$, the triangles through $p$
+   partition $\Gamma_1(p)$ into pairs; $q$ sees exactly one vertex in each pair.}
+  \begin{proof}
+   \step{210involution}{On $\Gamma_1(p)$, the map $y\mapsto f(p,y)$ is a
+    fixed-point-free involution, and these pairs are all the edges within $\Gamma_1(p)$.}
+   \begin{proof}
+    \pf\ The proof of \stepref{210triangles} gives existence and uniqueness of the third
+    vertex. Thus $f(p,f(p,y))=y$. If two neighbours of $p$ are adjacent, uniqueness of
+    the common neighbour on an edge through $p$ makes them one of these pairs.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ Since $p\not\sim q$, the triangle property forces $q$ to see exactly one of
+    the two other vertices of each triangle through $p$.~\qed
+   \end{proof}
+  \end{proof}
+  \step{210labels}{For $x\in K$, put $x'=f(u,x)$ and $x''=f(v,x)$.
+   These define bijections $K\to L$ and $K\to M$, and give the stated rules inside
+   $K\cup L$ and $K\cup M$.}
+  \begin{proof}
+   \step{210onto}{Each pair through $u$ consists of one point of $K$ and one of $L$;
+    each pair through $v$ consists of one point of $K$ and one of $M$.}
+   \begin{proof}\pf\ Apply \stepref{210pairing} with $(p,q)=(u,v)$ and $(v,u)$, respectively.~\qed\end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ Step \stepref{210onto} gives the bijections. Since \stepref{210pairing} lists
+    every edge in either neighbourhood, each part is independent and the only edges
+    between its two parts are the labelled pairs.~\qed
+   \end{proof}
+  \end{proof}
+  \step{210lm}{$x'\sim y''$ if and only if $x\ne y$.}
+  \begin{proof}
+   \step{210same}{For $x=y$, $x'\not\sim x''$.}
+   \begin{proof}
+    \pf\ The vertex $x''$ sees $x$ and does not see $u$. Apply the triangle property to
+    $\{u,x,x'\}$ to exclude $x''\sim x'$.~\qed
+   \end{proof}
+   \step{210different}{For $x\ne y$, $x'\sim y''$.}
+   \begin{proof}
+    \pf\ The vertex $x'$ sees neither $v$ nor $y$, by its definition and
+    \stepref{210labels}. Applied to $\{v,y,y''\}$, the triangle property forces
+    $x'\sim y''$.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ The cases \stepref{210same} and \stepref{210different} are exhaustive.~\qed\end{proof}
+  \end{proof}
+  \step{210signature}{For $w\in N$ and $x\in K$, the adjacencies to $(x,x',x'')$
+   are either $(1,0,0)$ or $(0,1,1)$.}
+  \begin{proof}
+   \pf\ The vertex $w$ sees neither $u$ nor $v$. It must see one vertex in each
+   of $\{u,x,x'\}$ and $\{v,x,x''\}$ by the triangle property.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ The sets partition $V(X)\diff\{u,v\}$ by their two adjacency indicators.
+   Step \stepref{210labels} gives the equal cardinalities and degrees; positivity follows
+   from \stepref{210triangles}. The remaining assertions are
+   \stepref{210labels}, \stepref{210lm}, and \stepref{210signature}.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{210regular}{\repair\ $X$ is regular. We fill the paper's missing propagation
+  from nonadjacent pairs to arbitrary pairs (Gap 3 of \path{cgss/errata.md}).}
+ \begin{proof}
+  \step{210nonadjdeg}{Distinct nonadjacent vertices have equal degrees.}
+  \begin{proof}\pf\ This is the degree equality in \stepref{210local}, for an arbitrary pair.~\qed\end{proof}
+  \step{210adjdeg}{\assume{$p\sim q$.}\prove{$\deg(p)=\deg(q)$.}}
+  \begin{proof}
+   \pflet{$r=f(p,q)$. Choose $s\ne p$ nonadjacent to $p$, using \stepref{210triangles}.}
+   \step{210s}{The vertex $s$ is outside $\{p,q,r\}$ and sees exactly one of $q,r$.}
+   \begin{proof}
+    \pf\ Both $q,r$ see $p$, so $s\ne q,r$; apply the triangle property and $s\not\sim p$.~\qed
+   \end{proof}
+   \step{210seesr}{\case{$s\sim r$.}}
+   \begin{proof}
+    \pf\ Step \stepref{210s} gives $s\not\sim q$. Thus
+    $\deg(p)=\deg(s)=\deg(q)$ by \stepref{210nonadjdeg}.~\qed
+   \end{proof}
+   \step{210seesq}{\case{$s\sim q$.}}
+   \begin{proof}
+    \step{210prdeg}{$\deg(p)=\deg(r)$.}
+    \begin{proof}
+     \pf\ Step \stepref{210s} gives $s\not\sim r$;
+     apply \stepref{210nonadjdeg} to $p,s$ and $s,r$.~\qed
+    \end{proof}
+    \pflet{Choose $t\ne q$ nonadjacent to $q$, using \stepref{210triangles}.}
+    \step{210t}{The vertex $t$ is outside $\{p,q,r\}$ and sees exactly one of $p,r$.}
+    \begin{proof}\pf\ Since $p,r$ see $q$, the vertex $t$ differs from both. The triangle property gives one neighbour in $\{p,q,r\}$; it cannot be $q$.~\qed\end{proof}
+    \step{210tdegrees}{$\deg(q)$ equals $\deg(r)$ or $\deg(p)$.}
+    \begin{proof}
+     \pf\ If $t\sim p$, then $t\not\sim r$, so $\deg(q)=\deg(t)=\deg(r)$.
+     If $t\sim r$, then $t\not\sim p$, so $\deg(q)=\deg(t)=\deg(p)$.
+     Both equalities use \stepref{210nonadjdeg}; \stepref{210t} exhausts the cases.~\qed
+    \end{proof}
+    \qedstep
+    \begin{proof}\pf\ Use \stepref{210prdeg} in either alternative of \stepref{210tdegrees}.~\qed\end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ Step \stepref{210s} makes \stepref{210seesr} and \stepref{210seesq} exhaustive.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Identical vertices have equal degrees; distinct vertices are covered by
+   \stepref{210nonadjdeg} and \stepref{210adjdeg}.~\qed
+  \end{proof}
+ \end{proof}
+
+ \pflet{Fix arbitrary distinct nonadjacent $u,v$ and retain the sets and labels of
+ \stepref{210local}. Put $k=|K|$. By \stepref{210regular}, every vertex has degree $2k$.}
+ \step{210kge}{$k\geq2$.}
+ \begin{proof}
+  \step{210kone}{If $k=1$, then $X$ is a single triangle.}
+  \begin{proof}
+   \pf\ By \stepref{210regular}, every vertex would have degree 2. A triangle exists by
+   \stepref{210triangles}; its vertices already have two neighbours inside it, whereas
+   every outside vertex would have a neighbour in it. Thus there is no outside vertex.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Step \stepref{210local} gives $k>0$; \stepref{210kone} contradicts the chosen nonadjacent pair when $k=1$.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{210counts}{$|N|=3k-5$, $|V(X)|=6k-3$, and $X$ has strongly regular parameters
+  $(6k-3,2k,1,k)$. The graph on $N$ has $k(k-2)$ edges, and the third vertex
+  of every such edge lies in $K$.}
+ \begin{proof}
+  \step{210cross}{There are $4k^2-6k$ edges between $K\cup L\cup M$ and $N$.}
+  \begin{proof}
+   \step{210degreesintoN}{A vertex in $K$ has $2k-4$ neighbours in $N$;
+    a vertex in $L$ or $M$ has $k-1$ neighbours in $N$.}
+   \begin{proof}
+    \pf\ By \stepref{210local}, $x\in K$ has the four neighbours $u,v,x',x''$
+    outside $N$. A vertex $x'\in L$ has $u,x$ and the $k-1$ vertices $y''$ with
+    $y\ne x$ outside $N$; a vertex $x''\in M$ has $v,x$ and the $k-1$ vertices
+    $y'$ with $y\ne x$. Subtract these counts from degree $2k$.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ Sum \stepref{210degreesintoN} over the three parts, each of size $k$:
+    $k(2k-4)+k(k-1)+k(k-1)=4k^2-6k$.~\qed
+   \end{proof}
+  \end{proof}
+  \step{210Nedges}{The subgraph on $N$ has $k(k-2)$ edges, each with its third vertex in $K$.}
+  \begin{proof}
+   \step{210Nthird}{If $w,z\in N$ are adjacent, then $f(w,z)\in K$.}
+   \begin{proof}
+    \step{210Noutside}{Both $u$ and $v$ lie outside $\{w,z,f(w,z)\}$.}
+    \begin{proof}
+     \pf\ They differ from $w,z$ by the definition of $N$.
+     The vertex $f(w,z)$ is adjacent to $w$, whereas neither $u$ nor $v$ is;
+     thus they also differ from $f(w,z)$.~\qed
+    \end{proof}
+    \qedstep
+    \begin{proof}
+     \pf\ By \stepref{210Noutside}, the triangle property applies to $u$ and $v$.
+     Each sees neither $w$ nor $z$, so each sees $f(w,z)$. This is membership in $K$.~\qed
+    \end{proof}
+   \end{proof}
+   \step{210Kpairs}{Each $x\in K$ is the third vertex of exactly $k-2$ edges in $N$.}
+   \begin{proof}
+    \pf\ In the triangle pairing of the $2k$ neighbours of $x$, the pairs
+    $\{u,x'\}$ and $\{v,x''\}$ use its four neighbours outside $N$.
+    The remaining $2k-4$ neighbours pair within $N$, giving $k-2$ edges.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ Step \stepref{210Nthird} covers every edge in $N$; uniqueness of its third
+    vertex prevents double counting. Sum \stepref{210Kpairs} over $|K|=k$.~\qed
+   \end{proof}
+  \end{proof}
+  \step{210cardN}{$|N|=3k-5$ and $|V(X)|=6k-3$.}
+  \begin{proof}
+   \pf\ Counting the degree sum over $N$, using \stepref{210cross} and \stepref{210Nedges},
+   gives
+   \begin{align*}
+    2k|N|&=2k(k-2)+(4k^2-6k)&&\text{[internal edges count twice]}\\
+          &=2k(3k-5)&&\text{[ring arithmetic],}\\
+    |N|&=3k-5&&\text{[$2k>0$],}\\
+    |V(X)|&=2+3k+(3k-5)=6k-3&&\text{[the partition].}
+   \end{align*}
+   ~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Step \stepref{210cardN} gives the order and \stepref{210regular} the degree.
+   Step \stepref{210triangles} gives one common neighbour on each edge.
+   For any nonadjacent pair, \stepref{210local} gives half its degree as the number
+   of common neighbours, namely $k$. These are the four strongly regular parameters.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{210dK}{\repair\ For $w\in N$, put
+  $A(w)=K\diff\Gamma_1(w)$ and $d_K(w)=|K\cap\Gamma_1(w)|$.
+  Then $|A(w)|\in\{0,2\}$, $d_K(w)\in\{k-2,k\}$, and
+  $|N\cap\Gamma_1(w)|=d_K(w)$. We replace the unsupported pigeonhole argument
+  by this invariant (Gap 1 of \path{cgss/errata.md}).}
+ \begin{proof}
+  \step{210KNpairing}{In the triangle pairing at $w$, its neighbours in $K$ pair
+   with its neighbours in $N$. Its neighbours in $L$ pair with its neighbours in $M$.}
+  \begin{proof}
+   \step{210KtoN}{If $w\sim x\in K$, then $f(w,x)\in N$.}
+   \begin{proof}
+    \pf\ Each of $u,v$ is adjacent to $x$ and not to $w$. The triangle property
+    excludes adjacency to $f(w,x)$. Also $f(w,x)\ne u,v$, since both are nonadjacent
+    to $w$. The definition of $N$ applies.~\qed
+   \end{proof}
+   \step{210NtoK}{If $w\sim z\in N$, then $f(w,z)\in K$.}
+   \begin{proof}
+    \pf\ Apply the third-vertex assertion of \stepref{210counts} to the edge $wz$.~\qed
+   \end{proof}
+   \step{210LMclosed}{The partner of a neighbour of $w$ in $L\cup M$ lies in $L\cup M$.}
+   \begin{proof}
+    \pflet{Let $y\in(L\cup M)\cap\Gamma_1(w)$ and put $z=f(w,y)$.}
+    \step{210partnerback}{$f(w,z)=y$.}
+    \begin{proof}\pf\ The vertex $y$ is a common neighbour of $w,z$;
+     uniqueness in \stepref{210triangles} gives the equality.~\qed\end{proof}
+    \step{210partnernotUV}{$z\notin\{u,v\}$.}
+    \begin{proof}\pf\ The vertex $z$ is adjacent to $w$, whereas $u,v$ are not.~\qed\end{proof}
+    \step{210partnernotK}{$z\notin K$.}
+    \begin{proof}\pf\ If $z\in K$, \stepref{210KtoN} gives
+     $f(w,z)\in N$, contrary to \stepref{210partnerback} and $y\in L\cup M$.~\qed\end{proof}
+    \step{210partnernotN}{$z\notin N$.}
+    \begin{proof}\pf\ If $z\in N$, \stepref{210NtoK} gives
+     $f(w,z)\in K$, contrary to \stepref{210partnerback} and $y\in L\cup M$.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ The partition in \stepref{210local} and
+     \stepref{210partnernotUV}, \stepref{210partnernotK}, \stepref{210partnernotN}
+     leave only $L\cup M$.~\qed\end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ The involution $y\mapsto f(w,y)$ pairs the neighbours of $w$.
+    Steps \stepref{210KtoN} and \stepref{210NtoK} pair all its $K$ and $N$ neighbours.
+    Step \stepref{210LMclosed} keeps every remaining pair in $L\cup M$.
+    Neither part has internal edges by \stepref{210local}, so each such pair has
+    one vertex in each part.~\qed
+   \end{proof}
+  \end{proof}
+  \step{210Asize}{If $A(w)\ne\varnothing$, then $|A(w)|=2$.}
+  \begin{proof}
+   \pflet{Choose $x\in A(w)$.}
+   \step{210common}{The common neighbours of $w,x'$ are exactly
+    $\{y'':y\in A(w),\ y\ne x\}$.}
+   \begin{proof}
+    \pf\ The signature in \stepref{210local} gives $w\sim x'$.
+    By \stepref{210KNpairing} their unique common neighbour lies in $M$.
+    For $y\in K$, we have $w\sim y''$ exactly when $y\in A(w)$, and
+    $x'\sim y''$ exactly when $y\ne x$, by \stepref{210local}.
+    Thus the displayed set lists all, and only, common neighbours.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ An edge has exactly one common neighbour by \stepref{210triangles}.
+    The bijection $y\mapsto y''$ in \stepref{210local} and \stepref{210common}
+    give $|A(w)|-1=1$.~\qed
+   \end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Either $A(w)$ is empty or \stepref{210Asize} applies.
+   Since $d_K(w)=k-|A(w)|$, its two possible values follow.
+   The $K,N$ pairing in \stepref{210KNpairing} gives the asserted equality of degrees.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{210degreeSum}{$\sum_{w\in N}d_K(w)=k(2k-4)$.}
+ \begin{proof}
+  \pf\ Each $x\in K$ has $2k-4$ neighbours in $N$: its four neighbours outside $N$
+  are $u,v,x',x''$ by \stepref{210local}, and its degree is $2k$.
+  Count edges between $K,N$ from the two ends.~\qed
+ \end{proof}
+ \pflet{$h\triangleq|\{w\in N:d_K(w)=k\}|$.}
+ \step{210highcount}{$2h=(k-2)(5-k)$.}
+ \begin{proof}
+  \pf\ By \stepref{210dK} and \stepref{210counts}, the sum in \stepref{210degreeSum} is
+  $(|N|-h)(k-2)+hk=(3k-5)(k-2)+2h$.
+  Equating the two expressions and subtracting gives the formula.~\qed
+ \end{proof}
+ \step{210combbound}{\new\ $2\leq k\leq5$. We obtain the upper bound without a
+  Gram matrix, so the result applies to an arbitrary graph with the triangle property.}
+ \begin{proof}
+  \step{210negative}{If $k>5$, then $(k-2)(5-k)<0$.}
+  \begin{proof}\pf\ We have $k-2>0$ and $5-k<0$; multiply these inequalities.~\qed\end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ The cardinality $h$ is nonnegative. Thus \stepref{210highcount} contradicts
+   \stepref{210negative} if $k>5$. The lower bound is \stepref{210kge}.~\qed
+  \end{proof}
+ \end{proof}
+ \step{210exclude}{\repair\ We have $k\in\{2,3,5\}$ (Gap 1).}
+ \begin{proof}
+  \step{210highforces}{If $h>0$, then $k=3$.}
+  \begin{proof}
+   \pflet{Choose $w_0\in N$ with $d_K(w_0)=k$.}
+   \step{210choosez}{There is $z\in N$ adjacent to $w_0$.}
+   \begin{proof}\pf\ Steps \stepref{210dK} and \stepref{210kge} give at least two neighbours of $w_0$ in $N$.~\qed\end{proof}
+   \pflet{Choose such a $z$ and put $x=f(w_0,z)$.}
+   \step{210zone}{$K\cap\Gamma_1(z)=\{x\}$.}
+   \begin{proof}
+    \pf\ Step \stepref{210counts} puts $x$ in $K$.
+    If $y\in K\diff\{x\}$, then $y\sim w_0$ and $y\not\sim x$, since $K$ is independent.
+    The triangle property for $\{w_0,z,x\}$ forces $y\not\sim z$.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ Step \stepref{210zone} gives $d_K(z)=1$.
+    By \stepref{210dK}, $1=k-2$ or $1=k$; \stepref{210kge} excludes the second,
+    so $k=3$.~\qed
+   \end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Step \stepref{210combbound} leaves $k=2,3,4,5$.
+   At $k=4$, \stepref{210highcount} gives $h=1$, whereas
+   \stepref{210highforces} gives $k=3$. Thus $k=4$ is impossible.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{210two}{\repair\ (Gap 2.) If $k=2$, the labelled graph is uniquely determined:
+  $N$ consists of one vertex $w$, with $A(w)=K$, and has no edges.}
+ \begin{proof}
+  \step{210twoN}{$|N|=1$ and $d_K(w)=0$.}
+  \begin{proof}
+   \pf\ Step \stepref{210counts} gives $|N|=1$.
+   A simple graph on one vertex has degree 0, so \stepref{210dK} gives $d_K(w)=0$.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Step \stepref{210twoN} gives $A(w)=K$.
+   The signature in \stepref{210local} makes $w$ adjacent to every vertex of $L\cup M$
+   and to none of $K\cup\{u,v\}$. The remaining edges are all listed in
+   \stepref{210local}. Thus every edge is determined by labels on the two elements of $K$.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{210three}{\repair\ (Gap 2.) If $k=3$, the subgraph on $N$ is a claw. Its centre sees all
+  of $K$ and its three leaves correspond bijectively to $K$ by their unique neighbour there.
+  These labels determine the whole graph.}
+ \begin{proof}
+  \step{210centre}{There is exactly one $w_0\in N$ with $d_K(w_0)=3$;
+   the other three vertices have $d_K=1$.}
+  \begin{proof}
+   \pf\ Step \stepref{210highcount} gives $2h=(3-2)(5-3)=2$.
+   Thus $h=1$; \stepref{210counts} gives $|N|=4$, and \stepref{210dK}
+   gives the values 1 or 3.~\qed
+  \end{proof}
+  \step{210claw}{The vertex $w_0$ is adjacent to all three other vertices of $N$,
+   and they are pairwise nonadjacent.}
+  \begin{proof}
+   \pf\ By \stepref{210dK}, the degrees inside $N$ are 3 for $w_0$ and 1 for
+   the others. Its three edges use the entire degree of each of the other vertices.~\qed
+  \end{proof}
+  \step{210leaflabels}{For each $x\in K$ there is exactly one leaf $w_x$ with
+   $K\cap\Gamma_1(w_x)=\{x\}$.}
+  \begin{proof}
+   \pf\ By \stepref{210local} and \stepref{210regular}, the vertex $x$ has
+   $2k-4=2$ neighbours in $N$, of which one is $w_0$.
+   Its other neighbour is a leaf. Conversely, each leaf has exactly one neighbour in $K$
+   by \stepref{210centre}. Thus this incidence is a bijection.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Steps \stepref{210centre}, \stepref{210claw}, and \stepref{210leaflabels}
+   determine $N$ and its incidences with $K$.
+   The signature in \stepref{210local} determines its incidences with $L,M$;
+   the same step already lists all other edges.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{210five}{\repair\ (Gap 2.) If $k=5$, the map
+  $w\mapsto A(w)=K\diff\Gamma_1(w)$ is a bijection from $N$ to the two-element subsets
+  of $K$. Two vertices of $N$ are adjacent exactly when their labels are disjoint.
+  These labels determine the whole graph.}
+ \begin{proof}
+  \step{210pairsizes}{$d_K(w)=3$ and $|A(w)|=2$ for every $w\in N$.}
+  \begin{proof}
+   \pf\ Step \stepref{210counts} gives $|N|=10$ and \stepref{210degreeSum} gives
+   $\sum_{w\in N}d_K(w)=5(10-4)=30$. Each summand is 3 or 5 by \stepref{210dK};
+   the minimum total is already 30, so every summand is 3.~\qed
+  \end{proof}
+  \step{210pairlabel}{For distinct $x,y\in K$, there is exactly one $w\in N$
+   with $A(w)=\{x,y\}$.}
+  \begin{proof}
+   \step{210edgeLM}{$x'$ and $y''$ are adjacent and their third vertex lies in $N$.}
+   \begin{proof}
+    \step{210noCore}{They have no common neighbour in $\{u,v\}\cup K\cup L\cup M$.}
+    \begin{proof}
+     \pf\ The vertex $u$ does not see $y''$, and $v$ does not see $x'$.
+     Their respective neighbours in $K$ are the distinct vertices $x,y$.
+     The set $L$ is independent and contains $x'$; the set $M$ is independent and
+     contains $y''$. These observations exclude each of the five parts.~\qed
+    \end{proof}
+    \qedstep
+    \begin{proof}
+     \pf\ Step \stepref{210local} gives $x'\sim y''$.
+     Their unique common neighbour exists by \stepref{210triangles};
+     \stepref{210noCore} and the partition put it in $N$.~\qed
+    \end{proof}
+   \end{proof}
+   \step{210labelvalue}{For $w=f(x',y'')$, $A(w)=\{x,y\}$.}
+   \begin{proof}
+    \pf\ Since $w$ sees $x',y''$, the signature in \stepref{210local} gives
+    $x,y\in A(w)$. Step \stepref{210pairsizes} gives $|A(w)|=2$, so these are all its elements.~\qed
+   \end{proof}
+   \step{210labelunique}{Any $z\in N$ with $A(z)=\{x,y\}$ equals $w$.}
+   \begin{proof}
+    \pf\ The signature makes $z$ a common neighbour of $x',y''$;
+    uniqueness of the third vertex gives $z=f(x',y'')=w$.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ Steps \stepref{210labelvalue} and \stepref{210labelunique} give existence and uniqueness.~\qed\end{proof}
+  \end{proof}
+  \step{210disjoint}{For $w,z\in N$, $w\sim z$ if and only if $A(w)\cap A(z)=\varnothing$.}
+  \begin{proof}
+   \step{210adjdisjoint}{If $w\sim z$, then $A(w)\cap A(z)=\varnothing$.}
+   \begin{proof}
+    \pf\ Their third vertex $x$ is in $K$ by \stepref{210counts}.
+    Every $y\in K\diff\{x\}$ is
+    nonadjacent to $x$, so the triangle property makes it adjacent to exactly one of
+    $w,z$; $x$ is adjacent to both. Thus no element of $K$ is missed by both.~\qed
+   \end{proof}
+   \step{210threechoices}{For fixed $w$, there are exactly three $z\in N$ whose labels
+    are disjoint from $A(w)$, and exactly three neighbours of $w$ in $N$.}
+   \begin{proof}
+    \pf\ The complement of $A(w)$ in $K$ has three elements, and thus three two-element
+    subsets. Step \stepref{210pairlabel} gives exactly one vertex for each.
+    Steps \stepref{210dK} and \stepref{210pairsizes} give degree 3 within $N$.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ Step \stepref{210adjdisjoint} gives inclusion of the neighbour set in the
+    disjoint-label set; \stepref{210threechoices} gives equal finite cardinalities,
+    so the two sets coincide.~\qed
+   \end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Steps \stepref{210pairsizes} and \stepref{210pairlabel} give the bijection,
+   and \stepref{210disjoint} gives the graph on $N$, the two-subset model of the Petersen
+   graph. The labels give all incidences with $K$, their complements give those with
+   $L,M$ by \stepref{210local}, and there are no incidences with $u,v$.~\qed
+  \end{proof}
+ \end{proof}
+
+ \qedstep
+ \begin{proof}
+  \pf\ Steps \stepref{210local}, \stepref{210regular}, and \stepref{210counts}
+  give the partition, edge rules, regularity and parameters.
+  Steps \stepref{210dK}, \stepref{210degreeSum}, and \stepref{210highcount}
+  give the degree identities. Step \stepref{210exclude} leaves exactly the three cases
+  proved in \stepref{210two}, \stepref{210three}, and \stepref{210five}.
+  The pair $u,v$ was arbitrary.~\qed
+ \end{proof}
+\end{proof}
+
+\begin{namedresult}{Lemma}{(isomorphism from the order)}\label{lem:triangle-iso}
+ \lean{SimpleGraph.HasTriangleProperty.nonempty_iso_of_card_eq}
+ \uses{def:triangle-property,lem:triangle-normal-form}
+ \assume{\begin{pfenum}
+  \item $X,Y$ are finite simple graphs with the triangle property, and each has an edge.
+  \item Neither graph has a vertex adjacent to every other vertex.
+  \item $|V(X)|=|V(Y)|$.
+ \end{pfenum}}
+ \prove{There is a graph isomorphism $X\to Y$.}
+\end{namedresult}
+\begin{proof}
+ \pfsketch\ \repair\ We will apply the normal-form lemma separately to the two graphs
+ and match their labels. This completes the uniqueness argument of Gap 2.
+ \step{210pairs}{Choose distinct nonadjacent $u,v\in V(X)$ and
+  $\widetilde u,\widetilde v\in V(Y)$.}
+ \begin{proof}
+  \pf\ Each graph has a vertex since it has an edge. By \asm[2]{0}, that vertex
+  has a distinct non-neighbour, in each graph.~\qed
+ \end{proof}
+ \step{210formX}{The normal-form lemma applies to $X,u,v$; write $k_X=|K|$.
+  In particular $|V(X)|=6k_X-3$.}
+ \begin{proof}\pf\ Apply Lemma~\ref{lem:triangle-normal-form} to the hypotheses on $X$
+  and the first pair in \stepref{210pairs}.~\qed\end{proof}
+ \step{210formY}{The normal-form lemma applies to $Y,\widetilde u,\widetilde v$;
+  write $k_Y=|\widetilde K|$. In particular $|V(Y)|=6k_Y-3$.}
+ \begin{proof}\pf\ Apply Lemma~\ref{lem:triangle-normal-form} to the hypotheses on $Y$
+  and the second pair in \stepref{210pairs}.~\qed\end{proof}
+ \step{210samek}{$k_X=k_Y$.}
+ \begin{proof}\pf\ By \asm[3]{0}, \stepref{210formX} and \stepref{210formY},
+  $6k_X-3=6k_Y-3$; cancellation gives the equality.~\qed\end{proof}
+ \pflet{Write $k$ for this common value, use tildes for the parts of $Y$,
+  and choose a bijection $\beta:K\to\widetilde K$, using \stepref{210samek}.}
+ \step{210iso}{\repair\ The bijection $\beta$ extends to a graph isomorphism (Gap 2).}
+ \begin{proof}
+  \step{210extend}{Extend $\beta$ by $u\mapsto\widetilde u$, $v\mapsto\widetilde v$,
+   $x'\mapsto\beta(x)'$, $x''\mapsto\beta(x)''$, and the following rule on $N$:
+   send the single vertex to the single vertex when $k=2$; send centre to centre and
+   $w_x$ to $\widetilde w_{\beta(x)}$ when $k=3$; send label $A$ to label $\beta(A)$
+   when $k=5$. The resulting map $\psi$ is a bijection.}
+  \begin{proof}
+   \step{210extendcore}{The prescribed maps on $\{u\},\{v\},K,L,M$ are bijections
+    onto the corresponding parts of $Y$.}
+   \begin{proof}\pf\ The label maps from $K$ to $L,M$ are bijections in both
+    \stepref{210formX} and \stepref{210formY}; compose these with $\beta$.~\qed\end{proof}
+   \step{210extendtwo}{When $k=2$, the map on $N$ is a bijection.}
+   \begin{proof}\pf\ Both sets are singletons by part 6 of the normal-form lemma.~\qed\end{proof}
+   \step{210extendthree}{When $k=3$, the map on $N$ is a bijection.}
+   \begin{proof}\pf\ Part 7 of the normal-form lemma gives one centre and a
+    bijective leaf labelling by $K$ in each graph; $\beta$ matches the labels.~\qed\end{proof}
+   \step{210extendfive}{When $k=5$, the map on $N$ is a bijection.}
+   \begin{proof}\pf\ Part 8 of the normal-form lemma identifies both sets with
+    two-element subsets, and $A\mapsto\beta(A)$ is a bijection on these subsets.~\qed\end{proof}
+   \qedstep
+   \begin{proof}\pf\ The parts partition both vertex sets by the normal-form lemma.
+    Step \stepref{210extendcore} and the exhaustive cases
+    \stepref{210extendtwo}, \stepref{210extendthree}, \stepref{210extendfive}
+    give a bijection on their disjoint unions.~\qed\end{proof}
+  \end{proof}
+  \step{210preserve}{The map $\psi$ preserves adjacency and nonadjacency.}
+  \begin{proof}
+   \step{210coreedges}{It preserves all pairs with neither endpoint in $N$.}
+   \begin{proof}
+    \step{210coreuv}{The pair $u,v$ is a nonedge in each graph.}
+    \begin{proof}\pf\ This is the choice in \stepref{210pairs}.~\qed\end{proof}
+    \step{210coreuK}{Every pair $u,x$ with $x\in K$ is an edge in each graph.}
+    \begin{proof}\pf\ This is the definition of $K$.~\qed\end{proof}
+    \step{210coreuL}{Every pair $u,x'$ with $x'\in L$ is an edge in each graph.}
+    \begin{proof}\pf\ This is the definition of $L$.~\qed\end{proof}
+    \step{210coreuM}{Every pair $u,x''$ with $x''\in M$ is a nonedge in each graph.}
+    \begin{proof}\pf\ This is the definition of $M$.~\qed\end{proof}
+    \step{210corevK}{Every pair $v,x$ with $x\in K$ is an edge in each graph.}
+    \begin{proof}\pf\ This is the definition of $K$.~\qed\end{proof}
+    \step{210corevL}{Every pair $v,x'$ with $x'\in L$ is a nonedge in each graph.}
+    \begin{proof}\pf\ This is the definition of $L$.~\qed\end{proof}
+    \step{210corevM}{Every pair $v,x''$ with $x''\in M$ is an edge in each graph.}
+    \begin{proof}\pf\ This is the definition of $M$.~\qed\end{proof}
+    \step{210coresamePart}{Pairs within any one part $D\in\{K,L,M\}$ are nonedges in each graph.}
+    \begin{proof}\pf\ Each such $D$ is independent by part 3 of the normal-form lemma.~\qed\end{proof}
+    \step{210coreKL}{The relation $x\sim y'$ is preserved in both directions.}
+    \begin{proof}\pf\ In each graph it is $x=y$, by part 3 of the normal-form lemma; $\beta$ preserves and reflects equality.~\qed\end{proof}
+    \step{210coreKM}{The relation $x\sim y''$ is preserved in both directions.}
+    \begin{proof}\pf\ In each graph it is $x=y$, by part 3 of the normal-form lemma; $\beta$ preserves and reflects equality.~\qed\end{proof}
+    \step{210coreLM}{The relation $x'\sim y''$ is preserved in both directions.}
+    \begin{proof}\pf\ In each graph it is $x\ne y$, by part 3 of the normal-form lemma; $\beta$ preserves and reflects inequality.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ The listed pair types exhaust the five parts
+     $\{u\},\{v\},K,L,M$. Loops are nonedges because the graphs are simple.~\qed\end{proof}
+   \end{proof}
+   \step{210mixededges}{It preserves all pairs with exactly one endpoint in $N$.}
+   \begin{proof}
+    \step{210mixeduv}{Vertices of $N$ are adjacent to neither $u$ nor $v$ in either graph.}
+    \begin{proof}\pf\ This is the definition of $N$.~\qed\end{proof}
+    \step{210mixedtwo}{For $k=2$, $\beta(A(w))=\widetilde A(\psi(w))$.}
+    \begin{proof}\pf\ Both missed sets are the whole of $K$ or $\widetilde K$,
+     respectively, by part 6 of the normal-form lemma.~\qed\end{proof}
+    \step{210mixedthree}{For $k=3$, $\beta(A(w))=\widetilde A(\psi(w))$.}
+    \begin{proof}
+     \step{210mixedcentre}{The equality holds at the centre.}
+     \begin{proof}\pf\ Both missed sets are empty by part 7 of the normal-form lemma.~\qed\end{proof}
+     \step{210mixedleaf}{The equality holds at each leaf $w_x$.}
+     \begin{proof}\pf\ Its missed set is $K\diff\{x\}$ and its image has missed set
+      $\widetilde K\diff\{\beta(x)\}$, by part 7 of the normal-form lemma.~\qed\end{proof}
+     \qedstep
+     \begin{proof}\pf\ A claw consists of its centre and leaves; apply
+      \stepref{210mixedcentre} and \stepref{210mixedleaf}.~\qed\end{proof}
+    \end{proof}
+    \step{210mixedfive}{For $k=5$, $\beta(A(w))=\widetilde A(\psi(w))$.}
+    \begin{proof}\pf\ This is the definition of $\psi$ on the two-subset labels
+     in \stepref{210extend}.~\qed\end{proof}
+    \step{210mixedK}{Pairs between $N$ and $K$ are preserved in both directions.}
+    \begin{proof}\pf\ Adjacency is $x\notin A(w)$ by definition.
+     Steps \stepref{210mixedtwo}, \stepref{210mixedthree}, and \stepref{210mixedfive}
+     preserve this condition in every possible case.~\qed\end{proof}
+    \step{210mixedL}{Pairs between $N$ and $L$ are preserved in both directions.}
+    \begin{proof}\pf\ The relation $w\sim x'$ is $x\in A(w)$ by part 4 of the
+     normal-form lemma, preserved by the three missed-set equalities above.~\qed\end{proof}
+    \step{210mixedM}{Pairs between $N$ and $M$ are preserved in both directions.}
+    \begin{proof}\pf\ The relation $w\sim x''$ is $x\in A(w)$ by part 4 of the
+     normal-form lemma, preserved by the same equalities.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ Steps \stepref{210mixeduv}, \stepref{210mixedK},
+     \stepref{210mixedL}, and \stepref{210mixedM} exhaust the other endpoint.~\qed\end{proof}
+   \end{proof}
+   \step{210internaledges}{It preserves all pairs with both endpoints in $N$.}
+   \begin{proof}
+    \step{210internaltwo}{When $k=2$, there are no edges in either $N$.}
+    \begin{proof}\pf\ Both sets are singletons by part 6 of the normal-form lemma.~\qed\end{proof}
+    \step{210internalthree}{When $k=3$, adjacency within $N$ is preserved in both directions.}
+    \begin{proof}\pf\ Part 7 of the normal-form lemma says that the edges join
+     the centre to a leaf, and \stepref{210extend} preserves these roles.~\qed\end{proof}
+    \step{210internalfive}{When $k=5$, adjacency within $N$ is preserved in both directions.}
+    \begin{proof}\pf\ Part 8 of the normal-form lemma says that adjacency is disjointness
+     of labels; $\beta(A)\cap\beta(B)=\beta(A\cap B)$ since $\beta$ is injective.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ The normal-form lemma gives $k\in\{2,3,5\}$, so the three
+     preceding cases are exhaustive.~\qed\end{proof}
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ Steps \stepref{210coreedges}, \stepref{210mixededges}, and
+    \stepref{210internaledges} exhaust all pairs.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ The bijection \stepref{210extend} and the equivalence of
+   adjacency in \stepref{210preserve} define a graph isomorphism.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Step \stepref{210iso} gives the required isomorphism.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Lemma}{2.10}\label{lem:2.10}
+ \lean{LineSystem.Hyp24.card_Γa_mem}
+ \lean{LineSystem.Hyp24.orthGraph_iso_of_card_Γa_eq}
+ \lean{LineSystem.Hyp24.orthGraph_isSRGWith}
+ \uses{hyp:2.4,lem:2.6,lem:2.9,cor:triangle-property,lem:triangle-normal-form,lem:triangle-iso,facts:inner,comp:C1}
+ \assume{\begin{pfenum}
+  \item Hypothesis 2.4 holds in the finite-dimensional real inner product space $V$,
+   and $X$ is its orthogonality graph on $\Ga$.
+  \item $X$ has an edge, is noncomplete, and no vertex is adjacent to every other vertex.
+ \end{pfenum}}
+ \prove{$|\Ga|\in\{9,15,27\}$, and the graph is unique up to isomorphism in each case.
+  More explicitly, if another instance of Hypothesis 2.4 in a finite-dimensional real inner
+  product space $W$ satisfies the same graph hypotheses and has the same value of $|\Ga|$,
+  its orthogonality graph is isomorphic to $X$.
+  Moreover, \repair\ $X$ is strongly regular with parameters $(6k-3,2k,1,k)$ for some
+  $k\in\{2,3,5\}$ (Error 12).}
+\end{cgss}
+\begin{proof}
+ \pfsketch\ The two graph lemmas give the conclusion. We will also retain the paper's
+ Gram-matrix proof of the upper bound on $k$, including computation C1.
+ By Lemma 2.9, having a universal vertex is equivalent here to being a friendship graph.
+ Thus our precise hypothesis matches the paper's exclusion of that family; we retain its
+ noncompleteness hypothesis as well.
+ \step{210apply}{For any distinct nonadjacent $u,v$ and $k=|\Gamma_1(u)\cap\Gamma_1(v)|$,
+  the normal-form conclusions hold. In particular $|\Ga|\in\{9,15,27\}$ and
+  $X$ has the stated strongly regular parameters.}
+ \begin{proof}
+  \pf\ Corollary~\ref{cor:triangle-property} supplies the triangle property.
+  Apply Lemma~\ref{lem:triangle-normal-form} and substitute $k=2,3,5$ in $6k-3$.~\qed
+ \end{proof}
+ \step{210unique}{Any second instance with the same graph hypotheses and order has
+  an orthogonality graph isomorphic to $X$.}
+ \begin{proof}
+  \raggedright\pf\ Corollary~\ref{cor:triangle-property} gives the triangle property for each
+  instance. Apply Lemma~\ref{lem:triangle-iso} to the two graphs.~\qed
+ \end{proof}
+ \step{210paperBound}{The paper's Gram-matrix argument gives a second proof of $k\leq5$.}
+ \begin{proof}
+  \pflet{Choose distinct nonadjacent $u,v$ and use the partition and labels of
+   Lemma~\ref{lem:triangle-normal-form}. Write $\Zu,\Zv,\Zx,\Zx',\Zx''$ for their
+   representing vectors and put $k=|K|\geq2$, by \stepref{210apply}.}
+ \step{210gram}{The following are Gram matrices, first for the family
+  \[\Zu,\Zv,(\Zx)_{x\in K},(\Zx')_{x\in K},(\Zx'')_{x\in K},\]
+  then for its five block sums
+  \[\Zu,\Zv,\sum_{x\in K}\Zx,\sum_{x\in K}\Zx',\sum_{x\in K}\Zx''.\]
+  \[
+  B_0=\begin{pmatrix}
+  2&1&0^T&0^T&\Zj^T\\
+  1&2&0^T&\Zj^T&0^T\\
+  0&0&I+J&J-I&J-I\\
+  0&\Zj&J-I&I+J&I\\
+  \Zj&0&J-I&I&I+J
+  \end{pmatrix},
+  \]
+  \[
+  B=\begin{pmatrix}
+  2&1&0&0&k\\
+  1&2&0&k&0\\
+  0&0&k^2+k&k^2-k&k^2-k\\
+  0&k&k^2-k&k^2+k&k\\
+  k&0&k^2-k&k&k^2+k
+  \end{pmatrix}.
+  \]
+  Here $I,J$ have size $k$ and $\Zj$ has $k$ entries all equal to 1.
+  We number the displayed rows and columns from 1.}
+ \begin{proof}
+  \step{210entries}{For distinct vertices $x,y$, $(\Zx,\Zy)=0$ on edges and 1 on nonedges.}
+  \begin{proof}\pf\ Use the definition of $X$ and Lemma 2.6; diagonal products are 2.~\qed\end{proof}
+  \step{210blocks}{The displayed blocks of $B_0$ follow from Lemma~\ref{lem:triangle-normal-form}.}
+  \begin{proof}
+   \pf\ Independent parts give $I+J$; matched edges give $J-I$;
+   all edges except matched pairs give $I$. The products with $\Zu,\Zv$ follow from
+   the definitions of $K,L,M$, using \stepref{210entries}.~\qed
+  \end{proof}
+  \step{210sums}{The matrix $B$ consists of the block sums of $B_0$.}
+  \begin{proof}
+   \pf\ Bilinearity gives each sum-vector product as the corresponding double sum.
+   The sums of the entries of $I+J,J-I,I$ are $k^2+k,k^2-k,k$, respectively;
+   those of $\Zj$ and 0 are $k$ and 0.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Steps \stepref{210blocks} and \stepref{210sums} prove the formulas.
+   \repair\ In particular $B(3,1)=0$, correcting the printed 2 (Error 3 of
+   \path{cgss/errata.md}): for every $x\in K$, the vector $\Zx$ is orthogonal to $\Zu$.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{210bound}{$2\leq k\leq5$.}
+ \begin{proof}
+  \step{210psd}{The matrix $D$ obtained by deleting row and column 1 of $B$ is positive
+   semidefinite, so $\det D\geq0$.}
+  \begin{proof}
+   \step{210Dgram}{$D$ is the Gram matrix of
+    $\Zv,\sum_{x\in K}\Zx,\sum_{x\in K}\Zx',\sum_{x\in K}\Zx''$.}
+   \begin{proof}\pf\ Delete the first vector from the block-sum family in
+    \stepref{210gram}.~\qed\end{proof}
+   \step{210Dpsd}{$D$ is positive semidefinite.}
+   \begin{proof}
+    \pf\ Apply \texttt{Matrix.posSemidef\_gram} in
+    \path{Mathlib/Analysis/InnerProductSpace/GramMatrix.lean}
+    directly to the four-vector family in \stepref{210Dgram}.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \raggedright\pf\ Apply \path{Matrix.PosSemidef.det_nonneg} in
+    \path{Mathlib/Analysis/Matrix/PosDef.lean} to \stepref{210Dpsd}.
+    We index the real matrix by \texttt{Fin 4}, a finite type with decidable equality.~\qed
+   \end{proof}
+  \end{proof}
+  \step{210det}{Computation C1: $\det D=2k^5(5-k)$.}\label{comp:C1}
+  \lean{Computations.C1.det_blockSumMinor}\uses{}
+  \begin{proof}
+   \raggedright\pf\ Expanding along the first row $(2,0,k,0)$ gives
+   \begin{align*}
+    \det D&=2\bigl(k^5(7-k)\bigr)+k\bigl(-4k^4\bigr)
+      &&\text{[the two $3\times3$ minors]}\\
+     &=2k^5(5-k)&&\text{[ring arithmetic].}
+   \end{align*}
+   Each $3\times3$ minor is its six-term determinant expansion. Thus C1 is a polynomial
+   identity, certified by \path{Matrix.det_succ_row_zero} in
+   \path{Mathlib/LinearAlgebra/Matrix/Determinant/Basic.lean}, with $D$ indexed by
+   \texttt{Fin (3+1)}. For each minor use \path{Matrix.det_fin_three} in the same file,
+   with index type \texttt{Fin 3}, then ring arithmetic.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Steps \stepref{210psd} and \stepref{210det} give $2k^5(5-k)\geq0$.
+   Since $k\geq2$ by \stepref{210apply}, division by $2k^5>0$ gives $k\leq5$.~\qed
+  \end{proof}
+ \end{proof}
+
+  \qedstep
+  \begin{proof}\pf\ Step \stepref{210bound} is the claimed second proof.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}\pf\ Steps \stepref{210apply} and \stepref{210unique} give the assertions
+  of the lemma; \stepref{210paperBound} records the paper's bound as well.~\qed\end{proof}
+\end{proof}
+
+\begin{cgss}{Remark}{2.11}\label{rem:2.11}
+ \uses{cor:triangle-property}
+ \emph{Side claim, not formalized.} We quote [CGSS]:
+ \begin{quote}
+ Similar methods may be used to prove the characterization of symplectic and orthogonal
+ graphs over $\mathrm{GF}(2)$ by the triangle property, cf. [24, 21].
+ \end{quote}
+ We attach no Lean declaration to this side claim.
+\end{cgss}
+
+\begin{cgss}{Lemma}{2.12}\label{lem:2.12}
+ \lean{LineSystem.Iso.ofOrthGraphIso}\lean{LineSystem.Hyp24.orthGraph_cases}
+ \lean{LineSystem.IsIndecomposable.eq_pair_or_exists_hyp24}
+ \uses{def:line-iso,def:indecomposable,hyp:2.4,lem:star-identities,lem:2.5,lem:2.6,lem:2.7,lem:2.9,lem:2.10,facts:inner}
+ \assume{\begin{pfenum}
+  \item $S$ is a nonempty indecomposable star-closed line system in a finite-dimensional
+   real inner product space $V$.
+  \item When a star is chosen, $\Ga$ and $X$ have the meanings of Hypothesis 2.4.
+ \end{pfenum}}
+ \prove{Either $S$ has one line, or it admits a pair $\Za,\Zb$ as in Hypothesis 2.4
+  and, for every such choice, its graph $X$ is one of:
+  the empty graph $\comp{K_m}$ on $m\geq0$ vertices; the friendship graph with
+  $m\geq1$ triangles; the graphs of Lemma 2.10 with parameters
+  $(9,4,1,2)$, $(15,6,1,3)$, or $(27,10,1,5)$.
+  For any two instances of Hypothesis 2.4 in finite-dimensional real inner product
+  spaces $V,W$, every isomorphism of their graphs on $\Ga$ extends to an isomorphism
+  of their line systems, induced by a surjective linear isometry of their spans
+  carrying the ordered stars to each other. This holds for every graph type in the list.}
+\end{cgss}
+\noindent\repair\ Nonemptiness excludes the empty line system, as required by
+Implicit hypothesis 4 of \path{cgss/errata.md}.
+\begin{proof}
+ \pfsketch\ \repair\ We give all four strongly regular parameters in the exceptional
+ cases to delimit the paper's uniqueness statement (Error 12). We will recover the signed root set
+ from Lemmas 2.5 and 2.7.
+ A graph isomorphism preserves the Gram matrix of the roots in
+ $\{\Za,\Zb,\Zc\}\cup\Ga$, so it extends linearly to the spans and then carries
+ the recovered sets to each other.
+
+ \step{212star}{\repair\ Either $S$ consists of one antipodal pair or it admits Hypothesis 2.4.
+  We include the one-line case omitted by the choice of a star in the paper
+  (Implicit hypothesis 4).}
+ \begin{proof}
+  \pflet{Choose $\Zr\in\Phi$, using nonemptiness.}
+  \step{212split}{If every root outside $\{\Zr,-\Zr\}$ is orthogonal to $\Zr$,
+   then $\Phi=\{\Zr,-\Zr\}$.}
+  \begin{proof}
+   \pf\ Take $P=\{\Zr,-\Zr\}$ and $Q=\Phi\diff P$.
+   The hypothesis and bilinearity make these parts orthogonal.
+   Indecomposability and $\Zr\in P$ force $Q=\varnothing$.~\qed
+  \end{proof}
+  \step{212orient}{Otherwise there are $\Za,\Zb\in\Phi$ with $(\Za,\Zb)=-1$.}
+  \begin{proof}
+   \pf\ Choose $\Zs\notin\{\Zr,-\Zr\}$ with $(\Zr,\Zs)\ne0$.
+   Equation \eqref{eq:endpoints} and the line-system condition give $\pm1$.
+   Set $\Za=\Zr$, and set $\Zb=\Zs$ if the value is $-1$, or $\Zb=-\Zs$ if it is 1.
+   Closure under negation supplies both choices.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ The cases \stepref{212split} and \stepref{212orient} are exhaustive.~\qed\end{proof}
+ \end{proof}
+
+ \step{212recover}{In any instance of Hypothesis 2.4, put
+  $T=\{\Za,\Zb,\Zc\}\cup\Ga$. Then $\Phi=\cR\cup(-\cR)$ for the set $\cR$
+  in Lemma 2.7, and $\operatorname{span}(T)=\operatorname{span}(\Phi)$.}
+ \begin{proof}
+  \step{212formulas}{We have $\Phi=\cR\cup(-\cR)$, where
+   \[
+   \cR=\{\Za,\Zb,\Zc\}\cup\Ga\cup(\Zc+\Ga)\cup(-\Zb+\Ga)
+   \cup\{\Zx-\Zy:\Zx,\Zy\in\Ga,\ (\Zx,\Zy)=1\}.
+   \]}
+  \begin{proof}\pf\ This is the recovery equality in the statement of Lemma 2.7,
+   including both inclusions.~\qed\end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Step \stepref{212formulas} recovers the set using only $T$ and its inner products.
+   Every displayed vector lies in $\operatorname{span}(T)$.
+   Since $T\subseteq\Phi$, the two spans are equal.~\qed
+  \end{proof}
+ \end{proof}
+
+ \pflet{For the extension assertion, fix any two instances of Hypothesis 2.4 in
+  finite-dimensional real inner product spaces $V,W$ and a graph isomorphism
+  $\psi:X\to Y$. Use tildes for the second root set and ordered star.
+  For $x\in V(X)$, write $\Zs_x$ for the vector at $\psi(x)\in V(Y)$.}
+ \step{212metric}{\new\ There is a surjective linear isometry between the two root spans,
+  sending $\Za,\Zb,\Zc$ to $\widetilde{\Za},\widetilde{\Zb},\widetilde{\Zc}$
+  and $\Zx$ to $\Zs_x$ for every $x\in V(X)$.
+  We make the metric meaning of ``determined'' explicit.}
+ \begin{proof}
+  \pflet{Index two vector families $(\Zr_i),(\Zs_i)$ by the same finite disjoint union
+   $I=\{1,2,3\}\sqcup V(X)$.
+   The first three values are the ordered stars; the other values are
+   $\Zr_x=\Zx$ and the vectors $\Zs_x$ just defined.
+   Put $R(\alpha)=\sum_i\alpha(i)\Zr_i$ and $R'(\alpha)=\sum_i\alpha(i)\Zs_i$.
+   These are linear maps from $I\to\re$ to $V,W$, respectively, by
+   \path{Fintype.linearCombination} in
+   \path{Mathlib/LinearAlgebra/Finsupp/LinearCombination.lean}.}
+  \step{212gram}{$(\Zr_i,\Zr_j)=(\Zs_i,\Zs_j)$ for all $i,j\in I$.}
+  \begin{proof}
+   \step{212stargram}{Products within the first three positions are 2 on the diagonal
+    and $-1$ off it; products with a vertex of $X$ are $0,1,-1$ in that order.}
+   \begin{proof}\pf\ These are the star identities and the defining products of $\Ga$
+    in each system.~\qed\end{proof}
+   \step{212graphgram}{Products within the graph positions are 2 on the diagonal,
+    0 on edges, and 1 on nonedges.}
+   \begin{proof}
+    \pf\ Use Lemma 2.6 and the orthogonality convention; the bijection $\psi$ preserves
+    equality, adjacency, and nonadjacency.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ Steps \stepref{212stargram} and \stepref{212graphgram}, with symmetry, cover all pairs of positions.~\qed\end{proof}
+  \end{proof}
+  \step{212relations}{$\ker R\subseteq\ker R'$: for every $\alpha:I\to\re$,
+   $R(\alpha)=0$ implies $R'(\alpha)=0$.}
+  \begin{proof}
+   \step{212norms}{The two sums have the same squared norm.}
+   \begin{proof}
+    \pf\ Expanding by bilinearity gives
+    \[
+    \sum_{i,j}\alpha(i)\alpha(j)(\Zr_i,\Zr_j)
+     =\sum_{i,j}\alpha(i)\alpha(j)(\Zs_i,\Zs_j)
+    \]
+    by \stepref{212gram}.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ If the first sum is zero, \stepref{212norms} makes the second sum have squared
+    norm zero. The zero-norm implication in the elementary identities makes that sum zero.~\qed
+   \end{proof}
+  \end{proof}
+  \step{212linear}{There is a surjective linear map $F$ of the two spans such that
+   \[F\left(\sum_i\alpha(i)\Zr_i\right)=\sum_i\alpha(i)\Zs_i.\]}
+  \begin{proof}
+   \step{212ranges}{The ranges of $R,R'$ are the spans of $(\Zr_i),(\Zs_i)$, respectively.}
+   \begin{proof}
+    \raggedright\pf\ Apply \path{Fintype.range_linearCombination} in
+    \path{Mathlib/LinearAlgebra/Finsupp/LinearCombination.lean} to each finite family.~\qed
+   \end{proof}
+   \pflet{Let $R'_0$ be $R'$ with codomain restricted to $\operatorname{range}R'$,
+    using \path{LinearMap.rangeRestrict} in
+    \path{Mathlib/Algebra/Module/Submodule/Range.lean}.}
+   \step{212kernel}{$\ker R\subseteq\ker R'_0$.}
+   \begin{proof}
+    \pf\ A vector in the subspace $\operatorname{range}R'$ is zero exactly when its
+    underlying vector is zero. Thus \stepref{212relations} gives the inclusion.~\qed
+   \end{proof}
+   \step{212quotient}{There is a linear map
+    $\overline R':(I\to\re)/\ker R\to\operatorname{range}R'$
+    satisfying $\overline R'([\alpha])=R'_0(\alpha)$.}
+   \begin{proof}
+    \pf\ Apply \path{Submodule.liftQ} to $R'_0$ and \stepref{212kernel};
+    \path{Submodule.liftQ_apply} gives the formula. Both declarations are in
+    \path{Mathlib/LinearAlgebra/Quotient/Basic.lean}.~\qed
+   \end{proof}
+   \step{212rangemap}{There is a linear map
+    $F_0:\operatorname{range}R\to\operatorname{range}R'$
+    with $F_0(R(\alpha))=R'(\alpha)$ for all $\alpha$.}
+   \begin{proof}
+    \pflet{Let $E:(I\to\re)/\ker R\to\operatorname{range}R$ be
+     \path{LinearMap.quotKerEquivRange} for $R$, in
+     \path{Mathlib/LinearAlgebra/Isomorphisms.lean}, and put $F_0=\overline R'\circ E^{-1}$.}
+    \step{212compose}{$F_0$ is linear.}
+    \begin{proof}\pf\ It is a composite of the linear map in \stepref{212quotient}
+     and the inverse of a linear equivalence.~\qed\end{proof}
+    \step{212oncombinations}{$F_0(R(\alpha))=R'(\alpha)$.}
+    \begin{proof}
+     \pf\ The lemma \path{LinearMap.quotKerEquivRange_symm_apply_image} in
+     \path{Mathlib/LinearAlgebra/Isomorphisms.lean} gives $E^{-1}(R(\alpha))=[\alpha]$.
+     Apply the formula in \stepref{212quotient}.~\qed
+    \end{proof}
+    \qedstep
+    \begin{proof}\pf\ Steps \stepref{212compose} and \stepref{212oncombinations}
+     prove both assertions.~\qed\end{proof}
+   \end{proof}
+   \step{212linearonto}{$F_0$ is surjective.}
+   \begin{proof}\pf\ Every member of $\operatorname{range}R'$ has the form $R'(\alpha)$;
+    by \stepref{212rangemap}, $R(\alpha)$ is a preimage.~\qed\end{proof}
+   \step{212generatorvalues}{$F_0(\Zr_i)=\Zs_i$ for every $i$.}
+   \begin{proof}
+    \pf\ In \stepref{212rangemap}, take the coefficient function which is 1 at $i$
+    and zero elsewhere. The two finite sums are $\Zr_i,\Zs_i$.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ Identify the ranges with the spans by \stepref{212ranges}.
+    The map $F_0$ in \stepref{212rangemap}, with surjectivity from
+    \stepref{212linearonto}, is the required $F$ and has the values in
+    \stepref{212generatorvalues}.~\qed\end{proof}
+  \end{proof}
+  \pflet{Choose a surjective linear map $F$ with the formula in \stepref{212linear}.}
+  \step{212isometry}{The map $F$ preserves inner products and is injective.}
+  \begin{proof}
+   \step{212inner}{For vectors $\Zx,\Zy$ in the first span,
+    $(F(\Zx),F(\Zy))=(\Zx,\Zy)$.}
+   \begin{proof}
+    \pf\ By the finite-span lemma, write $\Zx,\Zy$ as combinations with coefficients
+    $\alpha,\beta$. The formula in \stepref{212linear} gives their images, and bilinearity gives
+    \[
+     \sum_{i,j}\alpha(i)\beta(j)(\Zr_i,\Zr_j)
+       =\sum_{i,j}\alpha(i)\beta(j)(\Zs_i,\Zs_j)
+    \]
+    by \stepref{212gram}.~\qed
+   \end{proof}
+   \step{212injective}{$F$ is injective.}
+   \begin{proof}
+    \pf\ If $F(\Zx)=F(\Zy)$, linearity gives $F(\Zx-\Zy)=0$.
+    Step \stepref{212inner} gives $(\Zx-\Zy,\Zx-\Zy)=0$.
+    The zero-norm identity then gives $\Zx=\Zy$.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}\pf\ Combine \stepref{212inner} and \stepref{212injective}.~\qed\end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Steps \stepref{212linear} and \stepref{212isometry} give a linear isometry
+   onto the second span. Step \stepref{212recover} identifies these spans with the root spans.
+   Taking one coefficient equal to 1 and all others zero in \stepref{212linear}
+   gives its prescribed values on the two indexed families.
+   This is the equal-Gram argument LA2 from the prerequisites, proved here for the needed families.~\qed
+  \end{proof}
+ \end{proof}
+
+ \pflet{Choose an isometry $F$ with the values and surjectivity in \stepref{212metric}.}
+ \step{212rootiso}{The isometry $F$ in \stepref{212metric} carries the first root set
+  bijectively onto the second.}
+ \begin{proof}
+  \step{212image}{$F(\Phi)\subseteq\widetilde\Phi$.}
+  \begin{proof}
+   \step{212imagea}{$F(\Za)=\widetilde{\Za}\in\widetilde\Phi$.}
+   \begin{proof}\pf\ Use \stepref{212metric} and the second instance of Hypothesis 2.4.~\qed\end{proof}
+   \step{212imageb}{$F(\Zb)=\widetilde{\Zb}\in\widetilde\Phi$.}
+   \begin{proof}\pf\ Use \stepref{212metric} and the second instance of Hypothesis 2.4.~\qed\end{proof}
+   \step{212imagec}{$F(\Zc)=\widetilde{\Zc}\in\widetilde\Phi$.}
+   \begin{proof}\pf\ Use \stepref{212metric} and the star identities in the second instance.~\qed\end{proof}
+   \step{212imagegamma}{For $x\in V(X)$, $F(\Zx)=\Zs_x\in\widetilde\Ga$.}
+   \begin{proof}\pf\ Step \stepref{212metric} gives the value; $\Zs_x$ is the
+    vector at $\psi(x)$, a vertex of the second graph.~\qed\end{proof}
+   \step{212imageplus}{For $\Zx\in\Ga$, $F(\Zc+\Zx)=\widetilde{\Zc}+\Zs_x\in\widetilde\Phi$.}
+   \begin{proof}\pf\ Linearity and \stepref{212metric} give the equality.
+    Lemma 2.6 in the second instance, or the reverse inclusion of its recovery
+    equality in Lemma 2.7, gives membership.~\qed\end{proof}
+   \step{212imageminus}{For $\Zx\in\Ga$, $F(-\Zb+\Zx)=-\widetilde{\Zb}+\Zs_x\in\widetilde\Phi$.}
+   \begin{proof}\pf\ Linearity and \stepref{212metric} give the equality.
+    Apply the second translation in Lemma 2.6 in the target, equivalently the
+    reverse inclusion of its recovery equality in Lemma 2.7.~\qed\end{proof}
+   \step{212imagedifference}{If $\Zx,\Zy\in\Ga$ and $(\Zx,\Zy)=1$,
+    then $F(\Zx-\Zy)=\Zs_x-\Zs_y\in\widetilde\Phi$.}
+   \begin{proof}
+    \step{212differenceproduct}{$(\Zs_x,\Zs_y)=1$.}
+    \begin{proof}\pf\ The isometry in \stepref{212metric} preserves the given product.~\qed\end{proof}
+    \qedstep
+    \begin{proof}\pf\ Linearity gives the image formula. The reverse inclusion
+     of the second recovery equality in Lemma 2.7 applies to
+     \stepref{212differenceproduct}.~\qed\end{proof}
+   \end{proof}
+   \step{212imagesigns}{If a displayed expression $\Zr$ maps into $\widetilde\Phi$,
+    so does $-\Zr$.}
+   \begin{proof}\pf\ Linearity gives $F(-\Zr)=-F(\Zr)$ and
+    $\widetilde\Phi=-\widetilde\Phi$.~\qed\end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ The forward inclusion of the first recovery equality in Lemma 2.7
+    expresses every root by one of these seven kinds and a sign.
+    Steps \stepref{212imagea} through \stepref{212imagedifference}
+    handle the expressions, and \stepref{212imagesigns} handles negation.~\qed
+   \end{proof}
+  \end{proof}
+  \step{212onto}{$\widetilde\Phi\subseteq F(\Phi)$.}
+  \begin{proof}
+   \step{212ontostar}{Each root of the second ordered star has its corresponding
+    first-star root as a preimage in $\Phi$.}
+   \begin{proof}\pf\ Apply the prescribed star values in \stepref{212metric};
+    Hypothesis 2.4 and the star identities put all three preimages in $\Phi$.~\qed\end{proof}
+   \step{212ontogamma}{Each $\Zs\in\widetilde\Ga$ has a preimage $\Zx\in\Ga$.}
+   \begin{proof}\pf\ Take the inverse image of its vertex under the bijection $\psi$
+    and use \stepref{212metric}.~\qed\end{proof}
+   \step{212ontoplus}{Each $\widetilde{\Zc}+\Zs$ with $\Zs\in\widetilde\Ga$
+    has a preimage in $\Phi$.}
+   \begin{proof}\pf\ Choose $\Zx$ by \stepref{212ontogamma}.
+    The reverse inclusion of the first recovery equality in Lemma 2.7 puts
+    $\Zc+\Zx$ in $\Phi$, and linearity gives its image.~\qed\end{proof}
+   \step{212ontominus}{Each $-\widetilde{\Zb}+\Zs$ with $\Zs\in\widetilde\Ga$
+    has a preimage in $\Phi$.}
+   \begin{proof}\pf\ Choose $\Zx$ by \stepref{212ontogamma}.
+    The reverse inclusion of the first recovery equality in Lemma 2.7 puts
+    $-\Zb+\Zx$ in $\Phi$, and linearity gives its image.~\qed\end{proof}
+   \step{212ontodifference}{Each $\Zs-\Zt$ with $\Zs,\Zt\in\widetilde\Ga$
+    and $(\Zs,\Zt)=1$ has a preimage in $\Phi$.}
+   \begin{proof}
+    \pf\ Choose preimages $\Zx,\Zy$ by \stepref{212ontogamma}.
+    The isometry in \stepref{212metric} gives $(\Zx,\Zy)=1$.
+    The reverse inclusion of the first recovery equality in Lemma 2.7 puts
+    $\Zx-\Zy$ in $\Phi$, and linearity gives its image.~\qed
+   \end{proof}
+   \step{212ontosigns}{The negative of a target with a preimage in $\Phi$
+    also has a preimage in $\Phi$.}
+   \begin{proof}\pf\ Negate the preimage, using $\Phi=-\Phi$ and linearity.~\qed\end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ The forward inclusion of the second recovery equality in Lemma 2.7
+    lists exactly the expressions and signs covered by \stepref{212ontostar}
+    through \stepref{212ontosigns}.~\qed
+   \end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Injectivity in \stepref{212metric}, \stepref{212image}, and \stepref{212onto}
+   make the restriction of $F$ a bijection preserving inner products, as required
+   by the definition of a line-system isomorphism.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{212graphs}{Every graph arising from a chosen star belongs to the stated list.}
+ \begin{proof}
+  \step{212empty}{\case{$X$ has no edges.}}
+  \begin{proof}\pf\ Its finite vertex set has some cardinality $m\geq0$, giving the first type.~\qed\end{proof}
+  \step{212universal}{\case{$X$ has an edge and has a universal vertex.}}
+  \begin{proof}
+   \pf\ Lemma 2.9 gives a friendship graph with $m$ triangles.
+   Since $X$ has an edge, $m\ne0$, so $m\geq1$.~\qed
+  \end{proof}
+  \step{212remaining}{\case{$X$ has an edge and has no universal vertex.}}
+  \begin{proof}
+   \pf\ A complete graph with an edge has universal vertices, so this graph is noncomplete.
+   Thus Lemma 2.10 applies; its statement gives the displayed strongly regular parameters.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ These three cases exhaust existence of an edge and of a universal vertex.~\qed\end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}
+  \pf\ Step \stepref{212star} separates the one-line case; \stepref{212graphs} lists
+  every graph in the other case. Steps \stepref{212metric} and \stepref{212rootiso}
+  give the claimed uniqueness and its realization by a linear isometry of spans.~\qed
+ \end{proof}
+\end{proof}
+
+\paragraph{Inputs from Section 3.}\label{input:sec3-models}
+\repair\ The line counts and dimensions in Theorem 2.13 require the models of Section 3 (Gap 4 of \path{cgss/errata.md}).
+We will use the following facts from Definitions 3.1 to 3.3, Lemma 3.4, and computations C2
+and C4. We record them as deferred dependencies, not as conclusions of Section 2.
+The labels \path{def:3.1}, \path{def:3.2}, \path{def:3.3}, \path{lem:3.4},
+\path{comp:C2} and \path{comp:C4} are those of Section 3, which proves these facts.
+Each model is a nonempty indecomposable star-closed line system in its real span. The model
+$\typ{A}_1$ consists of one antipodal pair and has rank 1. Each remaining model has a specified
+ordered star for which the following data hold. Here rank means dimension of the real span,
+and $\delta$ means $|\Delta|/2$, the number of lines in $\Delta$.
+\[
+\begin{array}{c|c|c|c|c}
+ \text{model}&\text{rank}&\text{number of lines}&\text{graph on }\Ga&\delta\\\hline
+ \typ{A}_\ell\ (\ell\geq2)&\ell&\ell(\ell+1)/2&\comp{K_{\ell-2}}&\text{not used}\\
+ \typ{D}_\ell\ (\ell\geq4)&\ell&\ell(\ell-1)&\text{friendship, }\ell-3\text{ triangles}&\text{not used}\\
+ \typ{E}_6&6&36&(9,4,1,2)&6\\
+ \typ{E}_7&7&63&(15,6,1,3)&15\\
+ \typ{E}_8&8&120&(27,10,1,5)&36
+\end{array}
+\]
+In the exceptional rows the tuple gives strongly regular parameters; the graph is the
+orthogonality graph, so it has degree 4, 6, or 10, respectively. We take its uniqueness from
+Lemma 2.10, not from the model verification. C2 gives the line counts and C4 verifies
+star-closure, indecomposability and the marked-star data; spanning sets in the explicit
+models give the displayed ranks. These verifications must not use Theorem 2.13 or Theorem 3.5.
+For Definition 3.3 we use fixed representatives of a root and a star in $\typ{E}_8$.
+The fixed-root construction of $\typ{E}_7$ and the fixed-star construction of $\typ{E}_6$
+suffice here. Prerequisite LN5 is needed to compare a fixed-root construction with the
+phrase ``any one of its lines'' in Definition 3.3, but is not used in Theorem 2.13.
+
+\begin{cgss}{Theorem}{2.13}\label{thm:2.13}
+ \lean{LineSystem.five_possibilities}\lean{LineSystem.five_possibilities'}
+ \lean{LineSystem.five_possibilities_forall_hyp24}
+ \lean{LineSystem.Iso.exists_ambient_isometry_of_same_model}
+ \lean{LineSystem.Hyp24.six_lines_of_iso_friendship_zero}
+ \uses{lem:2.12,lem:2.10,lem:2.9,def:line-iso,facts:inner,input:sec3-models,def:3.1,def:3.2,def:3.3,lem:3.4,comp:C2,comp:C4}
+ \assume{\begin{pfenum}
+  \item $V$ is a finite-dimensional real inner product space of dimension $\ell$.
+  \item $S$ is a nonempty indecomposable star-closed line system in $V$, and
+   $\operatorname{span}(\Phi)=V$.
+ \end{pfenum}}
+ \prove{The possibilities for $S$, up to isomorphism, are the five cases below.
+ For every case with more than one line, there exist $\Za,\Zb\in\Phi$ with
+ $(\Za,\Zb)=-1$ for which the stated data on $\Ga$ and $\Delta$ hold.
+ \repair\ We exclude the empty system and separate the one-line case
+ (Implicit hypothesis 4 of \path{cgss/errata.md}).
+ \begin{pfenum}
+  \item $\ell(\ell+1)/2$ lines, with the empty graph $\comp{K_{\ell-2}}$ on $\Ga$ when $\ell\geq2$;
+   for $\ell=1$ there is one line and no chosen star;
+  \item $\ell(\ell-1)$ lines for $\ell\geq4$, with the friendship graph of $\ell-3$ triangles on $\Ga$;
+  \item 120 lines in dimension 8, with $|\Ga|=27$ and $|\Delta|/2=36$;
+  \item 63 lines in dimension 7, with $|\Ga|=15$ and $|\Delta|/2=15$;
+  \item 36 lines in dimension 6, with $|\Ga|=9$ and $|\Delta|/2=6$.
+ \end{pfenum}
+ Each case is unique up to an orthogonal transformation when the ambient space is $\re^\ell$.
+ The zero-triangle case of Lemma 2.9 has $\ell=3$ and six lines; it is already in case 1
+ and also satisfies the formula $\ell(\ell-1)=6$.}
+ The Lean statement gives the data on $\Ga$ and $\Delta$ for some star, while in the paper they
+ belong to the star fixed after Hypothesis 2.4, which is arbitrary. Every star gives the same
+ data: \path{LineSystem.five_possibilities_forall_hyp24} is the theorem for every star
+ $(\Za,\Zb)$ of Hypothesis 2.4 whose system spans $V$, with the graph on $\Ga$ and the counts of
+ $\Ga$ and $\Delta$ taken at that star. It leaves out the one-line case, which has no star.
+\end{cgss}
+\begin{proof}
+ \pfsketch\ We will match the graph from Lemma 2.12 with a specified star in one of the
+ models. Its graph isomorphism gives a linear isometry of spans, so it transfers both
+ rank and number of lines. Thus the numerical conclusions come from Section 3.
+
+ \step{213one}{If $S$ has one line, then $\ell=1$ and a linear isometry of spans
+  carries it onto $\typ{A}_1$.}
+ \begin{proof}
+  \step{213rankone}{The span of $\Phi=\{\Zr,-\Zr\}$ is one-dimensional.}
+  \begin{proof}
+   \pf\ Squared norm 2 gives $\Zr\ne0$. Thus the singleton $\{\Zr\}$ is a basis
+   of this span, which equals $V$ by \asm[2]{0}.~\qed
+  \end{proof}
+  \step{213onemap}{For either root $\Zs$ of $\typ{A}_1$, the rule
+   $F(\alpha\Zr)=\alpha\Zs$ defines a surjective linear isometry of spans.}
+  \begin{proof}
+   \pf\ Step \stepref{213rankone} gives a unique coefficient $\alpha$ for each vector.
+   Addition and scaling of this coefficient make $F$ linear and surjective.
+   For any real $\alpha,\beta$, both inner products are $2\alpha\beta$ by bilinearity.
+   Thus $F$ preserves inner products.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ The map in \stepref{213onemap} sends $\{\Zr,-\Zr\}$ bijectively onto
+   $\{\Zs,-\Zs\}$. The line count is $1=1(1+1)/2$, and
+   \stepref{213rankone} gives $\ell=1$.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{213match}{If $S$ has more than one line, its chosen-star graph is isomorphic
+  to the specified graph of one model in the input table.}
+ \begin{proof}
+  \pflet{Choose a star using Lemma 2.12 and let $X$ be its graph.}
+  \step{213A}{\case{$X=\comp{K_m}$.}}
+  \begin{proof}
+   \pf\ The specified star of $\typ{A}_{m+2}$ has the empty graph on $(m+2)-2=m$ vertices
+   by the Section 3 inputs. A bijection between the finite vertex sets preserves
+   adjacency since both graphs have no edges.~\qed
+  \end{proof}
+  \step{213D}{\case{$X$ is the friendship graph with $m\geq1$ triangles.}}
+  \begin{proof}
+   \step{213Dsize}{The specified graph in $\typ{D}_{m+3}$ is the friendship graph with $m$ triangles.}
+   \begin{proof}\pf\ Use $m+3\geq4$ and the $\typ{D}_\ell$ row of the Section 3 inputs.~\qed\end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ Send a chosen common vertex to the model's common vertex, choose a bijection
+    of the $m$ pairs of remaining vertices, and a bijection within each pair.
+    Lemma 2.9 lists exactly the edges preserved by this map, so it is a graph isomorphism.~\qed
+   \end{proof}
+  \end{proof}
+  \step{213E}{\case{$|V(X)|\in\{9,15,27\}$ as in Lemma 2.10.}}
+  \begin{proof}
+   \step{213Echoose}{Choose $\typ{E}_6,\typ{E}_7,\typ{E}_8$ according as the order is $9,15,27$.
+    Its specified graph satisfies the hypotheses of Lemma 2.10.}
+   \begin{proof}
+    \pf\ The respective orders and degrees in the input table are $(9,4),(15,6),(27,10)$.
+    Each degree is positive and smaller than order minus 1, so each graph has an edge, is
+    noncomplete, and has no universal vertex. A graph of Lemma 2.9 has a universal
+    vertex, so that type is excluded.~\qed
+   \end{proof}
+   \qedstep
+   \begin{proof}
+    \pf\ The chosen model is a star-closed indecomposable line system and has the same
+    graph order as $X$. Apply the uniqueness assertion of Lemma 2.10.~\qed
+   \end{proof}
+  \end{proof}
+  \qedstep
+  \begin{proof}\pf\ Lemma 2.12 makes \stepref{213A}, \stepref{213D}, and \stepref{213E} exhaustive.~\qed\end{proof}
+ \end{proof}
+
+ \step{213transfer}{For a model matched in \stepref{213match}, $\ell$ equals its rank and
+  $S$ has its number of lines. The marked sets $\Delta$ also have the same number of lines.}
+ \begin{proof}
+  \step{213spaniso}{The graph isomorphism extends to a surjective linear isometry $F$
+   between the spans, carrying the ordered stars to each other and mapping root sets bijectively.}
+  \begin{proof}\pf\ Apply the reconstruction and equal-Gram argument of Lemma 2.12.~\qed\end{proof}
+  \step{213dimension}{The two spans have equal dimensions.}
+  \begin{proof}
+   \pf\ A linear isometry is injective; together with surjectivity in
+   \stepref{213spaniso}, it sends a basis bijectively to a basis.
+   The first span is $V$ by \asm[2]{0}.~\qed
+  \end{proof}
+  \step{213lines}{The root bijection induces a bijection of antipodal pairs.}
+  \begin{proof}
+   \pf\ Linearity gives $F(-\Zr)=-F(\Zr)$; injectivity prevents two different
+   antipodal pairs from merging, and surjectivity on roots covers every target pair.~\qed
+  \end{proof}
+  \step{213delta}{The root bijection sends $\Delta$ exactly to the model's marked $\Delta$.}
+  \begin{proof}
+   \pf\ The definition of $\Delta$ asks for three zero inner products with the ordered
+   star. Both $F$ and its inverse preserve these products and the ordered star by
+   \stepref{213spaniso}. Thus membership is preserved in both directions.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Step \stepref{213dimension} transfers rank, \stepref{213lines} transfers line count,
+   and \stepref{213delta} with \stepref{213lines} transfers the line count in $\Delta$.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{213numbers}{The transferred data give exactly the five numerical cases in the statement.}
+ \begin{proof}
+  \step{213classical}{The empty-graph case gives $\ell=m+2$ and $\ell(\ell+1)/2$ lines;
+   the friendship case with $m\geq1$ triangles gives $\ell=m+3$ and $\ell(\ell-1)$ lines.}
+  \begin{proof}
+   \pf\ Substitute the ranks of $\typ{A}_{m+2},\typ{D}_{m+3}$ from the input table into
+   \stepref{213transfer}, then use their line-count formulas from Lemma 3.4 and C2.~\qed
+  \end{proof}
+  \step{213exceptional}{The orders $27,15,9$ give respectively the data
+   \[(\ell,|\Phi|/2,|\Delta|/2)=(8,120,36),(7,63,15),(6,36,6).\]}
+  \begin{proof}
+   \pf\ Use the $\typ{E}_8,\typ{E}_7,\typ{E}_6$ rows of the Section 3 inputs in \stepref{213transfer}.
+   \repair\ We correct Error 6: we write $|\Delta|/2$ because the signed set $\Delta$ has respectively
+   $72,30,12$ vectors. The paper's $|\Delta|=36,15,6$ counts lines.~\qed
+  \end{proof}
+  \step{213overlap}{\new\ The zero-triangle case of Lemma 2.9 has six lines in dimension 3; we make this overlap explicit.}
+  \begin{proof}
+   \pf\ Its graph is a single vertex, the empty graph $\comp{K_1}$.
+   The first formula in \stepref{213classical} gives $\ell=3$ and $3\cdot4/2=6=3\cdot2$.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Combine \stepref{213one}, \stepref{213classical}, \stepref{213exceptional},
+   and \stepref{213overlap}.~\qed
+  \end{proof}
+ \end{proof}
+
+ \step{213unique}{Each numerical case, with its stated graph type, is unique up to
+  an orthogonal transformation in $\re^\ell$.}
+ \begin{proof}
+  \step{213samemodel}{Two systems in the same case are isomorphic to the same model.}
+  \begin{proof}
+   \pf\ In the first family the model rank is $\ell$, so the model is $\typ{A}_\ell$;
+   in the second it is $\typ{D}_\ell$; the exceptional rows specify $\typ{E}_8,\typ{E}_7,\typ{E}_6$ individually.
+   Use \stepref{213one} for $\ell=1$ and \stepref{213match} otherwise.~\qed
+  \end{proof}
+  \qedstep
+  \begin{proof}
+   \pf\ Compose the span isometry to that model with the inverse for the other system.
+   Both root spans are the entire $\re^\ell$ by \asm[2]{0}. Thus the composite is a
+   surjective linear isometry of $\re^\ell$, an orthogonal transformation, sending one
+   line system onto the other.~\qed
+  \end{proof}
+ \end{proof}
+ \qedstep
+ \begin{proof}
+  \pf\ Step \stepref{213numbers} gives the alternatives and \stepref{213unique} gives
+  uniqueness. The asserted dimensions and counts depend on the explicit Section 3 inputs
+  recorded above; no classification result of Section 3 was used.~\qed
+ \end{proof}
+\end{proof}

@@ -1,0 +1,32 @@
+# Lean build output and the dependencies that Lake downloads
+/.lake/
+*.olean
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+
+# Python and SageMath caches
+__pycache__/
+*.pyc
+.sage/
+
+# scratch output of cgss/certificates/run_all.sh
+cgss/certificates/.tmp/
+cgss/certificates/.cache/
+
+# written by cgss/certificates/verify_certificates.sage
+cgss/certificates/data/manifest.json
+
+# written by cgss/proofs/spectraltools/checks/check_spectraltools.py
+cgss/proofs/spectraltools/checks/results.json
+
+# Lamport's pf2.sty, which readers download themselves to rebuild the structured proofs
+pf2.sty

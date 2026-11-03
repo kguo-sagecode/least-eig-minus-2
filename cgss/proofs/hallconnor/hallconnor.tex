@@ -1,0 +1,1277 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=27mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,longtable,array}
+\usepackage{listings}
+\usepackage[obeyspaces,spaces]{url}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+% The author's macros.
+%
+% some calligraphy
+%
+\newcommand\cA{{\mathcal A}}
+\newcommand\cB{{\mathcal B}}
+\newcommand\cC{{\mathcal C}}
+\newcommand\cD{{\mathcal D}}
+\newcommand\cE{{\mathcal E}}
+\newcommand\cF{{\mathcal F}}
+\newcommand\cG{{\mathcal G}}
+\newcommand\cH{{\mathcal H}}
+\newcommand\cI{{\mathcal I}}
+\newcommand\cJ{{\mathcal J}}
+\newcommand\cK{{\mathcal K}}
+\newcommand\cL{{\mathcal L}}
+\newcommand\cM{{\mathcal M}}
+\newcommand\cN{{\mathcal N}}
+\newcommand\cP{{\mathcal P}}
+\newcommand\cQ{{\mathcal Q}}
+\newcommand\cR{{\mathcal R}}
+\newcommand\cS{{\mathcal S}}
+\newcommand\cT{{\mathcal T}}
+\newcommand\cU{{\mathcal U}}
+\newcommand\cV{{\mathcal V}}
+
+%
+% fields and rings (and a semigroup)
+%
+\newcommand\cx{{\mathbb C}}% complexes
+\newcommand\fld{{\mathbb F}}
+\newcommand\flde{{\mathbb E}}
+\newcommand\ints{{\mathbb Z}}
+\newcommand\nn{{\mathbb N}}%non-negative integers
+\newcommand\re{{\mathbb R}}%reals
+\newcommand\rats{{\mathbb Q}}
+
+\newcommand\Zu{{\mathbf u}}
+\newcommand\Zv{{\mathbf v}}
+\newcommand\Zw{{\mathbf w}}
+\newcommand\Zy{{\mathbf y}}
+\newcommand\Zz{{\mathbf z}}
+\newcommand\Zx{{\mathbf x}}
+\newcommand\Zj{{\mathbf j}}
+
+
+%
+% the really useful stuff
+%
+%\newcommand\opk[1]{\mathop{\hbox{\rm #1}}\nolimits} %% old version
+\newcommand\opk[1]{\mathop{\mathrm{#1}}\nolimits}
+\newcommand\comp[1]{{\mkern2mu\overline{\mkern-2mu#1}}}
+\newcommand\diff{\mathbin{\mkern-1.5mu\setminus\mkern-1.5mu}}% for \setminus
+\newcommand\gbin[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}}
+\newcommand\inv{^{-1}}
+\newcommand\res{\mathbin{\mkern-2.0mu\restriction\mkern-2.0mu}}% ch2
+\newcommand\sbs{\subseteq}
+\newcommand\sps{\supseteq}
+\newcommand\seq[3]{#1_{#2},\ldots,#1_{#3}}
+\newcommand\supp{\opk{supp}}
+\newcommand\im{\opk{im}}
+\newcommand\row{\opk{row}}
+\newcommand\pmat[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\newcommand\cprod{\mathbin{\square}}
+%
+% matrix theory
+%
+\newcommand\ip[2]{\langle#1,#2\rangle}
+\newcommand\one{{\bf1}}
+\newcommand\rk{\opk{rk}}
+\newcommand\tr{\opk{tr}}
+\newcommand\col{\opk{col}}
+\newcommand\mat[3]{\mathrm{Mat}_{#1\times #2}(#3)}
+
+%
+% some group theory
+%
+\newcommand\aut[1]{{\rm Aut}(#1)}
+\newcommand\fx[1]{{\rm fix}(#1)}% ch2
+\newcommand\grp[1]{\langle #1\rangle}
+\newcommand\nrml{\vartriangleleft}
+\newcommand\nrmleq{\trianglelefteq}
+\newcommand\alt[1]{\opk{Alt}(#1)}
+\DeclareMathOperator{\Sym}{Sym}
+% End of the author's macros.
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\Ze}{{\mathbf e}}
+\newcommand{\code}[1]{{\small\nolinkurl{#1}}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,
+  keepspaces=true,breaklines=true,showstringspaces=false}
+\title{There is no $2$-$(15,5,2)$ design}
+\author{}
+\date{28 September 2026}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+We prove that no $2$-$(15,5,2)$ design exists, allowing labelled repeated
+blocks. We follow Hall and Connor's embedding argument at block size five
+and prove each result used from Connor. The hypothetical design extends
+to a symmetric $2$-$(22,7,2)$ design. Its incidence matrix would have an
+integer determinant whose square is $49\cdot5^{21}$, a contradiction.
+We give the finite matrix certificates, their checks, and the
+Lean statements.
+\end{abstract}
+
+\section{The statement and conventions}
+
+A \emph{$2$-$(v,k,\lambda)$ design} consists of a finite point set $P$, a
+finite set $\cB$ of block labels, and a subset $B\sbs P$ for each label
+$B\in\cB$. We use the same letter for a label and its subset. We require
+$|P|=v$, $|B|=k$ for every block, and exactly $\lambda$ block labels
+containing each pair of distinct points. The definition allows different
+labels to have the same subset; Lemma~\ref{lem:intersections} will exclude
+this for the parameters considered here. We will write $b=|\cB|$ and, when it is constant,
+$r$ for the number of blocks containing a point. A design is
+\emph{symmetric} when $b=v$.
+
+\begin{theorem}\label{thm:main}
+There is no $2$-$(15,5,2)$ design. Equivalently, there is no design with
+$(v,k,b,r,\lambda)=(15,5,21,7,2)$.
+\end{theorem}
+
+This is the nonexistence result used in Remark 5.12 and Example 5.13 of
+Cameron, Goethals, Seidel and Shult~\cite{CGSS}. They cite Hall's book;
+we will use Hall and Connor~\cite{HC}, with all the necessary arguments
+included here. Their ``derived design'' is a \emph{residual design} in
+current terminology: we delete one block and all its points. We will
+use the current terminology.
+
+We will work over $\rats$ for the matrix arguments, keeping the incidence
+matrices integral for the final determinant. We will use functional
+notation for entries: $M(u,w)$ and $\Zx(u)$. We write $I_U$ for the
+identity matrix on $U$, $J_{U,V}$ for the all-ones matrix with row set $U$
+and column set $V$, and $J_U=J_{U,U}$. We omit index sets when their sizes
+are determined by multiplication. Inner products are written
+$(\Zx,\Zy)=\Zx^T\Zy$. All ranks and dimensions are over $\rats$.
+
+Our proof follows HC1--HC6 of \code{cgss/prerequisites.md}. We will first
+determine block intersections and construct Connor's matrix. Its
+nonnegative quadratic form and rank bound give the local clique
+structure. The family of all six-cliques then supplies the seven new
+points of the embedding. Finally, we will prove the even-order
+Bruck--Ryser--Chowla obstruction in the single instance needed here.
+
+\section{Counting intersections: HC1 and HC2}
+
+\begin{lemma}\label{lem:parameters}
+Suppose $D$ is a $2$-$(15,5,2)$ design on $P$ with block labels $\cB$.
+Every point belongs to seven blocks, and $|\cB|=21$.
+\end{lemma}
+\begin{proof}
+Fix $p\in P$, and let $r_p$ be the number of blocks containing $p$.
+Count pairs $(q,B)$ with $q\ne p$ and $p,q\in B$. Counting by $B$ gives
+$4r_p$; counting by $q$ gives $14\cdot2$. Thus $r_p=7$. Counting
+incident pairs $(p,B)$ now gives $5|\cB|=15\cdot7=105$, so
+$|\cB|=21$. These counts concern block labels, so they also apply when
+blocks repeat.
+\end{proof}
+
+
+The incidence matrix is $N\in\mat{P}{\cB}{\ints}$, with $N(p,B)=1$
+if $p\in B$ and $0$ otherwise. Put $G=N^TN$; then
+$G(B,B')=|B\cap B'|$.
+
+\begin{lemma}\label{lem:matrix-identities}
+Suppose $D$ is a $2$-$(15,5,2)$ design, with incidence matrix $N$ and
+$G=N^TN$. Then
+\begin{equation}\label{eq:incidence}
+ NN^T=5I_P+2J_P,\qquad
+ N\Zj_{\cB}=7\Zj_P,\qquad N^T\Zj_P=5\Zj_{\cB},
+\end{equation}
+and
+\begin{equation}\label{eq:G-identities}
+ G^2=5G+50J_{\cB},\qquad
+ GJ_{\cB}=J_{\cB}G=35J_{\cB},\qquad J_{\cB}^2=21J_{\cB}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+The diagonal entries of $NN^T$ count the seven blocks on a point; its
+off-diagonal entries count the two blocks on a pair of points.
+The other two identities in~\eqref{eq:incidence} are the row and column
+sums of $N$. Thus
+\[
+ G^2=N^T(NN^T)N=5N^TN+2N^TJ_PN=5G+50J_{\cB},
+\]
+since every entry of $N^TJ_PN$ is $5\cdot5=25$.
+Also $G\Zj_{\cB}=N^T(7\Zj_P)=35\Zj_{\cB}$. Symmetry gives the
+other product with $J_{\cB}$. Finally, each entry of $J_{\cB}^2$ is
+$|\cB|=21$.
+\end{proof}
+
+\begin{lemma}\label{lem:intersections}
+\textup{\cite[Lemma 4.1, at $k=5$]{HC}}
+Suppose $D$ is a $2$-$(15,5,2)$ design. Distinct block labels have
+intersection size one or two. Every block has ten other blocks meeting
+it in one point, and ten meeting it in two points.
+\end{lemma}
+\begin{proof}
+Fix $B$, and for $0\le i\le5$ let $n_i$ count the other labels $B'$
+with $|B\cap B'|=i$. Counting other labels, incident points of $B$, and
+ordered pairs of distinct points of $B$, respectively, gives
+\[
+ \sum_{i=0}^5 n_i=20,\qquad
+ \sum_{i=0}^5 i n_i=5(7-1)=30,\qquad
+ \sum_{i=0}^5 i(i-1)n_i=5\cdot4(2-1)=20.
+\]
+For the last equality, every ordered pair of distinct points of $B$
+lies in exactly one further block label. Taking this linear combination
+of the three counts, in $\ints$, gives
+\[
+ \sum_{i=0}^5(i-1)(i-2)n_i=20-2\cdot30+2\cdot20=0.
+\]
+The coefficients at $i=0,1,2,3,4,5$ are $2,0,0,2,6,12$.
+All summands are nonnegative, so $n_i=0$ unless $i=1$ or $i=2$.
+The first two counts give $n_1+n_2=20$ and $n_1+2n_2=30$, whence
+$n_1=n_2=10$. In particular, distinct block labels cannot represent
+the same subset, since that would give intersection size five.
+\end{proof}
+
+We will denote by $Z$ the graph on $\cB$ in which distinct blocks are
+adjacent when their intersection has size one. We write $B\sim B'$ for
+adjacency and $\Gamma(B)$ for the neighbourhood of $B$. A \emph{clique}
+is a set of vertices any two distinct members of which are adjacent.
+
+\begin{lemma}\label{lem:common}
+\textup{\cite[Lemma 4.2, at $k=5$]{HC}}
+Suppose $D$ is a $2$-$(15,5,2)$ design and $B_1\ne B_2$ are blocks.
+For $i,j\in\{1,2\}$ let $x_{ij}$ count the blocks $B\notin\{B_1,B_2\}$
+with $|B_1\cap B|=i$ and $|B_2\cap B|=j$. The counts are
+\[
+\begin{array}{c|rrrr}
+ |B_1\cap B_2|&x_{11}&x_{12}&x_{21}&x_{22}\\ \hline
+ 1&5&4&4&6\\
+ 2&4&6&6&3
+\end{array}.
+\]
+In particular, $Z$ has degree ten, and adjacent vertices have five
+common neighbours.
+\end{lemma}
+\begin{proof}
+Put $s=|B_1\cap B_2|$. There are $19$ remaining block labels.
+The sum of their intersections with either initial block is $30-s$,
+by the preceding proof. By~\eqref{eq:G-identities}, the sum of the
+products of these two intersections is
+\[
+ (G^2)(B_1,B_2)-5s-5s=(5s+50)-10s=50-5s.
+\]
+Partitioning the remaining labels by their two intersection sizes gives
+\[
+\begin{aligned}
+ x_{11}+x_{12}+x_{21}+x_{22}&=19,\\
+ x_{11}+x_{12}+2x_{21}+2x_{22}&=30-s,\\
+ x_{11}+2x_{12}+x_{21}+2x_{22}&=30-s,\\
+ x_{11}+2x_{12}+2x_{21}+4x_{22}&=50-5s.
+\end{aligned}
+\]
+Thus
+\[
+\begin{aligned}
+ x_{22}&=(50-5s)-2(30-s)+19=9-3s,\\
+ x_{12}=x_{21}&=(30-s)-19-x_{22}=2+2s,\\
+ x_{11}&=19-x_{12}-x_{21}-x_{22}=6-s.
+\end{aligned}
+\]
+For example, the first identity sums $(i-1)(j-1)$ over the remaining
+blocks, and the second sums $j-1$ or $i-1$. Substituting $s=1$ and
+$s=2$ proves the table. The degree assertion is
+Lemma~\ref{lem:intersections}.
+\end{proof}
+
+Thus $Z$ is strongly regular: it has $21$ vertices, valency ten,
+five common neighbours for each adjacent pair and four for each
+nonadjacent pair. We will reserve $k$ for the design's block size.
+We will not use a classification of graphs with these parameters.
+
+\section{Connor's matrix: HC3}
+
+\begin{lemma}\label{lem:Connor}
+Suppose $D$ is a $2$-$(15,5,2)$ design with incidence matrix $N$ and
+$G=N^TN$. Define
+\begin{equation}\label{eq:C-definition}
+ C=35I_{\cB}-7G+10J_{\cB}.
+\end{equation}
+Then $C$ is symmetric,
+\begin{equation}\label{eq:C-identities}
+ C^2=35C,\qquad CN^T=0,
+\end{equation}
+and its entries are
+\begin{equation}\label{eq:C-entries}
+ C(B,B')=
+ \begin{cases}
+ 10,&B=B';\\
+ 3,&B\sim B';\\
+ -4,&B\ne B'\text{ and }B\not\sim B'.
+ \end{cases}
+\end{equation}
+For every $\Zx\in\rats^{\cB}$,
+\begin{equation}\label{eq:C-positive}
+ 35\Zx^TC\Zx=(C\Zx)^T(C\Zx)\ge0.
+\end{equation}
+Moreover, $\rk C\le6$.
+\end{lemma}
+\begin{proof}
+Symmetry and the entries follow from the definition and
+Lemma~\ref{lem:intersections}. Using~\eqref{eq:G-identities}, we obtain
+\[
+\begin{aligned}
+ C^2
+ &=1225I+49G^2+100J^2-490G+700J-140GJ\\
+ &=1225I+49(5G+50J)+2100J-490G+700J-4900J\\
+ &=1225I-245G+350J=35C.
+\end{aligned}
+\]
+Here both $G$ and $J$ are indexed by $\cB$.
+Also $N^TJ_P=5J_{\cB,P}$ and $J_{\cB}N^T=7J_{\cB,P}$, so
+\[
+\begin{aligned}
+ CN^T
+ &=35N^T-7N^T(NN^T)+10J_{\cB}N^T\\
+ &=35N^T-7N^T(5I_P+2J_P)+70J_{\cB,P}=0.
+\end{aligned}
+\]
+The first identity of~\eqref{eq:C-identities} and symmetry give
+\eqref{eq:C-positive}; its right side is a sum of rational squares.
+
+The determinant formula of Lemma~\ref{lem:det-rank-one}, whose proof
+is independent of the design argument, gives
+\[
+ \det(NN^T)=\det(5I_{15}+2J_{15})=5^{14}\cdot35\ne0.
+\]
+Thus $NN^T$ is invertible and has rank $15$. Over $\rats$, the
+matrix rank identities give $\rk N=\rk(NN^T)=15$ and
+$\rk N^T=\rk N$. Since $CN^T=0$, the rank inequality for a zero
+product gives
+\[
+ \rk C+\rk N^T\le|\cB|=21.
+\]
+Thus $\rk C\le21-15=6$. The same determinant formula will serve
+again at $n=22$ in the final obstruction.
+\end{proof}
+
+We will say that a symmetric rational matrix $Q$ is \emph{positive
+semidefinite} when $\Zx^TQ\Zx\ge0$ for every rational vector $\Zx$.
+The following argument gives the quadratic inequality and the
+principal-submatrix rank bound needed in the core proof.
+
+\begin{lemma}\label{lem:principal}
+Suppose $D$ is a $2$-$(15,5,2)$ design, and let $C$ be the matrix
+in~\eqref{eq:C-definition}. For a subset $F\sbs\cB$, let $C_F$ be the
+principal submatrix indexed by $F$. Then $C_F$ is positive semidefinite
+and $\rk C_F\le6$. In particular, if $|F|\ge7$, then $C_F$ is singular.
+\end{lemma}
+\begin{proof}
+Extend a vector on $F$ by zero outside $F$ and apply
+\eqref{eq:C-positive}. This proves positive semidefiniteness.
+The rank of a submatrix is at most that of the original matrix, so
+$\rk C_F\le\rk C\le6$. A square matrix of size $|F|\ge7$ and rank
+at most six is singular.
+\end{proof}
+
+We have proved the part of Connor's Theorem 3.1 that~\cite{HC} uses
+for singularity, with the stronger rank bound. The determinant sign
+assertion is recorded separately below. Connor's paper has not been
+consulted; these are reconstructions of the statements reported in
+Hall and Connor.
+
+\begin{remark}\label{rem:det-nonneg}
+For comparison with~\cite{HC}; not used below.
+Every symmetric positive semidefinite rational
+matrix $Q$ has nonnegative determinant. We prove this by induction on
+its size; the determinant of the empty matrix is $1$. The diagonal
+entries are nonnegative by testing coordinate vectors. If a diagonal
+entry, say $Q(1,1)$, is zero, suppose that $Q(1,i)\ne0$ for some $i$.
+For $\tau=-(Q(i,i)+1)/(2Q(1,i))$, the vector
+$\tau\Ze_1+\Ze_i$ has quadratic value $-1$, contradicting positive
+semidefiniteness. Thus $Q(1,i)=0$ for every $i$, the first row is zero
+and $\det Q=0$. In the remaining case $d=Q(1,1)>0$, write
+\[
+ Q=\pmat{d&\Zu^T\\\Zu&V},\qquad
+ Q'=V-d^{-1}\Zu\Zu^T.
+\]
+Testing $Q$ on $(-d^{-1}\Zu^T\Zy,\Zy)$ gives
+$\Zy^TQ'\Zy\ge0$. Subtracting $\Zu(i)/d$ times the first row from
+each later row gives $\det Q=d\det Q'$. The induction hypothesis gives
+$\det Q'\ge0$, and the result follows. In particular,
+$\det C_F\ge0$ for the submatrices in Lemma~\ref{lem:principal}.
+\end{remark}
+
+\section{The local restrictions: HC4}
+
+\begin{lemma}\label{lem:claw}
+Suppose $D$ is a $2$-$(15,5,2)$ design. Its graph $Z$ has no induced
+claw: no block is adjacent to three distinct, pairwise nonadjacent
+blocks.
+\end{lemma}
+\begin{proof}
+On a putative centre followed by its three leaves, the principal
+submatrix of $C$ would be
+\[
+ Q_{\mathrm{claw}}=
+% BEGIN MATRIX claw
+ \begin{pmatrix}
+ 10&3&3&3\\3&10&-4&-4\\3&-4&10&-4\\3&-4&-4&10
+ \end{pmatrix}.
+% END MATRIX claw
+\]
+For $\Zx=(-1,1,1,1)^T$ its quadratic value is
+$40+2(-9-12)=-2$, contradicting Lemma~\ref{lem:principal}.
+\end{proof}
+
+\begin{remark}\label{rem:source-local}
+\cite[Lemmas 4.3 and 4.4, at $k=5$]{HC}
+For comparison with Hall--Connor; not used below.
+Suppose $D$ is a $2$-$(15,5,2)$ design. If distinct blocks have either
+of the following intersection matrices, then $t=1$:
+\[
+ \pmat{5&1&1&1&1&2\\&5&1&2&2&1\\&&5&2&2&1\\
+ &&&5&t&2\\&&&&5&2\\&&&&&5},\qquad
+ \pmat{5&1&1&2&2\\&5&1&1&1\\&&5&1&1\\&&&5&t\\&&&&5}.
+\]
+The omitted entries are determined by symmetry, and $t$ is the
+intersection size of the fourth and fifth blocks.
+
+By Lemma~\ref{lem:intersections}, $t\in\{1,2\}$. If $t=2$ in the
+first matrix, the first block is the centre of a claw with leaves the
+second, fourth and fifth blocks. If $t=2$ in the second matrix, the
+second block is the centre of a claw with leaves the first, fourth and
+fifth blocks. Both contradict Lemma~\ref{lem:claw}.
+\end{remark}
+
+\begin{lemma}\label{lem:five}
+\textup{\cite[Lemma 4.5, at $k=5$]{HC}}
+Suppose $D$ is a $2$-$(15,5,2)$ design, and five distinct blocks
+$B_1,B_2,B_3,Y,W$ have intersection matrix
+\[
+ \pmat{5&1&1&1&2\\&5&1&2&1\\&&5&2&1\\&&&5&t\\&&&&5},
+\]
+with the lower triangle supplied by symmetry. Then $t=2$.
+\end{lemma}
+\begin{proof}
+If $t=1$, the principal submatrix of $C$ is
+\[
+ Q_{\mathrm{five}}=
+% BEGIN MATRIX five
+ \begin{pmatrix}
+ 10&3&3&3&-4\\3&10&3&-4&3\\3&3&10&-4&3\\
+ 3&-4&-4&10&3\\-4&3&3&3&10
+ \end{pmatrix}.
+% END MATRIX five
+\]
+For $\Zx=(-1,1,1,1,-1)^T$, the diagonal contribution is $50$ and
+the sum over the upper off-diagonal triangle is $-27$.
+Thus $\Zx^TQ_{\mathrm{five}}\Zx=50-54=-4$, contradicting
+Lemma~\ref{lem:principal}. Lemma~\ref{lem:intersections} leaves only
+$t=2$.
+\end{proof}
+
+We will also need two seven-by-seven matrices. We give integer
+certificates for their inverses so that the argument does not depend
+on a determinant expansion or on Connor's computational Lemma 3.1.
+
+\begin{lemma}\label{lem:inverse}
+The following rational matrices $Q_1,Q_2$ are nonsingular:
+\[
+ Q_1=
+% BEGIN MATRIX Q1
+ \begin{pmatrix}
+ 10&3&3&3&-4&-4&-4\\
+ 3&10&3&-4&3&3&3\\
+ 3&3&10&-4&3&3&3\\
+ 3&-4&-4&10&-4&-4&-4\\
+ -4&3&3&-4&10&3&3\\
+ -4&3&3&-4&3&10&3\\
+ -4&3&3&-4&3&3&10
+ \end{pmatrix},
+% END MATRIX Q1
+ \qquad
+ Q_2=
+% BEGIN MATRIX Q2
+ \begin{pmatrix}
+ 10&3&3&3&3&-4&-4\\
+ 3&10&3&-4&-4&3&3\\
+ 3&3&10&-4&-4&3&3\\
+ 3&-4&-4&10&3&-4&-4\\
+ 3&-4&-4&3&10&-4&-4\\
+ -4&3&3&-4&-4&10&3\\
+ -4&3&3&-4&-4&3&10
+ \end{pmatrix}.
+% END MATRIX Q2
+\]
+\end{lemma}
+\begin{proof}
+Put
+\begingroup
+\setlength{\arraycolsep}{4pt}
+\[
+ K_1=
+% BEGIN MATRIX K1
+ \begin{pmatrix}
+ 20&-12&-12&-6&8&8&8\\
+ -12&9&7&4&-5&-5&-5\\
+ -12&7&9&4&-5&-5&-5\\
+ -6&4&4&4&-2&-2&-2\\
+ 8&-5&-5&-2&5&3&3\\
+ 8&-5&-5&-2&3&5&3\\
+ 8&-5&-5&-2&3&3&5
+ \end{pmatrix},
+% END MATRIX K1
+ \qquad
+ K_2=
+% BEGIN MATRIX K2
+ \begin{pmatrix}
+ 17&-11&-11&-7&-7&6&6\\
+ -11&9&7&5&5&-4&-4\\
+ -11&7&9&5&5&-4&-4\\
+ -7&5&5&5&3&-2&-2\\
+ -7&5&5&3&5&-2&-2\\
+ 6&-4&-4&-2&-2&4&2\\
+ 6&-4&-4&-2&-2&2&4
+ \end{pmatrix}.
+% END MATRIX K2
+\]
+\endgroup
+Integer multiplication gives
+\begin{equation}\label{eq:inverse-cert}
+ K_1Q_1=14I_7,\qquad K_2Q_2=14I_7.
+\end{equation}
+These are explicit certificates: for each $u,w\in\{1,\ldots,7\}$,
+the sum $\sum_{i=1}^7K_j(u,i)Q_j(i,w)$ is $14$ when $u=w$ and $0$
+otherwise. For example, the first two entries of $K_1Q_1$ are
+\[
+ 200-36-36-18-32-32-32=14,\qquad
+ 60-120-36+24+24+24+24=0.
+\]
+All entries use this same displayed multiplication; the check in
+Section~\ref{sec:checks} reads the matrices directly from this source
+and checks each entry with integer arithmetic. If $Q_j\Zx=0$, then
+$14\Zx=K_jQ_j\Zx=0$. Since $14\ne0$ in $\rats$, $\Zx=0$.
+Thus $Q_j$ is nonsingular.
+\end{proof}
+
+Both determinants are $235298=2\cdot7^6>0$. We will use their
+nonsingularity against the rank bound, not the sign of these
+determinants.
+
+\section{The six-cliques: the local part of HC5}
+
+\begin{lemma}\label{lem:local-split}
+Suppose $D$ is a $2$-$(15,5,2)$ design and $B_1\sim B_2$ in its block
+graph $Z$. There are six-cliques $S_1,S_2$ such that
+\[
+ B_1,B_2\in S_1,\qquad
+ S_1\cap S_2=\{B_1\},\qquad
+ S_1\cup S_2=\{B_1\}\cup\Gamma(B_1).
+\]
+Moreover, $S_1$ is the unique six-clique containing $B_1$ and $B_2$.
+\end{lemma}
+\begin{proof}
+We will partition the blocks other than $B_1,B_2$ into
+\[
+\begin{aligned}
+ \cM&=\Gamma(B_1)\cap\Gamma(B_2),\\
+ \cU&=\Gamma(B_1)\diff(\Gamma(B_2)\cup\{B_2\}),\\
+ \cV&=\Gamma(B_2)\diff(\Gamma(B_1)\cup\{B_1\}),\\
+ \cR&=\cB\diff(\{B_1,B_2\}\cup\cM\cup\cU\cup\cV).
+\end{aligned}
+\]
+By Lemma~\ref{lem:common}, these disjoint sets have sizes $5,4,4,6$,
+respectively. In particular,
+$\Gamma(B_1)=\{B_2\}\cup\cM\cup\cU$ and
+$\Gamma(B_2)=\{B_1\}\cup\cM\cup\cV$, as disjoint unions.
+
+Both $\cU$ and $\cV$ are cliques. For distinct nonadjacent $Y,Y'\in\cU$,
+the block $B_1$ would be the centre of a claw with leaves $B_2,Y,Y'$.
+For distinct nonadjacent $W,W'\in\cV$, the centre $B_2$ and leaves
+$B_1,W,W'$ give the same contradiction to Lemma~\ref{lem:claw}.
+
+Fix $Y\in\cU$. The adjacent pair $B_1,Y$ has five common neighbours.
+Inside $\Gamma(B_1)$, the three elements of $\cU\diff\{Y\}$ are
+adjacent to $Y$, and $B_2$ is not. Thus exactly two elements of $\cM$
+are adjacent to $Y$. There are consequently $4\cdot2=8$ edges between
+$\cM$ and $\cU$. Since $|\cM|=5$, some $B_3\in\cM$ has at least
+two neighbours in $\cU$; otherwise there would be at most five such
+edges.
+
+Put $j=|\cU\diff\Gamma(B_3)|$, so $0\le j\le2$. Let $h,e,\ell$ count
+the neighbours of $B_3$ in $\cM\diff\{B_3\}$, $\cV$ and $\cR$,
+respectively. Counting common neighbours of $B_1,B_3$, then of
+$B_2,B_3$, and finally all neighbours of $B_3$, gives
+\[
+\begin{aligned}
+ 1+h+(4-j)&=5,\\
+ 1+h+e&=5,\\
+ 2+h+(4-j)+e+\ell&=10.
+\end{aligned}
+\]
+The first $1$ counts $B_2$, the second $1$ counts $B_1$, and the $2$
+counts both. Solving gives $h=j$, $e=4-j$ and $\ell=j$.
+
+We will now prove $j=0$. Define
+\[
+ \cU_0=\cU\diff\Gamma(B_3),\qquad
+ \cV_1=\cV\cap\Gamma(B_3).
+\]
+They have sizes $j$ and $4-j$, and each is a clique. There are no edges
+between them. Indeed, for $Y\in\cU_0$ and $W\in\cV_1$, the five
+distinct blocks $(B_1,B_2,B_3,Y,W)$ have precisely the hypotheses of
+Lemma~\ref{lem:five}: the first three form a triangle; $Y$ is adjacent
+to $B_1$ and to neither $B_2$ nor $B_3$; and $W$ is adjacent to $B_2,B_3$
+and not to $B_1$. That lemma gives $Y\not\sim W$.
+
+The set
+\[
+ \Omega=\{B_1,B_2,B_3\}\cup\cU_0\cup\cV_1
+\]
+is a disjoint union of size $3+j+(4-j)=7$. Order its elements by listing
+$B_1,B_2,B_3$, then $\cU_0$, then $\cV_1$. If $j=1$, its principal
+matrix $C_\Omega$ is $Q_1$ of Lemma~\ref{lem:inverse}; if $j=2$, it is $Q_2$.
+To identify every entry, the first three form a triangle, every member
+of $\cU_0$ is adjacent only to $B_1$ amongst these three, every member of
+$\cV_1$ is adjacent to $B_2,B_3$ amongst these three, the two latter sets
+are separately cliques, and there are no edges between them.
+Equation~\eqref{eq:C-entries} gives the displayed matrices. Both are
+nonsingular by Lemma~\ref{lem:inverse}, whereas
+Lemma~\ref{lem:principal} makes every seven-block principal matrix
+singular. Thus $j\notin\{1,2\}$, and $j=0$.
+
+It follows that $B_3$ has no neighbours in $\cM\diff\{B_3\}$ and is
+adjacent to all four members of $\cU$. The set
+$\cM\diff\{B_3\}$ is a clique. Otherwise two nonadjacent members,
+together with $B_3$, would be three pairwise nonadjacent neighbours of
+$B_1$. Thus the sets
+\[
+ S_1=\{B_1,B_2\}\cup(\cM\diff\{B_3\}),\qquad
+ S_2=\{B_1,B_3\}\cup\cU
+\]
+are six-cliques. The disjoint partition above gives their stated
+intersection and union.
+
+To prove uniqueness, let $K$ be any six-clique containing $B_1,B_2$.
+Its four remaining members lie in $\cM$. It cannot contain $B_3$,
+since $B_3$ has no neighbour in $\cM\diff\{B_3\}$, whereas $K$ would
+have three further members there. Thus the four remaining members are
+exactly $\cM\diff\{B_3\}$, and $K=S_1$.
+\end{proof}
+
+\begin{corollary}\label{cor:two-cliques}
+Suppose $D$ is a $2$-$(15,5,2)$ design. Every adjacent pair of blocks in
+$Z$ belongs to a unique six-clique. Every block belongs to exactly two
+six-cliques, whose intersection is that block.
+\end{corollary}
+\begin{proof}
+Lemma~\ref{lem:local-split} applies to every ordered adjacent pair, so
+it proves the first assertion. Fix $B_1$. It has ten neighbours, so we
+may choose $B_2\in\Gamma(B_1)$ and obtain $S_1,S_2$ from that lemma.
+Let $K$ be a six-clique containing $B_1$, and choose
+$X\in K\diff\{B_1\}$. The union assertion puts $X$ in exactly one of
+$S_1\diff\{B_1\}$ and $S_2\diff\{B_1\}$. Both $K$ and this $S_i$
+contain the adjacent pair $B_1,X$, so uniqueness for that pair gives
+$K=S_i$. Finally, $S_1$ and $S_2$ are distinct since their intersection
+has size one, and both have size six.
+\end{proof}
+
+This proves the uniqueness assertion of Hall--Connor Lemma 5.1 at
+$k=5$. The explicit use of uniqueness for every adjacent pair is what
+lets the local constructions define a single global family.
+
+\section{The global family and the embedding: HC5}
+
+\begin{lemma}\label{lem:global}
+Suppose $D$ is a $2$-$(15,5,2)$ design, with block graph $Z$, and let
+$\cS$ be the family of all six-cliques of $Z$. Then $|\cS|=7$;
+every block belongs to exactly two members of $\cS$; and two distinct
+members of $\cS$ have exactly one block in common. Further, for each
+$S_0\in\cS$, every point of $D$ occurs in exactly two blocks of $S_0$.
+\end{lemma}
+\begin{proof}
+By definition every member has six blocks, and
+Corollary~\ref{cor:two-cliques} gives exactly two members on every
+block. Counting incident pairs $(B,S_0)$ gives
+$6|\cS|=2|\cB|=42$, whence $|\cS|=7$.
+
+Two different six-cliques cannot share two different blocks: those
+blocks would be adjacent and would lie in two six-cliques, contrary to
+Corollary~\ref{cor:two-cliques}. To show that they always share one,
+fix $S_0\in\cS$. For each $B\in S_0$, let $f(B)$ be the other
+six-clique containing $B$. This is well-defined and lies in
+$\cS\diff\{S_0\}$. If $f(B)=f(B')$ for different $B,B'\in S_0$,
+then $S_0$ and $f(B)$ share these two blocks, which is impossible.
+Thus $f$ is injective. Its domain and codomain both have size six, so
+it is surjective. Every other six-clique therefore shares a block
+with $S_0$, and it shares exactly one.
+
+Fix $S_0\in\cS$ and put
+$m(p)=|\{B\in S_0:p\in B\}|$ for $p\in P$. Counting point-block
+incidences in $S_0$, and then ordered pairs of distinct blocks of
+$S_0$ with a point in their intersection, gives
+\[
+ \sum_{p\in P}m(p)=6\cdot5=30,\qquad
+ \sum_{p\in P}m(p)(m(p)-1)=6\cdot5=30.
+\]
+The second equality uses that each such pair of blocks meets in one
+point. Thus, calculating in $\ints$,
+\[
+\begin{aligned}
+ \sum_{p\in P}(m(p)-2)^2
+ &=\sum_{p\in P}m(p)(m(p)-1)-3\sum_{p\in P}m(p)+4|P|\\
+ &=30-90+60=0.
+\end{aligned}
+\]
+Each summand is nonnegative, so each is zero. Thus $m(p)=2$ for every
+point $p$.
+\end{proof}
+
+\begin{theorem}\label{thm:embedding}
+\textup{\cite[Theorems 2.1 and 3.2, at $k=5$]{HC}}
+Suppose $D$ is a $2$-$(15,5,2)$ design. There is a symmetric
+$2$-$(22,7,2)$ design having $D$ as the residual design of one block.
+In particular, there is an integer $22\times22$ matrix $M$ with
+$MM^T=5I_{22}+2J_{22}$.
+\end{theorem}
+\begin{proof}
+Let $\cS$ be the seven six-cliques from Lemma~\ref{lem:global}.
+For each $S_0\in\cS$, adjoin a new point $x_{S_0}$; these seven points
+are distinct from one another and from every old point. Replace an old
+block $B$ by
+\[
+ B^*=B\cup\{x_{S_0}:S_0\in\cS,\ B\in S_0\},
+\]
+and adjoin the new block $B_0=\{x_{S_0}:S_0\in\cS\}$.
+There are $15+7=22$ points and $21+1=22$ block labels. Each old block
+gets exactly two new points, so every block has size seven. Each old
+point still occurs in seven blocks. Each new point occurs in the six
+old blocks of its clique and in $B_0$, also seven times.
+
+Two distinct old points occur together twice, as before. An old point
+$p$ and a new point $x_{S_0}$ occur together in exactly the two blocks
+of $S_0$ containing $p$, by Lemma~\ref{lem:global}. Two distinct new
+points $x_{S_0},x_{S_1}$ occur together in the unique old block in
+$S_0\cap S_1$ and in $B_0$, exactly twice. These are all types of
+pairs, so the construction is a symmetric $2$-$(22,7,2)$ design.
+Deleting $B_0$ and its seven points recovers each original labelled
+block and its incidences.
+
+We can also record the matrix identity directly. Let $T$ be the
+$21\times7$ incidence matrix between $\cB$ and $\cS$,
+$T(B,S_0)=1$ exactly when $B\in S_0$. The identities just proved are
+\[
+ NT=2J_{P,\cS},\qquad
+ T^TT=5I_{\cS}+J_{\cS}.
+\]
+The diagonal entries of the second product are six; its off-diagonal
+entries are one. With the old points first, the new points second,
+and the new block last, the extended incidence matrix and its product
+are
+\begin{equation}\label{eq:extended}
+\begin{aligned}
+ N^*&=\pmat{N&0\\T^T&\Zj_{\cS}},\\
+ N^*N^{*T}
+ &=\pmat{NN^T&NT\\T^TN^T&T^TT+J_{\cS}}\\
+ &=\pmat{5I_P+2J_P&2J_{P,\cS}\\
+ 2J_{\cS,P}&5I_{\cS}+2J_{\cS}}=5I+2J.
+\end{aligned}
+\end{equation}
+Choose arbitrary enumerations of the $22$ points and $22$ block
+labels. Reindexing $N^*$ gives the required integer matrix $M$.
+\end{proof}
+
+This is the sufficient direction of Hall--Connor Theorem 2.1 and the
+existence part of their Theorem 3.2, specialized to $k=5$. We do not
+need uniqueness of the embedding or the converse of Theorem 2.1.
+
+\section{The even-order obstruction: HC6}\label{sec:BRC}
+
+\begin{lemma}\label{lem:det-rank-one}
+For $n\ge1$ and rational numbers $\alpha,\beta$,
+\[
+ \det(\alpha I_n+\beta J_n)=\alpha^{n-1}(\alpha+n\beta).
+\]
+\end{lemma}
+\begin{proof}
+Column $i$ is $\alpha\Ze_i+\beta\Zj$. Expand the determinant by multilinearity
+in the columns. A term in which two or more columns are chosen from
+$\beta\Zj$ is zero, since two columns are proportional. The term using
+only the $\alpha\Ze_i$ columns is $\alpha^n$. For each $i$, the term choosing
+$\beta\Zj$ in column $i$ and the standard columns elsewhere is
+$\beta\alpha^{n-1}$. To see its sign and coefficient, expand
+$\Zj=\sum_{j=1}^n\Ze_j$ in that column. All terms except $j=i$ have
+two equal standard columns, and the remaining matrix is $I_n$.
+There are $n$ choices of $i$, so the determinant is
+$\alpha^n+n\beta\alpha^{n-1}=\alpha^{n-1}(\alpha+n\beta)$.
+\end{proof}
+
+\begin{lemma}\label{lem:odd-power}
+There is no integer $d$ with $d^2=49\cdot5^{21}$.
+\end{lemma}
+\begin{proof}
+We will first prove that $49\cdot5^{2m+1}$ is not an integer square
+for every nonnegative integer $m$. Squares modulo five are $0,1,4$,
+as follows by squaring the residues $0,1,2,3,4$. In particular, if
+$5$ divides $d^2$, then $5$ divides $d$.
+
+For $m=0$, a proposed equality $d^2=49\cdot5$ forces $d=5e$ for an
+integer $e$. Cancelling a factor of five gives $5e^2=49$, impossible
+modulo five. For the induction step, suppose the assertion is known
+for $m$ and that $d^2=49\cdot5^{2m+3}$. Again $d=5e$, and cancelling
+$25$ gives $e^2=49\cdot5^{2m+1}$, contradicting the induction
+hypothesis. Taking $m=10$ proves the result.
+\end{proof}
+
+\begin{theorem}[The needed Bruck--Ryser--Chowla instance]
+\label{thm:BRC}
+There is no integer $22\times22$ matrix $M$ satisfying
+$MM^T=5I_{22}+2J_{22}$.
+\end{theorem}
+\begin{proof}
+Take determinants, viewing the equality also over $\rats$. Determinant
+multiplicativity, invariance under transpose, and
+Lemma~\ref{lem:det-rank-one} give
+\[
+ \det(M)^2=\det(MM^T)=\det(5I_{22}+2J_{22})
+   =5^{21}(5+22\cdot2)=49\cdot5^{21}.
+\]
+Since $M$ has integer entries, the permutation formula for its
+determinant shows that $\det(M)$ is an integer. This contradicts
+Lemma~\ref{lem:odd-power}.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+If a $2$-$(15,5,2)$ design existed, Theorem~\ref{thm:embedding} would
+give the integer matrix excluded by Theorem~\ref{thm:BRC}.
+Lemma~\ref{lem:parameters} establishes the equivalence with the five
+parameters in the statement.
+\end{proof}
+
+Theorem~\ref{thm:BRC} is the even-order case of the obstruction
+usually included in the Bruck--Ryser--Chowla theorem. The proof uses
+neither Hasse--Minkowski nor a theorem about sums of four squares.
+For a symmetric $2$-$(v,k,\lambda)$ design the same determinant
+calculation gives $k^2(k-\lambda)^{v-1}$, since
+$k+\lambda(v-1)=k^2$. When $v$ is even, the odd exponent $v-1$
+forces $k-\lambda$ to be a square by prime factorization. Here we
+proved the necessary prime-factor obstruction by an elementary
+descent at five. A quadratic-form proof of the odd-order case would
+address a different part of the general theorem.
+
+\begin{corollary}\label{cor:complement}
+There is no design with $(v,k,b,r,\lambda)=(15,10,21,14,9)$.
+\end{corollary}
+\begin{proof}
+Complement each labelled block in the $15$-point set. Each complement
+has size $15-10=5$, and each point belongs to $21-14=7$ complemented
+blocks. For distinct points $p,q$, the number of original blocks
+containing neither point is, by inclusion--exclusion,
+$21-14-14+9=2$. Thus the complement would be a $2$-$(15,5,2)$ design,
+contrary to Theorem~\ref{thm:main}.
+\end{proof}
+
+\section{Sources, outside facts and checks}\label{sec:checks}
+
+The proof above is complete as an ordinary proof. The following table
+records the source of its design-theoretic steps; a source attribution
+does not add an unproved hypothesis.
+
+\begin{center}
+\begin{tabular}{L{.20\textwidth}L{.32\textwidth}L{.38\textwidth}}
+\toprule
+Step here & Source & What we prove here\\
+\midrule
+HC1, Lemma~\ref{lem:intersections} &
+Hall--Connor Lemma 4.1, quoting Connor Lemma 4.1 &
+All intersection sizes and both multiplicities, by moments.\\[3pt]
+HC2, Lemma~\ref{lem:common} &
+Hall--Connor Lemma 4.2, quoting Connor Lemma 4.2 &
+Both rows of the table, by $G^2=5G+50J$.\\[3pt]
+HC3, Lemmas~\ref{lem:Connor}--\ref{lem:principal} &
+Connor Theorem 3.1, as used by Hall--Connor &
+Nonnegative quadratic forms and rank at most six, including singularity
+above size six.\\[3pt]
+HC4, Lemmas~\ref{lem:claw} and~\ref{lem:five} &
+Hall--Connor Lemmas 4.3--4.5; the last two quote Connor &
+The claw and five-block restrictions; the first subsumes the side
+patterns in Remark~\ref{rem:source-local}.\\[3pt]
+HC4, Lemma~\ref{lem:inverse} &
+Hall--Connor (5.3), calculated there using Connor Lemma 3.1 &
+The only two nonsingularity cases needed, by integer left inverses.\\[3pt]
+HC5, Sections 5--6 &
+Hall--Connor Lemma 5.1, Section 6, Theorems 2.1 and 3.2 &
+Local uniqueness, the global family, and the embedding at $k=5$.\\[3pt]
+HC6, Section~\ref{sec:BRC} &
+Bruck--Ryser--Chowla, even-order case &
+The determinant formula and the obstruction at five, in full.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+We did not consult Connor's paper; we use only the statements
+reported in Hall--Connor and prove all their required $k=5$ instances.
+We do not need Connor's general determinant tool, the $k=6$
+nonexistence result, or the examples cited in the introduction of
+Hall--Connor. In~\cite{HC}, Lemmas 4.1
+and 4.2 are on page 37; the local matrices (4.1), (4.4) and (4.5)
+are on pages 38--39. Equation (5.3) is printed on page 40 as
+\[
+ |C_{k+2}|=j(j-k+2)(k-6)(k+2)^{k+1}.
+\]
+At $k=5$, this is $j(3-j)7^6$, hence $2\cdot7^6$ for both $j=1$
+and $j=2$.
+The even-order determinant argument also appears in
+\cite[Theorem 8.3.1]{BvM}. Its proof
+is included in Section~\ref{sec:BRC} above.
+
+There are two details worth recording for the structured proof.
+Hall--Connor's count of entries in their array $C^*$ occurs before
+they have proved the relevant set is a clique. Our proof establishes
+that clique property first, then obtains exactly eight edges.
+Also, we explicitly define $\cS$ to be \emph{all} six-cliques and
+prove the adjacent-pair uniqueness that identifies the local choices.
+The two seven-block cases cannot be excluded by nonnegative
+principal minors alone; the rank assertion in HC3 is necessary.
+
+The outside mathematical facts used without proof are elementary
+finite counting, the pigeonhole principle, matrix rank under transpose
+and multiplication by the transpose over $\rats$, the rank inequality
+for a zero product, rank monotonicity for submatrices, the full-rank
+criterion for invertibility, and basic determinant properties:
+multilinearity, alternation, multiplicativity and invariance under
+transpose. Nonnegativity of rational squares,
+integer division with remainder, and induction supply the arithmetic.
+We prove the special determinant formula and the prime obstruction
+in the core text. The nonnegative-minor statement is the side result
+in Remark~\ref{rem:det-nonneg}; neither that remark nor
+Remark~\ref{rem:source-local} is a dependency of the core proof or
+of its structured and Lean versions. We use no
+classification of strongly regular graphs, no design existence table,
+and no unproved theorem of Connor or Hall--Connor.
+
+\subsection*{Exact numerical checks}
+
+The executable check is \code{checks/check_proof.py}, run from this
+directory by
+\begin{lstlisting}
+python checks/check_proof.py
+\end{lstlisting}
+for a Python 3 with SymPy. We used Python 3.12.14 and SymPy 1.14.0. All
+computations use exact integers or rational numbers, and the script
+prints its results. The check reads the six labelled certificate
+matrices directly from \code{hallconnor.tex}, checks the two quadratic
+values $-2,-4$, and checks all $49$ entries of each inverse identity
+in~\eqref{eq:inverse-cert}. It constructs the two seven-block patterns
+independently from their adjacency rules and compares every entry.
+It also verifies their determinants, their positive leading principal
+minors, and the rank-six boundary case $j=0$.
+
+Further checks cover the intersection counts, the algebra giving
+$C^2=35C$ and $CN^T=0$, and the determinant
+\[
+ \det(5I_{22}+2J_{22})=23365020751953125=49\cdot5^{21}.
+\]
+An integer square-root check and division by five independently
+confirm the arithmetic obstruction. The script also calls
+\code{checks/check_t7.py}, which constructs the triangular graph
+$T(7)$ directly from the two-subsets of a seven-set. It checks both
+rows of the common-neighbour table, absence of claws and every
+five-block pattern. For all $210$ ordered adjacent pairs, it checks
+each step of Lemma~\ref{lem:local-split}: the partition sizes
+$5,4,4,6$, the eight edges, the choice of $B_3$, the counts
+$(h,e,\ell)=(j,4-j,j)$, the two six-cliques, their intersection and
+union, and uniqueness. It also enumerates all six-cliques and checks
+their incidence identities. In every local construction $j=0$;
+the excluded $j=1,2$ matrices are checked by their separate certificates.
+
+The biplane controls repeat the residual and reconstruction calculations
+for the $(11,5,2)$ and $(16,6,2)$
+biplanes. Their residual block sizes are three and four, so they do
+not test the structural argument at block size five. No
+$2$-$(15,5,2)$ design exists to test: $T(7)$ supplies a graph control but
+no integral incidence matrix $N$ for the hypothetical design. The
+formula checks in \code{check_counts_and_algebra} re-evaluate the
+displayed algebra; they do not independently prove the counts. The
+controls cannot establish the quantified structural argument or the
+design-to-matrix bridge. The contradiction requires the integrality
+of $N$, beyond the consistent graph structure of $T(7)$.
+
+These checks do not search over designs and do not replace any
+quantified argument in the proof. The largest individual certificate
+matrices are $7\times7$; the $22\times22$ determinant is a diagnostic
+check only. In Lean its value is proved symbolically, as in
+Lemma~\ref{lem:det-rank-one}, not by expanding $22!$ terms.
+
+\subsection*{What Mathlib contains}
+
+We inspected Mathlib at commit
+\code{082e2d37e8b0463410cdb532e111cd43d5a66174} (4 September 2026),
+the version pinned in \code{lake-manifest.json}, with Lean
+\code{v4.34.0-rc2}. Paths here are relative to
+\code{Mathlib/}.
+
+\begingroup
+\raggedright
+\begin{itemize}
+\item \code{Matrix.det_mul}, \code{Matrix.det_transpose} and
+\code{Matrix.det_smul}, together with \code{Matrix.det_reindex_self}, are in
+\code{LinearAlgebra/Matrix/Determinant/Basic.lean}.
+The determinant lemma
+\code{Matrix.det_one_add_replicateCol_mul_replicateRow} is in
+\code{LinearAlgebra/Matrix/SchurComplement.lean}, line 418.
+It states that the determinant of $I+\Zu\Zv^T$ is
+$1+\Zv^T\Zu$. Scaling $5I+2J=5(I+(2/5)J)$ over $\rats$ gives the
+needed determinant calculation.
+The more general \code{Matrix.det_add_replicateCol_mul_replicateRow}
+is in the same file, line 428.
+\item In \code{LinearAlgebra/Matrix/Rank.lean},
+\code{Matrix.rank_add_rank_le_card_of_mul_eq_zero} (line 576) gives
+$\rk C+\rk N^T\le21$ from $CN^T=0$.
+\code{Matrix.rank_self_mul_transpose} (line 561) applies over the
+linearly ordered field $\rats$ and gives $\rk(NN^T)=\rk N$;
+\code{Matrix.rank_transpose} gives $\rk N^T=\rk N$.
+\code{Matrix.rank_of_isUnit} (line 211), with
+\code{Matrix.isUnit_iff_isUnit_det} from
+\code{LinearAlgebra/Matrix/NonsingularInverse.lean}, turns
+$\det(NN^T)=5^{14}\cdot35\ne0$ into $\rk N=15$.
+Thus Lemma~\ref{lem:det-rank-one} at $n=15$ and $n=22$ serves both
+rank and obstruction. The file also contains
+\code{Matrix.rank_submatrix_le} and \code{Matrix.rank_mul_le}.
+No separate injectivity or \code{LinearMap} argument is needed.
+The singularity equivalence \code{Matrix.exists_mulVec_eq_zero_iff}
+is in \code{LinearAlgebra/Matrix/ToLinearEquiv.lean}, line 163.
+\item The rational quadratic-form proof can use sums of squares
+directly. Mathlib also has
+\code{Matrix.posSemidef_iff_dotProduct_mulVec} and
+\code{Matrix.PosSemidef.submatrix} in
+\code{LinearAlgebra/Matrix/PosDef.lean}.
+\code{Matrix.PosSemidef.det_nonneg}, in
+\code{Analysis/Matrix/PosDef.lean}, line 48, assumes an
+\code{RCLike} scalar field; it is not directly a theorem over
+$\rats$. The elementary elimination proof is retained only in
+Remark~\ref{rem:det-nonneg}; it is outside the core Lean chain.
+The quadratic inequality and rank bound alone suffice for that chain.
+\item \code{padicValNat.mul} and \code{padicValNat.pow} are in
+\code{NumberTheory/Padics/PadicVal/Basic.lean}, lines 424 and 441.
+They give an alternative to our descent: take the natural absolute
+value of $\det M$, install \code{Fact (Nat.Prime 5)}, establish that
+the factors are nonzero, and deduce $2\nu_5(|\det M|)=21$.
+\item In \code{NumberTheory/SumFourSquares.lean}, line 199, Mathlib has
+the precise statement
+\begin{lstlisting}
+Nat.sum_four_squares (n : Nat) :
+  Exists fun a : Nat => Exists fun b : Nat =>
+  Exists fun c : Nat => Exists fun d : Nat =>
+    a^2 + b^2 + c^2 + d^2 = n
+\end{lstlisting}
+Here we spell the existential quantifiers with \code{Exists}.
+The multiplicative identity
+\code{Nat.euler_four_squares} is also present.
+Neither declaration is a dependency of this proof. A search of the
+\code{Mathlib/} source found no declaration of
+Hasse--Minkowski or Bruck--Ryser--Chowla under those names. No such
+declaration is needed.
+\end{itemize}
+\endgroup
+
+\section{The Lean statements}\label{sec:Lean}
+
+We will use the structure name \code{Design}, as required by
+\code{cgss/notation.md}, Sections 7 and 10. This section gives the
+interface and the signatures that the Lean formalization, in
+\code{LineGraphs/Cited/HallConnor/}, implements, together with the plan
+of their proofs that we wrote before the formalization.
+
+We will keep points and block labels as separate finite types, so
+that repeated blocks are allowed by the interface. One suitable
+shape is
+\begin{lstlisting}
+Design (P B : Type*) [Fintype P] [Fintype B]
+    [DecidableEq P] [DecidableEq B] (v k b r lam : Nat)
+\end{lstlisting}
+Here all five numbers \code{v k b r lam} are explicit parameters.
+The fields \code{card_points : Fintype.card P = v} and
+\code{card_blocks : Fintype.card B = b} link the finite types to the
+parameters. There is a field \code{block : B -> Finset P}, a proof that every block
+has size \code{k}, a proof that every point occurs in \code{r}
+blocks, and a proof that each distinct pair occurs in \code{lam}
+blocks. It must have no injectivity field for \code{block}.
+We will use \code{D.incMatrix} for the integer incidence matrix,
+\code{D.compl} for the complement and \code{D.IsSymmetric} for the
+condition \code{v = b}, exactly as in the notation table.
+Lemma~\ref{lem:parameters} converts an unbundled
+$2$-$(15,5,2)$ hypothesis, without a prescribed replication number or
+block count, to this shape. An arbitrary $21$-element label type can
+then be reindexed by \code{Fin 21}.
+
+The following are the declaration signatures. Numeric suffixes name parameter values, not
+theorem numbers from the paper. We use \code{False} for a contradiction
+from a supplied design. The embedding signature returns the integer
+matrix and equation~\eqref{eq:extended} that the obstruction consumes.
+\begin{lstlisting}
+theorem Design.not_nonempty_15_5_2 :
+  Not (Nonempty (Design (Fin 15) (Fin 21) 15 5 21 7 2))
+
+theorem Design.false_of_parameters_15_5_2
+    (D : Design P B 15 5 21 7 2) : False
+
+theorem Design.hall_connor
+    (D : Design P B 15 5 21 7 2) :
+    Exists fun M : Matrix (Fin 22) (Fin 22) Int =>
+      M * M.transpose =
+        5 * (1 : Matrix (Fin 22) (Fin 22) Int) +
+        2 * Matrix.of (fun _ _ => (1 : Int))
+
+theorem Matrix.bruck_ryser_chowla_twenty_two
+    (M : Matrix (Fin 22) (Fin 22) Int) :
+    Not (M * M.transpose =
+      5 * (1 : Matrix (Fin 22) (Fin 22) Int) +
+      2 * Matrix.of (fun _ _ => (1 : Int)))
+\end{lstlisting}
+In the matrix signatures, the scalar-looking factors
+\code{5} and \code{2} here are scalar identity matrices under the
+matrix numeral convention, so their matrix products give the intended
+scalar multiples. Using \code{5} and \code{2} as scalar actions instead
+is equally suitable. For the abstract signature, the finite and
+decidable-equality instances for \code{P} and \code{B} are implicit
+section variables. The Lean formalization uses the scalar actions.
+
+The conclusion of \code{Design.hall_connor} is precisely the matrix
+hypothesis of \code{Matrix.bruck_ryser_chowla_twenty_two}.
+
+We will retain the residual assertion with
+\code{Design.hallConnorExtension}. It has point type
+\code{Sum P D.sixCliques} and block type \code{Option B}, where
+the finite set \code{D.sixCliques} is coerced to its subtype of
+members, and \code{none} is the new block. Its five parameters are
+\code{22 7 22 7 2}. Its incidence relation is exactly the case
+distinction in Theorem~\ref{thm:embedding}. Projection onto the
+old summands recovers \code{D}; this avoids making the main
+nonexistence theorem depend on a general residual-design API.
+
+The internal names will describe their conclusions. Definitions use
+lower camel case; theorems use snake case and live in the namespace of
+their object. The settled incidence name \code{D.incMatrix} takes
+precedence over the paper's letter $N$; the other objects $G,C,Z$
+keep their letters. The parameters of a design are
+\code{v k b r lam}; \code{lam} avoids Lean's reserved lambda token.
+A concrete name map is as follows.
+
+\begin{center}
+\begin{tabular}{L{.32\textwidth}L{.58\textwidth}}
+\toprule
+Object or conclusion & Declaration\\
+\midrule
+Incidence and intersection matrices &
+\code{Design.incMatrix}, \code{Design.G}\\
+Connor matrix and block graph &
+\code{Design.C}, \code{Design.Z}\\
+Intersection restriction &
+\code{Design.inter_card_eq_one_or_two}\\
+Degree and common neighbours &
+\code{Design.card_neighbors}, \code{Design.card_commonNeighbors}\\
+Connor identities &
+\code{Design.C_mul_C}, \code{Design.C_mul_incMatrix_transpose}\\
+Quadratic inequality and rank &
+\code{Design.C_quadratic_nonneg}, \code{Design.rank_C_le_six}\\
+Seven-block singularity &
+\code{Design.det_C_submatrix_eq_zero}\\
+Local restrictions &
+\code{Design.Z_clawFree}, \code{Design.not_adj_of_five_block_pattern}\\
+Clique uniqueness &
+\code{Design.exists_unique_sixClique_of_adj}\\
+Global family &
+\code{Design.sixCliques}, \code{Design.card_sixCliques}\\
+Clique incidence counts &
+\code{Design.card_sixCliques_through_block},
+\code{Design.sixClique_inter_card},
+\code{Design.card_blocksThrough_in_sixClique}\\
+Finite certificate values &
+\code{Computations.C19.claw_quadratic},
+\code{Computations.C19.five_block_quadratic},
+\code{Computations.C19.left_inverse_Q1},
+\code{Computations.C19.left_inverse_Q2}\\
+Complement needed by CGSS &
+\code{Design.compl}, \code{Design.not_nonempty_15_10_9}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Theorems in this table concerning $D$ carry the complete hypotheses
+$D:$ \code{Design P B 15 5 21 7 2}, as well as the
+blocks or cliques mentioned in their conclusions. The computation
+namespace is the C19 namespace already assigned in the project;
+the paper's lemma numbers appear in docstrings rather than in
+theorem names. The two named external theorems retain their names.
+
+\subsection*{Formalization cost and proof boundaries}
+
+The expensive part will be the finite incidence and clique bookkeeping.
+In particular, Lemma~\ref{lem:common} is the densest counting step:
+we will split the entry $(G^2)(B_1,B_2)$ into the terms $B=B_1$,
+$B=B_2$ and the sum over the other $19$ labels, then express the
+three weighted sums over the four filtered finite sets counted by
+$x_{ij}$. Along with their total cardinality, these give the four
+displayed equations. This will require explicit exclusions, disjointness
+and casts from natural cardinalities to integer or rational sums.
+The local-to-global clique argument will also need disjoint partitions,
+double counts with block labels and exact filtered-set cardinalities.
+
+The matrix rank lemmas listed above make the rank deduction short.
+The remaining transport cost is the principal-submatrix bound and
+an explicit equivalence from a seven-block subset to \code{Fin 7},
+so that the entry pattern and singularity agree with the certificates.
+
+The passage from Theorem~\ref{thm:embedding} to
+Theorem~\ref{thm:BRC} has a separate design-to-matrix cost.
+If the embedding returns a bundled design, we must apply DS1,
+$NN^T=(r-\lambda)I+\lambda J$, to its incidence matrix, and reindex
+the point and block types to \code{Fin 22}. A determinant taken on
+the original point type must be transported by
+\code{Matrix.det_reindex_self}. Our chosen \code{Design.hall_connor}
+signature instead returns the matrix identity directly: we will prove
+the block product~\eqref{eq:extended} and reindex its rows and columns
+to \code{Fin 22}. This still requires compatibility of reindexing with
+multiplication, transpose, identity and all-ones matrices; it avoids
+making the contradiction depend on a second application of DS1 to a
+bundled extension.
+
+The small certificate identities should be inexpensive. We will use
+kernel-checked finite matrix multiplication, rational arithmetic,
+and linear combinations of rows. The moment polynomials must be
+evaluated in $\ints$ or $\rats$, not with truncated subtraction in
+$\nn$. The determinant obstruction should also be inexpensive once
+the general rank-one determinant identity is instantiated; either the
+descent of Lemma~\ref{lem:odd-power} or the existing valuation lemmas
+will finish it. We will keep $N^*$ integral and cast it to $\rats$
+only for the determinant identity.
+
+There is no unresolved mathematical step in this proof. The structured
+proof is \code{cgss/proofs/hallconnor/hallconnor-lamport.tex}. The Lean
+formalization, in the folder \code{LineGraphs/Cited/HallConnor/}, implements
+the \code{Design} interface and these declarations. Neither needs a
+quadratic-form local-global principle or a development of sums of four
+squares.
+
+\begin{thebibliography}{9}
+\bibitem{BvM}
+A.~E. Brouwer and H. Van Maldeghem, \emph{Strongly Regular Graphs},
+Cambridge University Press, 2022.
+\bibitem{CGSS}
+P.~J. Cameron, J.~M. Goethals, J.~J. Seidel and E.~E. Shult,
+\emph{Line graphs, root systems, and elliptic geometry},
+J. Algebra \textbf{43} (1976), 305--327.
+\bibitem{Connor}
+W.~S. Connor, Jr., \emph{On the structure of balanced incomplete block
+designs}, Ann. Math. Statist. \textbf{23} (1952), 57--71.
+We use the statements reproduced in~\cite{HC}, with proofs given above.
+\bibitem{HC}
+M. Hall, Jr. and W.~S. Connor,
+\emph{An embedding theorem for balanced incomplete block designs},
+Canad. J. Math. \textbf{6} (1954), 35--41.
+\href{https://doi.org/10.4153/CJM-1954-005-4}{doi:10.4153/CJM-1954-005-4}.
+\end{thebibliography}
+\end{document}

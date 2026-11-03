@@ -1,0 +1,2594 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,amsmath,amssymb,amsthm}
+\usepackage[margin=27mm]{geometry}
+\usepackage{microtype,longtable,booktabs,array}
+\usepackage[hyphens]{url}
+\usepackage[hidelinks]{hyperref}
+% The author's macros.
+%
+% some calligraphy
+%
+\newcommand\cA{{\mathcal A}}
+\newcommand\cB{{\mathcal B}}
+\newcommand\cC{{\mathcal C}}
+\newcommand\cD{{\mathcal D}}
+\newcommand\cE{{\mathcal E}}
+\newcommand\cF{{\mathcal F}}
+\newcommand\cG{{\mathcal G}}
+\newcommand\cH{{\mathcal H}}
+\newcommand\cI{{\mathcal I}}
+\newcommand\cJ{{\mathcal J}}
+\newcommand\cK{{\mathcal K}}
+\newcommand\cL{{\mathcal L}}
+\newcommand\cM{{\mathcal M}}
+\newcommand\cN{{\mathcal N}}
+\newcommand\cP{{\mathcal P}}
+\newcommand\cQ{{\mathcal Q}}
+\newcommand\cR{{\mathcal R}}
+\newcommand\cS{{\mathcal S}}
+\newcommand\cT{{\mathcal T}}
+\newcommand\cU{{\mathcal U}}
+\newcommand\cV{{\mathcal V}}
+
+%
+% fields and rings (and a semigroup)
+%
+\newcommand\cx{{\mathbb C}}% complexes
+\newcommand\fld{{\mathbb F}}
+\newcommand\flde{{\mathbb E}}
+\newcommand\ints{{\mathbb Z}}
+\newcommand\nn{{\mathbb N}}%non-negative integers
+\newcommand\re{{\mathbb R}}%reals
+\newcommand\rats{{\mathbb Q}}
+
+\newcommand\Zu{{\mathbf u}}
+\newcommand\Zv{{\mathbf v}}
+\newcommand\Zw{{\mathbf w}}
+\newcommand\Zy{{\mathbf y}}
+\newcommand\Zz{{\mathbf z}}
+\newcommand\Zx{{\mathbf x}}
+\newcommand\Zj{{\mathbf j}}
+
+
+%
+% the really useful stuff
+%
+%\newcommand\opk[1]{\mathop{\hbox{\rm #1}}\nolimits} %% old version
+\newcommand\opk[1]{\mathop{\mathrm{#1}}\nolimits}
+\newcommand\comp[1]{{\mkern2mu\overline{\mkern-2mu#1}}}
+\newcommand\diff{\mathbin{\mkern-1.5mu\setminus\mkern-1.5mu}}% for \setminus
+\newcommand\gbin[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}}
+\newcommand\inv{^{-1}}
+\newcommand\res{\mathbin{\mkern-2.0mu\restriction\mkern-2.0mu}}% ch2
+\newcommand\sbs{\subseteq}
+\newcommand\sps{\supseteq}
+\newcommand\seq[3]{#1_{#2},\ldots,#1_{#3}}
+\newcommand\supp{\opk{supp}}
+\newcommand\im{\opk{im}}
+\newcommand\row{\opk{row}}
+\newcommand\pmat[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\newcommand\cprod{\mathbin{\square}}
+%
+% matrix theory
+%
+\newcommand\ip[2]{\langle#1,#2\rangle}
+\newcommand\one{{\bf1}}
+\newcommand\rk{\opk{rk}}
+\newcommand\tr{\opk{tr}}
+\newcommand\col{\opk{col}}
+\newcommand\mat[3]{\mathrm{Mat}_{#1\times #2}(#3)}
+
+%
+% some group theory
+%
+\newcommand\aut[1]{{\rm Aut}(#1)}
+\newcommand\fx[1]{{\rm fix}(#1)}% ch2
+\newcommand\grp[1]{\langle #1\rangle}
+\newcommand\nrml{\vartriangleleft}
+\newcommand\nrmleq{\trianglelefteq}
+\newcommand\alt[1]{\opk{Alt}(#1)}
+\DeclareMathOperator{\Sym}{Sym}
+% End of the author's macros.
+\hypersetup{pdftitle={A spectral toolkit for CGSS},pdfauthor={}}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\DeclareMathOperator{\Spec}{Spec}
+\DeclareMathOperator{\mult}{mult}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\spanop}{span}
+\makeatletter
+\g@addto@macro\UrlBreaks{\do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j\do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t\do\u\do\v\do\w\do\x\do\y\do\z\do\A\do\B\do\C\do\D\do\E\do\F\do\G\do\H\do\I\do\J\do\K\do\L\do\M\do\N\do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X\do\Y\do\Z}
+\makeatother
+\newcommand{\code}[1]{\ifmmode\text{\small\nolinkurl{#1}}\else{\small\nolinkurl{#1}}\fi}
+\newcommand{\lean}[1]{\par\smallskip{\raggedright\small\noindent\textit{Proposed Lean: }\code{#1}.\par}}
+\newcommand{\status}[1]{\par\smallskip{\raggedright\noindent\textit{Mathlib / new. }#1\par}}
+\newcommand{\used}[1]{\par\smallskip\noindent\textit{Use. }#1\par}
+\newcommand{\ms}[1]{\left[\!\left[#1\right]\!\right]}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\setlength{\emergencystretch}{2em}
+\title{A spectral toolkit for CGSS\\\large Definitions, source catalogue, and ordinary proofs}
+\author{}
+\date{27 September 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+We give the spectral tools used in Sections 3--6 of Cameron, Goethals,
+Seidel and Shult \cite{CGSS}, with multiplicities and all dimension and
+nonemptiness hypotheses explicit. We will use the finite-dimensional real
+spectral theorem from Mathlib as a foundation. The proofs below supply the
+matrix and graph interfaces, symmetric Perron--Frobenius, the regular and
+strongly regular graph calculations, and soundness theorems for exact
+spectral certificates. The proposed names are the interface for the
+structured proofs and the Lean code; not every one of them is a declaration
+of the Lean formalization.
+\end{abstract}
+
+\section{Catalogue of existing results}\label{sec:catalogue}
+
+We inspected Mathlib at commit \code{082e2d37} (4 September 2026), the
+version pinned in \code{lake-manifest.json}. Paths in the following
+catalogue are relative to \code{Mathlib/}. We record the actual
+statements, rather than inferring their strength from declaration names
+or introductory comments. ``New'' below means that the stated interface
+needs a proof in this project, not that the mathematics is new.
+
+\subsection{Mathlib foundations}
+
+All the matrix statements in items M1--M5 specialize to finite real
+matrices. A Lean matrix index has \code{Fintype} and, when matrix
+multiplication or diagonal matrices require it, \code{DecidableEq}.
+We will make these choices classically; no computation over real numbers
+is part of a certificate checker.
+
+\begin{description}\raggedright
+\item[M1: the spectral theorem.]\label{cat:spectral}
+\code{Analysis/Matrix/Spectrum.lean}, namespace
+\code{Matrix.IsHermitian}, for a matrix over an \code{RCLike} field and
+\code{hA : A.IsHermitian}, provides
+\code{eigenvalues}\textsubscript{\code{0}} (a decreasing real list indexed by
+\code{Fin (Fintype.card U)}), \code{eigenvalues} (the same list reindexed
+by \code{U}), \code{eigenvalues}\textsubscript{\code{0}}\code{_antitone},
+\code{eigenvectorBasis}, \code{mulVec_eigenvectorBasis}, and
+\code{spectral_theorem}. The last asserts unitary diagonalization.
+The same namespace contains \code{charpoly_eq},
+\code{roots_charpoly_eq_eigenvalues},
+\code{roots_charpoly_eq_eigenvalues}\textsubscript{\code{0}}, \code{splits_charpoly},
+\code{det_eq_prod_eigenvalues}, \code{trace_eq_sum_eigenvalues}, and
+\code{rank_eq_card_non_zero_eigs}. These give, respectively, the product
+of linear factors, the multiset of roots, splitting, product, sum, and
+number of nonzero eigenvalues. Also,
+\code{eigenvalues_eq_eigenvalues_iff} equates equality of the reindexed
+eigenvalue functions with equality of characteristic polynomials for two
+Hermitian matrices on the \emph{same} index type;
+\code{spectrum_real_eq_range_eigenvalues} identifies the ordinary
+set-valued algebra spectrum. In particular the root theorem's full name
+is \code{Matrix.IsHermitian.roots_charpoly_eq_eigenvalues}.
+
+\item[M2: eigenspaces and coordinate changes.]\label{cat:eigenspace}
+\code{Analysis/InnerProductSpace/Spectrum.lean} contains
+\code{LinearMap.IsSymmetric.card_filter_eigenvalues_eq}: if $T$ is
+symmetric on a finite-dimensional inner product space over an
+\code{RCLike} field and $h_n:\dim V=n$, the number of indices $i$ with
+$\operatorname{eigenvalues}(T,h_n)(i)=\mu$ is
+$\dim\ker(T-\mu I)$ (with the real eigenvalue cast into the field).
+The name is \emph{card\_filter\_eigenvalues\_eq}.
+\code{Analysis/Matrix/Hermitian.lean} contains
+\code{Matrix.isSymmetric_toEuclideanLin_iff}:
+$A.\mathrm{toEuclideanLin}$ is symmetric iff $A$ is Hermitian.
+\code{Matrix.isHermitian_iff_isSymmetric} is its deprecated reverse
+alias. \code{Matrix.toEuclideanLin} is in
+\code{Analysis/InnerProductSpace/PiL2.lean}.
+\code{Module.End.eigenspace} and \code{Module.End.mem_eigenspace_iff}
+are in \code{LinearAlgebra/Eigenspace/Basic.lean}.
+\code{LinearAlgebra/Eigenspace/Zero.lean} supplies
+\code{LinearMap.finrank_eigenspace_le} and
+\code{LinearMap.finrank_maxGenEigenspace_eq}: over a field and a finite
+module, geometric multiplicity is at most characteristic-polynomial
+root multiplicity, and maximal generalized-eigenspace dimension equals
+that multiplicity. The equality for a symmetric matrix's ordinary
+eigenspace in \code{toLin'} coordinates is a new bridge, proved below.
+\code{Polynomial.count_roots}, in
+\code{Algebra/Polynomial/Roots.lean}, identifies root count with
+\code{rootMultiplicity}.
+
+\item[M3: positivity.]\label{cat:positive}
+\code{LinearAlgebra/Matrix/PosDef.lean} contains
+\code{Matrix.posSemidef_iff_dotProduct_mulVec}: positivity is Hermitian
+symmetry together with nonnegativity of every quadratic form. It also
+contains \code{Matrix.PosSemidef.submatrix}.
+\code{Analysis/Matrix/PosDef.lean} contains
+\code{Matrix.IsHermitian.posSemidef_iff_eigenvalues_nonneg},
+\code{Matrix.PosSemidef.eigenvalues_nonneg},
+\code{Matrix.IsHermitian.posDef_iff_eigenvalues_pos}, and
+\code{Matrix.PosSemidef.det_nonneg}, for finite Hermitian matrices over
+an \code{RCLike} field.
+\code{Matrix.PosSemidef.dotProduct_mulVec_zero_iff}, in
+\code{Analysis/Matrix/Order.lean}, says that $\Zx^*A\Zx=0$ iff
+$A\Zx=0$ when $A$ is positive semidefinite.
+\code{Matrix.posSemidef_iff_eq_sum_vecMulVec}, in
+\code{Analysis/InnerProductSpace/Positive.lean}, expresses a positive
+semidefinite matrix as a finite sum of $\Zv\Zv^*$; it does not itself
+specify a representation of dimension equal to the rank.
+\code{Matrix.rank_transpose_mul_self} and
+\code{Matrix.rank_self_mul_transpose}, in
+\code{LinearAlgebra/Matrix/Rank.lean}, give
+$\rk(B^TB)=\rk B=\rk(BB^T)$ over a linearly ordered field.
+
+\item[M4: characteristic polynomials and trace.]\label{cat:charpoly}
+\code{LinearAlgebra/Matrix/Charpoly/Basic.lean}, over a commutative ring,
+contains \code{Matrix.charpoly_mul_comm'} for rectangular matrices:
+$t^q\chi_{MN}=t^p\chi_{NM}$ for $M$ of size $p\times q$;
+\code{Matrix.charpoly_mul_comm} is the square version, and
+\code{Matrix.charpoly_diagonal} is the product of linear factors for a
+diagonal matrix. \code{Polynomial.roots_multiset_prod_X_sub_C}, in
+\code{Algebra/Polynomial/Roots.lean}, reads the roots of such a product.
+\code{Matrix.charpoly_units_conj} and
+\code{Matrix.charpoly_units_conj'} give conjugation invariance by a
+matrix unit. \code{Matrix.charpoly_map} commutes characteristic
+polynomials with a ring homomorphism.
+\code{LinearMap.IsProj.trace}, in \code{LinearAlgebra/Trace.lean},
+equates the trace of a projection with the dimension of its image;
+the general ring statement assumes finite free image and kernel.
+\code{LinearMap.isProj_range_iff_isIdempotentElem}, in
+\code{LinearAlgebra/Projection.lean}, supplies its idempotent hypothesis.
+\code{Matrix.det_vandermonde_ne_zero_iff} and
+\code{Matrix.eq_zero_of_forall_pow_sum_mul_pow_eq_zero}, in
+\code{LinearAlgebra/Vandermonde.lean}, give invertibility and uniqueness
+of moments at distinct nodes over a domain.
+\code{isInteger_of_is_root_of_monic}, in
+\code{RingTheory/Polynomial/RationalRoot.lean}, says that a root in a
+fraction field of a monic polynomial over a UFD lies in the base ring.
+We will use the specialization $\ints\sbs\rats$.
+
+\item[M5: Rayleigh quotients.]\label{cat:rayleigh}
+\code{Analysis/InnerProductSpace/Rayleigh.lean} contains
+\code{LinearMap.IsSymmetric.hasEigenvalue_iSup_of_finiteDimensional}
+and \code{LinearMap.IsSymmetric.hasEigenvalue_iInf_of_finiteDimensional}:
+the supremum and infimum of the Rayleigh quotient on \emph{nonzero}
+vectors are eigenvalues, assuming finite dimension and a nontrivial
+space. It also contains
+\code{IsSelfAdjoint.hasEigenvector_of_isMaxOn} for continuous linear
+maps. We will prove the matrix maximum and its equality condition
+directly from M1. Mathlib has an irreducibility definition,
+\code{Matrix.IsIrreducible}, in
+\code{LinearAlgebra/Matrix/Irreducible/Defs.lean}, but no
+Perron--Frobenius theorem and no Cauchy interlacing theorem found by our
+source search. Our support-graph formulation includes the one-vertex
+zero matrix without requiring a positive-length loop.
+
+\item[M6: graph matrices.]\label{cat:graph}
+\code{Combinatorics/SimpleGraph/AdjMatrix.lean} contains
+\code{SimpleGraph.adjMatrix_pow_apply_eq_card_walk}: over a semiring,
+$(A^j)(u,v)$ is the cardinality of walks of length $j$ from $u$ to $v$,
+cast to that semiring. It also contains
+\code{SimpleGraph.trace_adjMatrix},
+\code{SimpleGraph.adjMatrix_mul_self_apply_self} (the diagonal of $A^2$
+is degree), \code{SimpleGraph.adjMatrix_mulVec_const_apply_of_regular},
+and \code{SimpleGraph.Iso.reindex_adjMatrix}. For the complement,
+\code{SimpleGraph.compl_adjMatrix_eq_adjMatrix_compl} identifies
+$A(\comp X)$ with Mathlib's \code{Matrix.compl} of $A(X)$, and
+\code{SimpleGraph.one_add_adjMatrix_add_compl_adjMatrix_eq_of_one} gives
+$I+A(X)+A(X).\mathrm{compl}=J$. The structure \code{Matrix.IsAdjMatrix}
+bundles the three guards zero-one entries, symmetry and zero diagonal;
+\code{Matrix.IsAdjMatrix.toGraph} is the graph with adjacency $A(u,v)=1$,
+and \code{Matrix.IsAdjMatrix.adjMatrix_toGraph_eq} says that its
+adjacency matrix is $A$.
+\code{Combinatorics/SimpleGraph/LapMatrix.lean} contains
+\code{SimpleGraph.isHermitian_adjMatrix}, \code{SimpleGraph.lapMatrix},
+\code{SimpleGraph.posSemidef_lapMatrix},
+\code{SimpleGraph.lapMatrix_mulVec_eq_zero_iff_forall_reachable}, and
+\code{SimpleGraph.card_connectedComponent_eq_finrank_ker_toLin'_lapMatrix}.
+The last two are real statements for finite graphs with decidable
+adjacency, and identify the Laplacian kernel with functions constant on
+components. \code{SimpleGraph.incMatrix_mul_transpose}, in
+\code{Combinatorics/SimpleGraph/IncMatrix.lean}, gives the entries of
+$MM^T=D+A$ over a semiring. Its columns run over \emph{all} of \code{Sym2 U}; columns
+which are not edges are zero. We will restrict to actual edges before
+forming $M^TM$ for a line graph.
+\code{SimpleGraph.lineGraph}, in
+\code{Combinatorics/SimpleGraph/LineGraph.lean}, has vertex type
+\code{X.edgeSet}; two distinct edges are adjacent when they share
+a vertex.
+
+\item[M7: strongly regular graphs.]\label{cat:srg}
+\code{Combinatorics/SimpleGraph/StronglyRegular.lean} contains
+\code{SimpleGraph.IsSRGWith.matrix_eq} over a semiring,
+\code{SimpleGraph.IsSRGWith.param_eq} for $n>0$, and
+\code{SimpleGraph.IsSRGWith.compl}. The matrix identity uses the
+complement adjacency matrix; the parameter formulas use natural-number
+subtraction. Complete and empty graphs are admitted by
+\code{IsSRGWith}. The three-eigenvalue theorem below adds connectedness
+and $0<k<n-1$, and performs the arithmetic in $\re$ or $\ints$.
+
+\item[M8: auxiliary matrix and counting facts.]\label{cat:auxiliary}
+\code{Matrix.det_one_add_replicateCol_mul_replicateRow}, in
+\code{LinearAlgebra/Matrix/SchurComplement.lean}, proves
+$\det(I+\Zu\Zv^T)=1+\Zv^T\Zu$ over a commutative ring.
+\code{Sym2.card}, in \code{Data/Sym/Card.lean}, gives
+$|\operatorname{Sym2}(U)|=\binom{n+1}{2}$ for a finite type of
+cardinality $n$. This supplies the count in the symmetric-matrix
+dimension argument.
+\code{Matrix.IsHadamard}, in
+\code{LinearAlgebra/Matrix/HadamardMatrix.lean}, is defined over a
+star semiring by unitary entries and both equations $HH^*=nI$ and
+$H^*H=nI$. Over $\re$ this means entries $\pm1$ and the two
+orthogonality equations. Our Hadamard theorem explicitly derives
+the second equation from the first when $n>0$, so its hypotheses
+produce this existing predicate.
+\end{description}
+
+\subsection{The new interfaces and their uses}
+
+We will use \code{Matrix.spectrumMultiset}, rather than redefine
+Mathlib's set-valued \code{spectrum}, and \code{SimpleGraph.Cospectral}
+for cospectral graphs. The remaining
+new interfaces are multiplicity and eigenspace dimension, polynomial
+spectral mapping with multiplicities, ordered extremes, their positivity
+bridges, symmetric Perron--Frobenius, the signless Laplacian kernel,
+line-graph spectral transfer, strongly regular spectral idempotents, and
+the remaining certificate wrappers. Each result below has its Lean name, status,
+and place of use. The names for Lemmas 5.1--5.6 and Smith's theorem follow
+\code{cgss/notation.md}, Section 10.
+
+\section{Definitions and the spectral theorem}\label{sec:definitions}
+
+We will use functional notation for entries: $A(u,v)$ and $\Zv(u)$.
+Vectors are columns, $I$ is the identity matrix, and $J$ is the all-ones
+matrix; $\Zj$ is the all-ones vector. For a finite set $U$ of cardinality
+$n$, $\re^U$ has inner product
+$\ip{\Zx}{\Zy}=\sum_{u\in U}\Zx(u)\Zy(u)$.
+The \emph{rank} of a matrix is the dimension of the image of its
+associated linear map. All graphs are finite and simple. Matrices in
+spectral statements are real and symmetric unless another hypothesis is
+specified. An empty matrix has characteristic polynomial $1$, determinant
+$1$, rank $0$, and empty spectrum.
+
+\begin{definition}\label{def:spectrum}
+For a real square matrix $A$, put
+\[
+ \chi_A(t)=\det(tI-A),\qquad
+ \Spec(A)=\chi_A.\mathrm{roots},\qquad
+ \mult_A(\mu)=\operatorname{count}_{\Spec(A)}(\mu).
+\]
+Here roots form a multiset over $\re$, with algebraic multiplicity.
+We will call $\ker(A-\mu I)$ the \emph{eigenspace} $V_A(\mu)$; an
+eigenvector is a nonzero member. The definition of $\Spec$ makes sense
+without symmetry, but its cardinality can then be smaller than $n$.
+\lean{Matrix.spectrumMultiset, Matrix.eigenvalueMultiplicity}
+\status{Implemented in \code{LineGraphs/Spectral/Basic.lean}, using \code{Matrix.charpoly},
+\code{Polynomial.roots}, and \code{Module.End.eigenspace} (M1, M2).}
+\end{definition}
+
+\begin{theorem}[Coordinates, roots, and multiplicity]\label{thm:multiplicity}
+Let $A$ be a real symmetric matrix on a finite set $U$ of cardinality $n$.
+There is an orthonormal basis $(\Zv_i)_{i\in U}$ with
+$A\Zv_i=\lambda_i\Zv_i$, where
+$\lambda_i=\code{Matrix.IsHermitian.eigenvalues}(A)(i)$, and
+\[
+ \chi_A(t)=\prod_{i\in U}(t-\lambda_i),\quad
+ \Spec(A)=\ms{\lambda_i:i\in U},\quad
+ \mult_A(\mu)=\dim V_A(\mu)\quad(\mu\in\re).
+\]
+Thus $|\Spec(A)|=n$; membership in $\Spec(A)$, existence of a nonzero
+$\mu$-eigenvector, and membership in Mathlib's set-valued
+$\operatorname{spectrum}_{\re}(A)$ are equivalent. Multiplicity also
+equals \code{A.charpoly.rootMultiplicity mu}.
+More generally, if $(\Zu_j)_{j\in I}$ is any orthonormal basis of $\re^U$
+with $A\Zu_j=\mu_j\Zu_j$, then $\Spec(A)=\ms{\mu_j:j\in I}$.
+There is also a sorted orthonormal eigenbasis $(\Zw_i)_{i\in\operatorname{Fin}(n)}$
+with $A\Zw_i=\nu_i\Zw_i$, where
+$\nu_i=\code{hA.eigenvalues}\textsubscript{0}(i)$ and $\nu_i\ge\nu_j$ for $i\le j$.
+Its eigenvalues list the spectrum in decreasing order:
+$\Spec(A)=\ms{\nu_i:i\in\operatorname{Fin}(n)}$.
+\end{theorem}
+\begin{proof}
+Over $\re$, conjugation is trivial, so symmetry is exactly the Hermitian
+hypothesis of M1. Apply its orthonormal eigenbasis theorem, and form the
+matrix $Q$ whose columns are these vectors. Orthonormality gives
+$Q^TQ=QQ^T=I$, and $AQ=Q\diag(\lambda_i)$. Thus
+$A=Q\diag(\lambda_i)Q^T$. Taking the determinant of
+$tI-A=Q(tI-\diag(\lambda_i))Q^T$ gives the displayed factorization;
+$\det Q\det Q^T=1$. Each factor has one root with multiplicity one,
+and multiplying factors adds their root multisets. This proves the
+multiset assertion, including repeated eigenvalues. For an arbitrary
+orthonormal eigenbasis $(\Zu_j)_{j\in I}$, let $P$ have these columns and
+$D=\diag(\mu_j)$. Both $A$ and $PDP^T=\sum_j\mu_j\Zu_j\Zu_j^T$ act on each
+$\Zu_k$ by $\mu_k$, so $A=PDP^T$. Since $P^TP=I$ and $|I|=n$,
+\code{Matrix.charpoly_mul_comm'} gives
+$t^n\chi_A=t^n\chi_{DP^TP}=t^n\chi_D$, and
+\code{Matrix.charpoly_diagonal} and
+\code{Polynomial.roots_multiset_prod_X_sub_C} give the multiset.
+
+Write $\Zx=\sum_i b_i\Zv_i$ in this basis. The equation
+$A\Zx=\mu\Zx$ is equivalent to
+$(\lambda_i-\mu)b_i=0$ for every $i$, by uniqueness of basis
+coefficients. Thus the vectors $\Zv_i$ with $\lambda_i=\mu$ form a
+basis of $V_A(\mu)$: they are independent as a subset of a basis, and
+the preceding coefficient equation proves spanning. Their number is
+the multiset count. A positive count is equivalent to a nonzero
+eigenspace. Also, $\mu I-A$ fails to be invertible exactly when its
+determinant is zero, equivalently when one factor $\mu-\lambda_i$
+vanishes; this is the definition of the algebra spectrum. Finally
+\code{Polynomial.count_roots} identifies the root count with
+\code{rootMultiplicity}.
+
+For the Lean coordinate bridge, send $\Zx:U\to\re$ to
+$\code{WithLp.toLp}\ 2\ \Zx$. This is a linear equivalence with
+$\code{EuclideanSpace}\ \re\ U$, with inverse taking the underlying
+function. The formula for \code{toEuclideanLin} says that this map
+intertwines it with \code{A.toLin'}. It thus restricts to inverse
+linear maps on the two eigenspaces, preserving their finite dimensions.
+Apply \code{LinearMap.IsSymmetric.card_filter_eigenvalues_eq} to
+$A.\mathrm{toEuclideanLin}$ and $\dim\re^U=n$; reindexing the finite
+count gives the asserted multiplicity in either coordinate convention.
+For the sorted basis, let
+$e:\operatorname{Fin}(n)\simeq U$ be
+\code{Fintype.equivOfCardEq (Fintype.card_fin n)} and set
+$\Zw_i=\code{hA.eigenvectorBasis}(e(i))$.
+This is \code{hA.eigenvectorBasis.reindex e.symm}.
+The definition of \code{hA.eigenvalues} gives
+$\lambda_{e(i)}=\nu_i$; apply \code{mulVec_eigenvectorBasis} at $e(i)$.
+Finally \code{eigenvalues}\textsubscript{0}\code{_antitone} gives the ordering, and
+\code{roots_charpoly_eq_eigenvalues}\textsubscript{0} gives the sorted multiset.
+If $U$ is empty, all bases and multisets above
+are empty and both dimensions are zero.
+\end{proof}
+\lean{Matrix.IsHermitian.spectrumMultiset_eq_eigenvalues, Matrix.IsHermitian.eigenvalueMultiplicity_eq_finrank, Matrix.IsHermitian.mem_spectrumMultiset_iff, Matrix.IsHermitian.sortedEigenvectorBasis, Matrix.spectrumMultiset_eq_of_orthonormal_eigenbasis}
+\status{Mathlib: M1, M2 and M4. The root-multiset wrapper is implemented in
+\code{LineGraphs/Spectral/Basic.lean}; the \code{toLin'} bridge and sorted-basis
+wrapper are proposed here. The arbitrary-basis assertion needs no symmetry
+hypothesis; it is proved in Lean in \code{LineGraphs/Spectral/Multiplicity.lean}.}
+\used{All spectral statements; specifically [CGSS] Lemmas 5.1--5.6,
+SR3--SR4, and the rank arguments of Sections 4 and 6.}
+
+\begin{definition}\label{def:extremes}
+For a real symmetric matrix $A$ on $n>0$ indices, define
+\[
+ \lambda_{\max}(A)=\code{hA.eigenvalues}\textsubscript{0}(0),\qquad
+ \lambda_{\min}(A)=\code{hA.eigenvalues}\textsubscript{0}(n-1).
+\]
+The indices carry their proofs of being less than $n$. These are exactly
+\code{LineGraphs/Spectral/Basic.lean}'s definitions. They require
+\code{Nonempty U} and \code{hA : A.IsHermitian}; there is no extreme
+for the empty matrix.
+\lean{Matrix.IsHermitian.largestEigenvalue, Matrix.IsHermitian.leastEigenvalue}
+\status{Implemented first- and last-entry wrappers in \code{LineGraphs/Spectral/Basic.lean}.}
+\end{definition}
+
+\begin{lemma}[Extremal entries and multiset bounds]\label{lem:extremes}
+Let $A$ be real symmetric on a nonempty finite index set of size $n$.
+Then $\lambda_{\max}(A),\lambda_{\min}(A)\in\Spec(A)$, and
+\[
+ \lambda_{\min}(A)\le\mu\le\lambda_{\max}(A)
+ \qquad(\mu\in\Spec(A)).
+\]
+Thus they are the maximum and minimum of the multiset and equal
+the first and last entries of the decreasing list.
+\end{lemma}
+\begin{proof}
+Apply \code{Matrix.IsHermitian.roots_charpoly_eq_eigenvalues}\textsubscript{0}.
+Each endpoint index supplies membership, and each member has the form
+$\nu_i$ for some $0\le i\le n-1$. Applying
+\code{Matrix.IsHermitian.eigenvalues}\textsubscript{0}\code{_antitone}
+to $0\le i$ and $i\le n-1$ gives both bounds. Membership and these
+bounds are precisely the maximum and minimum properties.
+\end{proof}
+\lean{Matrix.IsHermitian.largestEigenvalue_mem_spectrumMultiset, Matrix.IsHermitian.leastEigenvalue_mem_spectrumMultiset, Matrix.IsHermitian.le_largestEigenvalue_of_mem, Matrix.IsHermitian.leastEigenvalue_le_of_mem}
+\status{New ordering bridges from M1, for the existing Lean definitions.}
+\used{Rayleigh bounds, interlacing and every extremal-eigenvalue comparison.}
+
+\begin{definition}\label{def:graph}
+The spectrum and multiplicity of a graph $X$ are those of its adjacency
+matrix $A(X)$. Two graphs, possibly on different vertex types, are
+\emph{cospectral} when their real adjacency characteristic polynomials
+are equal. The least and largest graph eigenvalues require a nonempty
+vertex set. The \emph{Seidel matrix} is
+\[
+ S(X)=J-I-2A(X).
+\]
+It is symmetric, has diagonal zero, and off-diagonal entry $-1$ on an
+edge and $1$ on a nonedge.
+\lean{SimpleGraph.spectrumMultiset, SimpleGraph.eigenvalueMultiplicity, SimpleGraph.Cospectral, SimpleGraph.largestEigenvalue, SimpleGraph.leastEigenvalue, SimpleGraph.seidelMatrix}
+\status{Implemented in \code{LineGraphs/Spectral/Basic.lean} over
+Mathlib's \code{SimpleGraph.adjMatrix}.}
+\end{definition}
+
+\begin{proposition}[Equivalent spectra]\label{prop:cospectral}
+For real symmetric matrices $A,B$, even on different finite index sets,
+$\chi_A=\chi_B$ iff $\Spec(A)=\Spec(B)$ iff
+$\mult_A(\mu)=\mult_B(\mu)$ for all real $\mu$.
+Thus cospectral graphs have the same number of vertices. Graph
+isomorphisms preserve the spectrum.
+\end{proposition}
+\begin{proof}
+Equality of polynomials gives equality of their root multisets.
+Conversely, Theorem~\ref{thm:multiplicity} expresses each polynomial
+as the product of $t-\mu$ over its multiset, with leading coefficient
+one, so equal multisets give equal polynomials. Two finite multisets
+are equal iff all their counts are equal: remove one occurrence of an
+element and argue by induction on the size, with the empty multiset
+as base case. Their common size gives the common matrix order.
+For an isomorphism, relabel the coordinate basis by its vertex
+bijection. The two adjacency linear maps then have the same matrix
+in corresponding bases. In the determinant expansion, the relabelling
+bijects the permutations, preserves their signs, and preserves every
+entry product. Thus their characteristic polynomials are equal.
+\end{proof}
+\lean{Matrix.IsHermitian.spectrumMultiset_eq_iff_charpoly_eq, SimpleGraph.cospectral_iff_spectrumMultiset_eq, SimpleGraph.Iso.cospectral}
+\status{The isomorphism wrapper is implemented in
+\code{LineGraphs/Spectral/Basic.lean}. The equivalence wrappers are proposed
+from M1 and \code{SimpleGraph.Iso.reindex_adjMatrix} (M6).}
+\used{[CGSS] Section 5, C13 and C15.}
+
+\section{Polynomial calculus, traces, and positive semidefiniteness}\label{sec:calculus}
+
+\begin{theorem}[Polynomial calculus and spectral idempotents]\label{thm:calculus}
+Let $A$ be real symmetric of order $n$. List its distinct eigenvalues as
+$\theta_0>\cdots>\theta_d$. For $n=0$ the list is empty. There are
+unique symmetric matrices $E_r$ that are the identity on $V_A(\theta_r)$
+and zero on every other eigenspace. They satisfy
+\[
+ \sum_rE_r=I,\quad E_rE_s=\begin{cases}E_r&r=s,\\0&r\ne s,\end{cases}
+ \qquad A=\sum_r\theta_rE_r.
+\]
+For every real polynomial $f$,
+\[
+ f(A)=\sum_r f(\theta_r)E_r,\quad
+ \Spec(f(A))=\operatorname{map}(f,\Spec(A)),\quad
+ \mult_{f(A)}(b)=\sum_{r:f(\theta_r)=b}\mult_A(\theta_r).
+\]
+In particular $f(A)=0$ iff $f(\theta_r)=0$ for every $r$, and
+\[
+ E_r=\prod_{s\ne r}\frac{A-\theta_sI}{\theta_r-\theta_s},\quad
+ \tr E_r=\rk E_r=\mult_A(\theta_r).
+\]
+\end{theorem}
+\begin{proof}
+In the orthonormal eigenbasis from Theorem~\ref{thm:multiplicity},
+define $E_r$ to have diagonal entry $1$ at those indices with
+$\lambda_i=\theta_r$ and $0$ elsewhere, then conjugate by $Q$.
+These matrices are symmetric. Their actions on each basis vector
+prove the sum, product, and decomposition identities, as well as
+uniqueness. For $j=0$, $A^0=I$ acts by $1=\lambda_i^0$ even when
+$\lambda_i=0$. If $A^j\Zv_i=\lambda_i^j\Zv_i$, multiplication by $A$
+proves the assertion for $j+1$. Taking linear combinations of these
+power identities proves the formula for $f(A)$.
+Thus $f(A)=Q\diag(f(\lambda_i))Q^T$. Taking its characteristic
+polynomial as before proves the multiset formula; counting equal
+images gives the multiplicity formula, with collisions added.
+The zero-matrix equivalence follows by applying the matrix to each
+nonzero basis vector. The polynomial in the displayed product has
+value $1$ at $\theta_r$ and $0$ at every other $\theta_s$, since
+distinctness makes all denominators nonzero. It thus acts as
+$E_r$ on the eigenbasis. Its rank is the number of diagonal ones.
+For its trace, expand
+$\sum_u E_r(u,u)=\sum_{i:\lambda_i=\theta_r}\sum_u\Zv_i(u)^2$;
+every inner sum is $1$ by normalization. This gives the same count.
+\end{proof}
+\lean{Matrix.IsHermitian.spectralIdempotent, Matrix.IsHermitian.aeval_eq_sum_spectralIdempotent, Matrix.IsHermitian.spectrumMultiset_aeval, Matrix.IsHermitian.aeval_eq_zero_iff, Matrix.IsHermitian.trace_spectralIdempotent}
+\status{New construction, multiset calculus and idempotent algebra from M1.}
+\used{SR3, [CGSS] Theorems 3.7, 4.4, 5.8, Section 6, and certificates.}
+
+\begin{theorem}[Trace, determinant, rank, and moments]\label{thm:trace}
+If $A$ is real symmetric with eigenvalues $\lambda_1,\ldots,\lambda_n$
+listed with multiplicity, then, for every integer $j\ge0$,
+\[
+ \tr A^j=\sum_{i=1}^n\lambda_i^j,\qquad
+ \det A=\prod_{i=1}^n\lambda_i,\qquad
+ \rk A=n-\mult_A(0).
+\]
+For any real polynomial $f$,
+$\tr f(A)=\sum_i f(\lambda_i)$ and
+$\rk f(A)=\sum_{r:f(\theta_r)\ne0}\mult_A(\theta_r)$.
+If $E$ is any real idempotent square matrix, even if not symmetric,
+$\tr E=\rk E$ and this number is a nonnegative integer.
+\end{theorem}
+\begin{proof}
+Use the diagonalization of $f(A)$ in Theorem~\ref{thm:calculus}.
+For rectangular products for which both traces are defined,
+$\tr(PQ)=\sum_{u,v}P(u,v)Q(v,u)=\tr(QP)$, by interchanging the
+finite sums. Thus trace is unchanged by conjugation. Determinant
+is unchanged by conjugation by multiplicativity; rank is unchanged
+because an invertible map bijects both domain and image. Diagonal
+trace, determinant, and rank are respectively the sum, product, and
+number of nonzero diagonal entries. This proves all assertions for $A$.
+For an idempotent $E$, every vector has the decomposition
+$\Zx=E\Zx+(\Zx-E\Zx)$ into image and kernel. Their intersection is
+zero: if $\Zy=E\Zz$ and $E\Zy=0$, then
+$\Zy=E^2\Zz=E\Zy=0$. A basis of the image followed by a basis of
+the kernel thus gives a matrix $\diag(I_{\rk E},0)$ for $E$.
+Trace invariance proves the last assertion.
+\end{proof}
+\lean{Matrix.IsHermitian.trace_pow_eq_sum_spectrumMultiset, Matrix.IsHermitian.rank_aeval_eq_sum_multiplicity, Matrix.trace_eq_rank_of_idempotent}
+\status{Mathlib: determinant, rank and first trace in M1; idempotent
+trace in M4. The multiset power trace is implemented in
+\code{LineGraphs/Spectral/Basic.lean}; the polynomial rank and matrix
+idempotent wrappers are proposed here.}
+\used{SP2, SR3--SR4, EQ1--EQ3, [CGSS] Theorem 3.7, Section 6, C13--C15.}
+
+\begin{theorem}[Positivity and shifts]\label{thm:psd}
+Let $A$ be real symmetric. It is positive semidefinite iff every member
+of $\Spec(A)$ is nonnegative, and positive definite iff every member is
+positive. For any $b\in\re$,
+\[
+ A-bI\succeq0\ \Longleftrightarrow\ (\forall\mu\in\Spec(A))\ b\le\mu,
+ \qquad
+ bI-A\succeq0\ \Longleftrightarrow\ (\forall\mu\in\Spec(A))\ \mu\le b.
+\]
+If $A\succeq0$, then $\Zx^TA\Zx=0$ iff $A\Zx=0$.
+If $A\succeq0$, every principal submatrix is positive semidefinite and has
+nonnegative determinant. For positive semidefinite real matrices $A,B$ of the same
+order, $\tr(AB)\ge0$.
+\end{theorem}
+\begin{proof}
+Write $\Zx=\sum_i b_i\Zv_i$. Then
+$\Zx^TA\Zx=\sum_i\lambda_i b_i^2$ and
+$\norm{\Zx}^2=\sum_i b_i^2$. If all $\lambda_i$ are nonnegative,
+the first sum is nonnegative. Conversely, substitute each $\Zv_i$.
+If all are positive, every nonzero vector has a nonzero coefficient,
+so the sum is positive; conversely substitute each $\Zv_i$ again.
+The shifted matrices act on $\Zv_i$ by $\lambda_i-b$ and $b-\lambda_i$,
+which proves both equivalences. In a sum of nonnegative terms,
+vanishing forces every term to vanish; thus
+$\sum_i\lambda_i b_i^2=0$ iff every $\lambda_i b_i=0$, which is
+$A\Zx=0$. To test a principal submatrix's form, extend a vector by
+zeros outside its index subset. Its form equals that for $A$, so is
+nonnegative. The determinant assertion follows from
+Theorem~\ref{thm:trace}, since it is a product of nonnegative eigenvalues.
+Finally diagonalize $A=\sum_i\lambda_i\Zv_i\Zv_i^T$. Finite summation
+and the trace formula give
+$\tr(AB)=\sum_i\lambda_i\Zv_i^TB\Zv_i\ge0$.
+\end{proof}
+\lean{Matrix.IsHermitian.posSemidef_iff_spectrumMultiset_nonneg, Matrix.IsHermitian.posSemidef_sub_smul_one_iff, Matrix.IsHermitian.posSemidef_smul_one_sub_iff}
+\status{Mathlib: M3. New: multiset and shift wrappers, and the trace
+inequality $\tr(AB)\ge0$.}
+\used{LA4, HC3, [CGSS] Sections 3--4 and 6, the standing least-eigenvalue hypothesis.}
+
+\begin{corollary}[The least-eigenvalue bridge]\label{cor:minus-two}
+For every finite graph $X$ with adjacency matrix $A$,
+\[
+ (2I+A)\succeq0\ \Longleftrightarrow\
+ (\forall\mu\in\Spec(X))\ -2\le\mu,
+ \qquad -2\in\Spec(X)\ \Longleftrightarrow\ \det(2I+A)=0.
+\]
+If $X$ has a vertex, the first right-hand side is
+$\lambda_{\min}(X)\ge-2$. Its least eigenvalue equals $-2$ iff both
+the positive semidefiniteness and determinant-zero conditions hold.
+Also $2I-A\succeq0$ iff $\lambda_{\max}(X)\le2$ for a nonempty graph.
+\end{corollary}
+\begin{proof}
+Adjacency is symmetric. Theorem~\ref{thm:psd} with $b=-2$ gives the
+first equivalence. Theorem~\ref{thm:calculus} gives the eigenvalues
+$2+\lambda_i$ of $2I+A$, so its determinant is zero exactly when one
+factor is zero. On a nonempty finite multiset, every element is at
+least $-2$ exactly when its minimum is, and its minimum is $-2$ exactly
+when that bound holds and $-2$ occurs. The upper bound is the other
+shift in Theorem~\ref{thm:psd}. For the empty graph the first
+equivalence is vacuous and both sides of the determinant-zero
+equivalence are false, since the empty determinant is $1$.
+\end{proof}
+\lean{SimpleGraph.posSemidef_two_add_adjMatrix_iff, SimpleGraph.neg_two_mem_spectrumMultiset_iff_det_eq_zero, SimpleGraph.leastEigenvalue_eq_neg_two_iff}
+\status{New from M1, M3 and the preceding theorems.}
+\used{[CGSS] before Theorem 3.8, Section 4 opening, Theorem 4.13,
+Section 5; the standing hypothesis
+\texttt{(2 \ensuremath{\bullet} 1 + A).PosSemidef} of the Lean statements.}
+
+\begin{theorem}[Gram matrices with rank control]\label{thm:gram}
+A real symmetric matrix $G$ is positive semidefinite iff it is a Gram
+matrix. If $G\succeq0$ and $\rk G=\rho$, it has a Gram representation in $\re^\rho$
+whose vectors span that space. For any real matrix $B$,
+\[
+ \ker(B^TB)=\ker B,\qquad \rk(B^TB)=\rk B=\rk(BB^T).
+\]
+Thus the rank of the Gram matrix of a finite vector family equals the
+dimension of its span. In particular $2I+A(X)\succeq0$ iff $X$ has a
+representation by vectors of squared norm $2$ with inner product $1$
+on edges and $0$ on distinct nonedges. If such vectors lie in dimension
+$\ell<n$, then $-2$ occurs, with multiplicity at least $n-\ell$.
+For a Gram representation of $2I-A(X)$ in dimension $\ell$, every
+eigenvalue is at most $2$ and $\mult_X(2)\ge n-\ell$.
+If $n>\ell$, the largest eigenvalue is $2$.
+\end{theorem}
+\begin{proof}
+For a positive semidefinite $G$, choose its orthonormal eigenvectors
+and retain just the $\rho$ positive eigenvalues. Define
+$B(i,u)=\sqrt{\lambda_i}\Zv_i(u)$ on those rows. Then
+$B^TB=\sum_{i:\lambda_i>0}\lambda_i\Zv_i\Zv_i^T=G$.
+The rows of $B$ are independent, since they are nonzero multiples of
+orthonormal vectors, so $B$ has rank $\rho$ and its columns span
+$\re^\rho$. Conversely $\Zx^TB^TB\Zx=\norm{B\Zx}^2\ge0$.
+The same identity proves $B^TB\Zx=0\Rightarrow B\Zx=0$ by taking the
+inner product with $\Zx$; the reverse implication is direct. Rank-nullity
+then gives equal ranks. Applying this to $B^T$, and using equality of
+row rank and column rank, gives the other equality. Alternatively,
+$\ker B^T=(\im B)^\perp$, since both conditions say that the vector
+has zero inner product with every column of $B$; taking dimensions
+proves $\rk B^T=\rk B$.
+For a family in a finite-dimensional inner product space, take
+coordinates in an orthonormal basis of its span. Its coordinate matrix
+has image equal to that span and Gram matrix $B^TB$, proving the rank
+claim. The entries of $2I+A$ give exactly the stated inner products.
+Finally $\rk(2I+A)\le\ell$, whereas
+Theorem~\ref{thm:calculus} and Theorem~\ref{thm:trace} give
+$\rk(2I+A)=n-\mult_A(-2)$. This proves the bound and occurrence. For $2I-A$, positivity gives
+the upper bound by Theorem~\ref{thm:psd}, while
+$\mult_A(2)=n-\rk(2I-A)\ge n-\ell$. If $n>\ell$, this count is
+positive; Lemma~\ref{lem:extremes} then identifies the maximum.
+\end{proof}
+\lean{Matrix.IsHermitian.exists_gram_rank, Matrix.rank_gram_eq_finrank_span, SimpleGraph.exists_representation_iff_posSemidef, SimpleGraph.multiplicity_two_ge_of_gram_representation}
+\status{Mathlib: M3's Gram existence and rank facts. New: square
+factorization, exact-rank representation and graph interface.}
+\used{LA1, LA3, [CGSS] Sections 3--4 and 6; representation rank in Theorem 5.8.}
+
+\begin{lemma}[Trace and rank inequality]\label{lem:trace-rank-bound}
+Let $G$ be a real positive semidefinite matrix of rank $\rho$. Then
+$(\tr G)^2\le\rho\tr(G^2)$, with equality iff all nonzero eigenvalues
+are equal; equality includes $G=0$.
+\end{lemma}
+\begin{proof}
+For the $\rho$ nonzero eigenvalues $\eta_i$, expand
+\[
+ \rho\sum_i\eta_i^2-\Bigl(\sum_i\eta_i\Bigr)^2
+ =\sum_{i<j}(\eta_i-\eta_j)^2.
+\]
+Each term is nonnegative, and the sum is zero exactly when all pairs
+are equal. Theorem~\ref{thm:trace} identifies the two sums as traces.
+If $\rho=0$, the spectral theorem gives $G=0$ and both sides are zero.
+\end{proof}
+\lean{Matrix.IsHermitian.trace_sq_le_rank_mul_trace_sq}
+\status{New finite-sum inequality, reusable for any positive semidefinite matrix.}
+\used{The relative bound for a second Gram matrix.}
+
+\begin{theorem}[Trace bounds and tight frames]\label{thm:trace-bound}
+Let $G$ be a real positive semidefinite matrix of rank $\rho$. Then
+$(\tr G)^2\le\rho\tr(G^2)$; equality holds iff all its nonzero
+eigenvalues are equal, with equality also allowed when $G=0$.
+If $n$ unit vectors in $\re^\ell$ have pairwise inner products of
+absolute value $\alpha$, where $0\le\alpha\le1$ and
+$\ell\alpha^2<1$, then
+\[
+ n\le\frac{\ell(1-\alpha^2)}{1-\ell\alpha^2}.
+\]
+If $B$ is a real $\ell\times n$ matrix, $\ell>0$, and
+$BB^T=bI$ with $b>0$, then $G=B^TB$ has spectrum
+$b^{\ell},0^{n-\ell}$. In particular, with $C=G-2I$,
+\[
+ (C+2I)(C-(b-2)I)=0.
+\]
+\end{theorem}
+\begin{proof}
+Apply Lemma~\ref{lem:trace-rank-bound} to $G$ for the first assertion.
+For the Gram matrix of the unit vectors, $\tr G=n$ and
+$\tr G^2=\sum_{u,v}G(u,v)^2=n+\alpha^2n(n-1)$.
+Its rank is at most $\ell$ by Theorem~\ref{thm:gram}. If $n>0$,
+Lemma~\ref{lem:trace-rank-bound} applied to this Gram matrix, divided by $n$, gives
+$n(1-\ell\alpha^2)\le\ell(1-\alpha^2)$. Division by its positive
+left coefficient gives the bound. If $n=0$, the right side is
+nonnegative and the bound holds as well.
+For the last assertion, $\rk B=\ell$ by
+Theorem~\ref{thm:gram}, so $n\ge\ell$ and $\rk G=\ell$.
+Furthermore $G^2=B^T(BB^T)B=bG$. Thus each eigenvalue is $0$ or $b$;
+the rank counts precisely $\ell$ occurrences of $b$. Substitution
+$G=C+2I$ gives the polynomial identity.
+\end{proof}
+\lean{Matrix.spectrumMultiset_gram_of_tightFrame}
+\status{New wrappers and inequalities from M1, M3 and finite sums.}
+\used{EQ1--EQ3; [CGSS] Theorem 3.7, Theorems 4.3--4.4, C6, C24.
+For the $E_8$ tight frame $b=30$, the factor is $C-28I$.}
+
+\section{Rayleigh quotients and symmetric Perron--Frobenius}\label{sec:perron}
+
+\begin{theorem}[Rayleigh extrema and equality]\label{thm:rayleigh}
+Let $A$ be a real symmetric matrix on a nonempty finite set. For
+$\Zx\ne0$, put $R_A(\Zx)=\Zx^TA\Zx/\norm{\Zx}^2$. Then
+\[
+ \lambda_{\min}(A)\le R_A(\Zx)\le\lambda_{\max}(A).
+\]
+In any orthonormal eigenbasis, writing $\Zx=\sum_i b_i\Zv_i$ gives
+\[
+ R_A(\Zx)=\frac{\sum_i\lambda_i b_i^2}{\sum_i b_i^2},\qquad
+ \sum_i b_i^2=\norm{\Zx}^2>0,
+\]
+\[
+ \begin{aligned}
+ \lambda_{\max}\norm{\Zx}^2-\Zx^TA\Zx
+   &=\sum_i(\lambda_{\max}-\lambda_i)b_i^2,\\
+ \Zx^TA\Zx-\lambda_{\min}\norm{\Zx}^2
+   &=\sum_i(\lambda_i-\lambda_{\min})b_i^2.
+ \end{aligned}
+\]
+Both bounds are attained, including on the unit sphere. Equality on
+the right holds iff $A\Zx=\lambda_{\max}(A)\Zx$, and equality on
+the left holds iff $A\Zx=\lambda_{\min}(A)\Zx$. Thus the extremes
+are the supremum and infimum of the Rayleigh quotient on nonzero vectors.
+Eigenvectors of a symmetric matrix for distinct eigenvalues are orthogonal.
+\end{theorem}
+\begin{proof}
+In an orthonormal eigenbasis,
+$R_A(\Zx)=\sum_i\lambda_i b_i^2/\sum_i b_i^2$; its denominator is
+positive. This is a weighted average of the eigenvalues. More
+explicitly,
+$\lambda_{\max}\norm{\Zx}^2-\Zx^TA\Zx
+=\sum_i(\lambda_{\max}-\lambda_i)b_i^2$.
+Lemma~\ref{lem:extremes} makes the terms nonnegative, and vanishing is equivalent to $b_i=0$
+whenever $\lambda_i<\lambda_{\max}$, which is the stated eigenvector
+condition. For the minimum, subtract
+$\lambda_{\min}\norm{\Zx}^2$ from the quadratic form; the terms are
+$(\lambda_i-\lambda_{\min})b_i^2$, and the identical zero-term
+argument gives the left equality condition. A unit basis vector for
+each extreme attains it, so each is the claimed supremum or infimum.
+If $A\Zx=s\Zx$ and $A\Zy=t\Zy$, symmetry gives
+$s\ip{\Zx}{\Zy}=\ip{A\Zx}{\Zy}=\ip{\Zx}{A\Zy}
+=t\ip{\Zx}{\Zy}$. For $s\ne t$, cancellation gives orthogonality.
+\end{proof}
+\lean{Matrix.IsHermitian.rayleigh_le_largestEigenvalue, Matrix.IsHermitian.rayleigh_eq_largestEigenvalue_iff, Matrix.IsHermitian.leastEigenvalue_le_rayleigh}
+\status{Mathlib: M5 at the linear-map level. New: these matrix
+wrappers and an explicit equality criterion from M1.}
+\used{SP2, SM1, [CGSS] Theorem 3.8 and Lemma 5.2.}
+
+\begin{lemma}[Rayleigh subspace witnesses]\label{lem:rayleigh-subspaces}
+Let $A$ be real symmetric of order $n>0$, with the sorted eigenbasis of
+Theorem~\ref{thm:multiplicity} and eigenvalues $\nu_0\ge\cdots\ge\nu_{n-1}$.
+For $0\le i<n$, the head span of directions $0,\ldots,i$ has dimension
+$i+1$ and quotient at least $\nu_i$ on nonzero vectors. The tail span
+of directions $i,\ldots,n-1$ has dimension $n-i$ and quotient at most
+$\nu_i$. Every subspace of dimension $i+1$ contains a nonzero vector
+with quotient at most $\nu_i$; every subspace of dimension $n-i$
+contains one with quotient at least $\nu_i$.
+\end{lemma}
+\begin{proof}
+Independence of the sorted basis gives the two span dimensions.
+The coordinate quotient in Theorem~\ref{thm:rayleigh} is a weighted
+average of entries bounded below by $\nu_i$ on the head, and bounded
+above by $\nu_i$ on the tail. For subspaces $P,Q$ of $\re^n$,
+$\dim(P\cap Q)=\dim P+\dim Q-\dim(P+Q)$ and $\dim(P+Q)\le n$.
+Intersect an $(i+1)$-dimensional subspace with the tail: the dimension
+sum is $n+1$, so their intersection has a nonzero vector. The head
+intersects any $(n-i)$-dimensional subspace by the same dimension
+formula. These vectors give the two witnesses.
+\end{proof}
+\lean{Matrix.IsHermitian.rayleigh_head_tail, Matrix.IsHermitian.exists_rayleigh_le_of_finrank, Matrix.IsHermitian.exists_le_rayleigh_of_finrank}
+\status{New witness form of Courant--Fischer from M1 and dimensions.}
+\used{Both applications, to the larger and smaller matrices, in interlacing.}
+
+\begin{theorem}[Cauchy interlacing]\label{thm:interlacing}
+Let $A$ be real symmetric of order $n$, and let $B$ be its principal
+submatrix on $m$ distinct indices, where $1\le m\le n$. Write
+$\lambda_0\ge\cdots\ge\lambda_{n-1}$ and
+$\beta_0\ge\cdots\ge\beta_{m-1}$ for the decreasing eigenvalue lists
+$\nu_i$ of $A$ and of $B$ in Theorem~\ref{thm:multiplicity}; they list
+the two spectra with repetitions. Then
+\[
+ \lambda_i\ge\beta_i\ge\lambda_{i+n-m}\qquad(0\le i<m).
+\]
+In particular the largest eigenvalue cannot increase, and the least
+eigenvalue cannot decrease, on taking a nonempty principal submatrix.
+\end{theorem}
+\begin{proof}
+Use the sorted bases of Theorem~\ref{thm:multiplicity} for $A$ and $B$;
+their eigenvalues are the two lists. Extension by zero embeds $\re^m$ into $\re^n$, preserving dimension,
+norm and quadratic form. By Lemma~\ref{lem:rayleigh-subspaces} for
+$B$, its extended head of dimension $i+1$ has quotient at least
+$\beta_i$. Apply that lemma to $A$ and this subspace to obtain a
+nonzero vector with quotient at most $\lambda_i$. Thus
+$\beta_i\le\lambda_i$.
+The extended tail for $B$ has dimension $m-i$ and quotient at most
+$\beta_i$. Apply the second witness assertion for $A$ at index
+$i+n-m$, since $m-i=n-(i+n-m)$. It gives a quotient at least
+$\lambda_{i+n-m}$, proving the other inequality. At $i=0$ and
+$i=m-1$, Lemma~\ref{lem:extremes} identifies the endpoint bounds.
+\end{proof}
+\lean{Matrix.IsHermitian.eigenvalues_principal_submatrix_le, Matrix.IsHermitian.le_eigenvalues_principal_submatrix}
+\status{New proof from M1 and finite-dimensional subspace arithmetic.}
+\used{Spectral bounds for represented subsets in [CGSS] Section 4.}
+
+\begin{definition}\label{def:support}
+For a symmetric entrywise nonnegative matrix $A$, its \emph{positive
+support graph} has the same indices as vertices and an edge $uv$ when
+$u\ne v$ and $A(u,v)>0$. Connectedness means that the vertex set is
+nonempty and any two vertices are joined by a path. In particular a
+single vertex with no edges is connected.
+\lean{Matrix.positiveSupportGraph}
+\status{New graph definition; it uses \code{SimpleGraph.Connected}.
+It can later be compared with the quiver definition in M5.}
+\end{definition}
+
+\begin{theorem}[Symmetric Perron--Frobenius]\label{thm:perron}
+Let $A$ be a real symmetric entrywise nonnegative matrix on a nonempty
+finite set. Put $\rho=\lambda_{\max}(A)$. Then $\rho\ge0$, there is
+a nonzero entrywise nonnegative vector $\Zx$ with $A\Zx=\rho\Zx$,
+and $|\mu|\le\rho$ for every eigenvalue $\mu$.
+If the positive support graph is connected, this vector is strictly
+positive in every coordinate, $\mult_A(\rho)=1$, and every
+nonzero nonnegative $\rho$-eigenvector is strictly positive.
+\end{theorem}
+\begin{proof}
+For any coordinate unit vector the Rayleigh quotient is a diagonal
+entry of $A$, thus nonnegative; Theorem~\ref{thm:rayleigh} gives
+$\rho\ge0$. Choose a unit $\rho$-eigenvector $\Zy$ and let
+$\Zx(u)=|\Zy(u)|$. Its norm is one and, term by term,
+\[
+ \Zy^TA\Zy=\sum_{u,v}A(u,v)\Zy(u)\Zy(v)
+ \le\sum_{u,v}A(u,v)|\Zy(u)||\Zy(v)|=\Zx^TA\Zx.
+\]
+The first expression is $\rho$ and the last is at most $\rho$ by
+Rayleigh. Thus equality holds and $A\Zx=\rho\Zx$ by its equality
+criterion. For an arbitrary $\mu$-eigenvector $\Zw\ne0$, the triangle
+inequality and Rayleigh give
+$|\mu|\norm{\Zw}^2=|\Zw^TA\Zw|
+\le|\Zw|^TA|\Zw|\le\rho\norm{\Zw}^2$.
+Division proves the absolute-value bound.
+
+Now assume connected support. If a nonnegative eigenvector $\Zx$ has
+$\Zx(u)=0$, its eigenvector equation at $u$ says
+$\sum_v A(u,v)\Zx(v)=0$. Each summand is nonnegative, so $\Zx(v)=0$
+at each positive-support neighbour. Induction along a path propagates
+zero to every coordinate, a contradiction to $\Zx\ne0$. Thus such
+an eigenvector is positive.
+Fix a positive $\rho$-eigenvector $\Zx$, and let $\Zy$ be any real
+$\rho$-eigenvector, allowing zero. The finite nonempty set of ratios
+$\Zy(u)/\Zx(u)$ has a minimum $b$, attained at some $u$. The vector
+$\Zy-b\Zx$ is nonnegative, is a $\rho$-eigenvector, and has zero
+coordinate at $u$. The propagation just proved forces it to be zero.
+Every vector in the eigenspace is thus a scalar multiple of
+$\Zx$. Its dimension, and thus its multiplicity by
+Theorem~\ref{thm:multiplicity}, is one.
+\end{proof}
+\lean{Matrix.IsHermitian.exists_nonneg_eigenvector_largest, Matrix.IsHermitian.exists_pos_eigenvector_largest, Matrix.IsHermitian.multiplicity_largest_eq_one, Matrix.IsHermitian.abs_eigenvalue_le_largest}
+\status{New from the spectral theorem and Rayleigh equality. No
+Perron--Frobenius theorem was found in Mathlib.}
+\used{SM1, Theorem 3.8, C17, and weighted symmetric matrices in Remark 3.11.}
+
+\begin{lemma}[A positive supervector bounds each eigenvalue]\label{lem:supervector}
+Let $A$ be an entrywise nonnegative real matrix on a nonempty finite set,
+$\Zx>0$ coordinatewise, and $A\Zx\le b\Zx$. If
+$A\Zy=\theta\Zy$ with $\Zy\ne0$, then $\theta\le b$.
+Symmetry is not required.
+\end{lemma}
+\begin{proof}
+Choose $u$ maximizing $|\Zy(u)|/\Zx(u)$ and call this maximum $c$.
+A nonzero coordinate of $\Zy$ implies $c>0$; thus
+$|\Zy(u)|=c\Zx(u)>0$. Every $v$ satisfies $|\Zy(v)|\le c\Zx(v)$.
+The triangle inequality and nonnegativity give
+\[
+ \theta|\Zy(u)|\le |(A\Zy)(u)|
+ \le\sum_v A(u,v)|\Zy(v)|\le c(A\Zx)(u)
+ \le cb\Zx(u)=b|\Zy(u)|.
+\]
+Divide by $|\Zy(u)|>0$.
+\end{proof}
+\lean{Matrix.eigenvalue_le_of_pos_supervector}
+\status{Implemented with this maximum-ratio proof in
+\code{LineGraphs/Spectral/PositiveVector.lean}.}
+\used{Positive-vector certificates without a Perron--Frobenius dependency.}
+
+\begin{corollary}[Positive-vector certificates]\label{cor:positive-certificate}
+Let $A$ be a real symmetric nonnegative matrix on a nonempty finite
+set and let every coordinate of $\Zx$ be positive. If
+$A\Zx=b\Zx$, then $b=\lambda_{\max}(A)$, whether or not its support
+is connected. More generally, $A\Zx\le b\Zx$ coordinatewise implies
+$\lambda_{\max}(A)\le b$.
+\end{corollary}
+\begin{proof}
+Apply Lemma~\ref{lem:supervector} to a largest-eigenvalue basis vector
+from Theorem~\ref{thm:multiplicity} and Lemma~\ref{lem:extremes}.
+This gives the upper bound. If $A\Zx=b\Zx$, positivity and nonemptiness
+make $\Zx\ne0$, so $b$ belongs to the spectrum by
+Theorem~\ref{thm:multiplicity}. Lemma~\ref{lem:extremes} gives the
+reverse inequality. This is the proof in
+\code{LineGraphs/Spectral/PositiveVector.lean}.
+\end{proof}
+\lean{Matrix.IsHermitian.largestEigenvalue_eq_of_pos_eigenvector, Matrix.IsHermitian.largestEigenvalue_le_of_pos_supervector}
+\status{Implemented maximum-ratio consequence in \code{LineGraphs/Spectral/PositiveVector.lean}.}
+\used{SM2 and C17: an integer vector identity and positive coordinates suffice.}
+
+\begin{theorem}[Strict monotonicity]\label{thm:strict}
+Let $A$ be real symmetric and nonnegative with connected positive
+support. Let $B$ be real symmetric and nonnegative on a nonempty
+finite set $W$, and let $\phi:W\hookrightarrow U$ be injective with
+$B(u,v)\le A(\phi(u),\phi(v))$ for all $u,v$.
+Then $\lambda_{\max}(B)\le\lambda_{\max}(A)$.
+The inequality is strict if $\phi$ is not surjective, or if one of
+these entry inequalities is strict. In particular every nonempty
+proper subgraph of a connected finite graph has strictly smaller
+largest eigenvalue. A subgraph here may omit edges as well as vertices.
+\end{theorem}
+\begin{proof}
+Take a nonnegative unit top eigenvector of $B$, and extend it by zero
+using $\phi$ to a unit vector $\Zz$ on $U$. Nonnegativity gives
+$\lambda_{\max}(B)\le\Zz^TA\Zz\le\lambda_{\max}(A)$.
+If the extremes are equal, Rayleigh equality makes $\Zz$ a top
+eigenvector of $A$; it is positive by connectedness and
+Theorem~\ref{thm:perron}. Thus no coordinate was omitted.
+Every coordinate of the original eigenvector is now positive.
+The difference of the two quadratic forms is
+$\sum_{u,v}(A(\phi(u),\phi(v))-B(u,v))\Zz(\phi(u))\Zz(\phi(v))$.
+All terms are nonnegative; a strict entry inequality makes one term
+positive. This contradicts equality. For graphs, a vertex injection
+which preserves edges gives precisely these inequalities between
+adjacency matrices, and a proper subgraph has one of the two strictness
+conditions.
+\end{proof}
+\lean{Matrix.IsHermitian.largestEigenvalue_lt_of_lt_submatrix, SimpleGraph.largestEigenvalue_lt_of_proper_subgraph}
+\status{New; the non-strict principal-submatrix case also follows from interlacing.}
+\used{SM1, SM3 and [CGSS] Theorem 3.8. The smaller graph must be nonempty.}
+
+\section{Walks, Laplacians, and regular graphs}\label{sec:regular}
+
+\begin{theorem}[Walks and moments]\label{thm:walks}
+Let $X$ be a finite simple graph with $n$ vertices, $m$ edges, and
+adjacency matrix $A$. For $j\ge0$, $(A^j)(u,v)$ counts walks of
+length $j$ from $u$ to $v$, and $\tr A^j$ counts closed walks with
+a distinguished starting vertex. In particular
+\[
+ \sum_{\mu\in\Spec(X)}1=n,\quad
+ \sum_{\mu\in\Spec(X)}\mu=0,\quad
+ \sum_{\mu\in\Spec(X)}\mu^2=2m=\sum_u\deg(u),\quad
+ \sum_{\mu\in\Spec(X)}\mu^3=6t,
+\]
+where $t$ is the number of triangles and all sums count multiplicity.
+At each vertex $u$,
+$(A^3)(u,u)=2\,\#\{\text{triangles containing }u\}$.
+The total number of walks of length $j$ is $\Zj^TA^j\Zj$; it need
+not equal $\tr A^j$.
+\end{theorem}
+\begin{proof}
+For $j=0$ the identity matrix counts the unique length-zero walk from
+a vertex to itself and no walks between distinct vertices. A walk of
+length $j+1$ from $u$ to $v$ is specified uniquely by its first
+neighbour $w$ of $u$ and a length-$j$ walk from $w$ to $v$.
+Thus its count is $\sum_wA(u,w)(A^j)(w,v)$, proving the assertion
+by induction. Sum over $u=v$ to obtain the closed-walk count and
+over all $u,v$ for the total-walk count. There are no closed walks
+of length one. A closed walk of length two chooses a vertex and an
+incident edge; each edge gives two such choices. In length three,
+no two consecutive vertices can coincide and the first three vertices
+are distinct, because otherwise one of the three edges is a loop.
+Thus the walk traverses a triangle. Each triangle gives three choices
+of starting vertex and two directions, exactly six walks. The
+same argument with the starting vertex fixed gives two walks per
+triangle through that vertex. The trace-power formula of
+Theorem~\ref{thm:trace} gives all four
+spectral identities. The handshake equality counts the same incident
+vertex-edge pairs by vertices or by edges.
+\end{proof}
+\lean{SimpleGraph.trace_pow_adjMatrix_eq_closedWalks, SimpleGraph.sum_sq_spectrumMultiset_eq_twice_card_edges, SimpleGraph.trace_cube_adjMatrix_eq_six_mul_triangles, SimpleGraph.adjMatrix_cube_apply_self_eq_twice_triangles}
+\status{Mathlib: the entry count and first two diagonal calculations in M6.
+New: the second moment and total-walk identities, multiset wrappers
+and the triangle trace interface.}
+\used{SP2, [CGSS] Theorem 3.7, Theorem 5.8, C13--C15.}
+
+\begin{theorem}[Laplacian and signless Laplacian kernels]\label{thm:laplacian}
+Let $X$ be a finite simple graph, let $D$ be the diagonal degree matrix,
+and put $L=D-A$ and $K=D+A$. Then
+\[
+ \Zx^TL\Zx=\sum_{\{u,v\}\in E(X)}(\Zx(u)-\Zx(v))^2,\qquad
+ \Zx^TK\Zx=\sum_{\{u,v\}\in E(X)}(\Zx(u)+\Zx(v))^2.
+\]
+Both matrices are positive semidefinite. Their kernels consist,
+respectively, of functions constant across each edge and functions
+whose values sum to zero across each edge. Thus
+\[
+ \dim\ker L=\#\{\text{components of }X\},\qquad
+ \dim\ker K=\#\{\text{bipartite components of }X\}.
+\]
+An isolated vertex counts as a bipartite component.
+\end{theorem}
+\begin{proof}
+In each sum of squares, the square $\Zx(u)^2$ occurs once for each
+edge at $u$, so its coefficient is $\deg(u)$. The cross terms are
+$\mp2\sum_{\{u,v\}}\Zx(u)\Zx(v)$, while
+$\Zx^TA\Zx=2\sum_{\{u,v\}}\Zx(u)\Zx(v)$, proving the formulas.
+They imply positivity. By Theorem~\ref{thm:psd}, membership in a
+kernel is equivalent to vanishing of the corresponding quadratic
+form, which is equivalent to each square vanishing.
+For $L$, constancy propagates along paths; arbitrary constants on
+the components give all kernel functions. The characteristic
+functions of the components are a basis: evaluate a linear relation
+at a vertex of each component to prove independence, and choose the
+constant values to prove spanning.
+
+For $K$, fix a connected component and a vertex $u$ in it. The edge
+relation determines the value at the end of any path of length $j$
+to be $(-1)^j\Zx(u)$. In particular the space of such functions has
+dimension at most one, since a function zero at $u$ is zero everywhere
+on the component. If a nonzero function exists, all its absolute
+values equal $|\Zx(u)|>0$. Partition the vertices by positive and
+negative value. The edge relation makes every edge cross the
+partition, so the component is bipartite. Conversely a bipartition
+gives the function $1$ on one part and $-1$ on the other, a nonzero
+kernel function; for an isolated vertex take the first part to be
+the vertex. This proves dimension one exactly on the bipartite
+components and zero on the others. Extend these signed functions by
+zero to the remaining components. Disjoint supports prove their
+independence, and the connected-component argument proves spanning.
+\end{proof}
+\lean{SimpleGraph.signlessLapMatrix, SimpleGraph.signlessLapMatrix_mulVec_eq_zero_iff, SimpleGraph.finrank_ker_signlessLapMatrix_eq_card_bipartite_components}
+\status{Mathlib: the Laplacian half in M6. New: the signless matrix
+and its component-count theorem.}
+\used{SP1, SP3, SP5, [CGSS] Lemmas 5.1, 5.3, 5.5--5.6.}
+
+\begin{theorem}[SP1: regular graphs]\label{thm:sp1}
+Let $X$ be a nonempty finite $k$-regular graph. Its largest eigenvalue
+is $k$, every eigenvalue lies in $[-k,k]$, and
+\[
+ \mult_X(k)=\#\{\text{connected components of }X\}.
+\]
+\end{theorem}
+\begin{proof}
+The row sum of $A$ is $k$, so $A\Zj=k\Zj$ and $\Zj\ne0$.
+Here $L=kI-A$ and $K=kI+A$ are positive semidefinite by
+Theorem~\ref{thm:laplacian}. The shift criterion in
+Theorem~\ref{thm:psd} gives $-k\le\mu\le k$ for every eigenvalue;
+since $k$ occurs it is the maximum. The equation $A\Zx=k\Zx$ is
+equivalent to $L\Zx=0$. Multiplicity equals its kernel dimension
+by Theorem~\ref{thm:multiplicity}, and
+Theorem~\ref{thm:laplacian} supplies the component count.
+\end{proof}
+\lean{SimpleGraph.IsRegularOfDegree.largestEigenvalue_eq, SimpleGraph.IsRegularOfDegree.multiplicity_eq_card_components}
+\status{New graph bridge from M6 and the multiplicity theorem.}
+\used{[CGSS] Lemma 5.1; regularity and connectedness deductions throughout Section 5.}
+
+\begin{theorem}[SP2: regularity detected by the spectrum]\label{thm:sp2}
+For a nonempty finite graph $X$ on $n$ vertices,
+\[
+ X\text{ is regular}\ \Longleftrightarrow\
+ \sum_{\mu\in\Spec(X)}\mu^2=n\lambda_{\max}(X).
+\]
+\end{theorem}
+\begin{proof}
+We have $\norm{\Zj}^2=n$ and
+$\Zj^TA\Zj=\sum_u\deg(u)=\tr A^2$ by
+Theorem~\ref{thm:walks}. Thus the displayed identity is precisely
+$R_A(\Zj)=\lambda_{\max}(A)$, with $n>0$. Rayleigh equality says
+this is equivalent to $A\Zj=\lambda_{\max}\Zj$, or
+$\deg(u)=\lambda_{\max}$ at every vertex. Choose a vertex $u$;
+its natural-number degree $k$ then equals this real value, and all
+degrees equal $k$. This proves regularity and the reverse implication
+as well.
+\end{proof}
+\lean{SimpleGraph.isRegular_iff_sum_sq_eigenvalues}
+\status{New from M1, M5, M6 and the second-moment identity of
+Theorem~\ref{thm:walks}.}
+\used{[CGSS] Lemma 5.2 and the implicit connectedness step in Theorem 5.8.}
+
+\begin{corollary}[Cospectral mates of regular graphs]\label{cor:regular-mates}
+Every graph cospectral with a nonempty finite $k$-regular graph is
+$k$-regular, has the same number of components, and is connected if
+that graph is connected.
+\end{corollary}
+\begin{proof}
+Proposition~\ref{prop:cospectral} gives the same nonzero order, second
+moment and largest eigenvalue. Apply Theorem~\ref{thm:sp2} to the mate.
+Its degree is the common largest eigenvalue $k$ by
+Theorem~\ref{thm:sp1}. The common multiplicity of $k$ gives the same
+component count by that theorem. One component is equivalent to
+connectedness for a nonempty graph.
+\end{proof}
+\lean{SimpleGraph.Cospectral.isRegularOfDegree, SimpleGraph.Cospectral.connected_of_regular}
+\status{New corollary applying SP2 to each graph separately.}
+\used{[CGSS] Lemma 5.2 and cospectral line-graph arguments.}
+
+\begin{theorem}[SP3: bipartiteness]\label{thm:sp3}
+Let $X$ be a connected finite $k$-regular graph. It is bipartite iff
+$-k\in\Spec(X)$; when this occurs its multiplicity is one.
+More generally, for every finite bipartite graph $Y$,
+\[
+ \mult_Y(\mu)=\mult_Y(-\mu)\qquad(\mu\in\re).
+\]
+\end{theorem}
+\begin{proof}
+The $-k$-eigenspace is $\ker(kI+A)$. By
+Theorem~\ref{thm:laplacian} its dimension for a connected graph is
+one if the graph is bipartite and zero otherwise. Apply
+Theorem~\ref{thm:multiplicity}. This includes the connected graph
+with one vertex and $k=0$: both assertions refer to its single
+zero eigenvalue. For the second assertion, let $T$ be the diagonal
+matrix of signs $1$ and $-1$ on the two parts. Then $T^2=I$ and
+$TAT=-A$, since every edge crosses parts and zero entries remain zero.
+If $A\Zx=\mu\Zx$, then $A(T\Zx)=-\mu T\Zx$. Multiplication by
+$T$ is its own inverse, so it restricts to a linear equivalence of
+the two eigenspaces. Their dimensions and multiplicities agree.
+\end{proof}
+\lean{SimpleGraph.IsRegularOfDegree.isBipartite_iff_neg_eigenvalue, SimpleGraph.IsBipartite.multiplicity_neg_eq}
+\status{New signless-kernel bridge.}
+\used{[CGSS] Lemma 5.3 and the nonsingularity step of Lemma 5.6.}
+
+\begin{theorem}[The all-ones direction]\label{thm:ones}
+Let $A$ be real symmetric of nonzero order $n$ and satisfy $A\Zj=k\Zj$.
+For every $\Zx$, $J\Zx=(\sum_u\Zx(u))\Zj$; thus $J\Zx=0$ on
+$\Zj^\perp$. There is an orthogonal decomposition
+$\re^U=\operatorname{span}(\Zj)\oplus\Zj^\perp$, of dimensions $1,n-1$.
+The orthogonal complement $\Zj^\perp$ is invariant under $A$, so one
+can choose an orthonormal eigenbasis starting with $\Zj/\sqrt n$.
+Write the remaining eigenvalues, with multiplicity, as $\mu_1,\ldots,
+\mu_{n-1}$. For real $b,s,t$, the eigenvalues of $bI+sA+tJ$ are
+\[
+ b+sk+tn,\qquad b+s\mu_i\quad(1\le i<n).
+\]
+For every finite simple graph $X$, $A(\comp X)=J-I-A(X)$.
+Thus for a nonempty $k$-regular graph,
+\[
+ \begin{aligned}
+ \Spec(\comp X)&=\ms{n-1-k,-1-\mu_1,\ldots,-1-\mu_{n-1}},\\
+ \Spec(S(X))&=\ms{n-1-2k,-1-2\mu_1,\ldots,-1-2\mu_{n-1}}.
+ \end{aligned}
+\]
+\end{theorem}
+\begin{proof}
+If $\ip{\Zx}{\Zj}=0$, symmetry gives
+$\ip{A\Zx}{\Zj}=\ip{\Zx}{A\Zj}=0$, proving invariance.
+The restriction of $A$ to this finite-dimensional inner product space
+is symmetric; apply the spectral theorem there and adjoin the
+normalized all-ones vector. The matrix $J$ acts by $n$ on that
+vector and by zero on $\Zj^\perp$, since
+$J\Zx=(\sum_u\Zx(u))\Zj$. Applying the three summands to this
+basis proves the eigenvalue list. Mathlib's
+\code{SimpleGraph.one_add_adjMatrix_add_compl_adjMatrix_eq_of_one} and
+\code{SimpleGraph.compl_adjMatrix_eq_adjMatrix_compl} say that
+$I+A(X)+A(\comp X)=J$. Substitute $A(\comp X)=J-I-A$
+and $S=J-I-2A$ for the graph claims.
+\end{proof}
+\lean{Matrix.IsHermitian.spectrumMultiset_smul_add_smul_one_add_smul_allOnes, SimpleGraph.IsRegularOfDegree.spectrumMultiset_compl, SimpleGraph.IsRegularOfDegree.spectrumMultiset_seidelMatrix}
+\status{Mathlib: the complement identity in M6. New wrappers. An
+eigenvector for an eigenvalue different from $k$ is orthogonal to $\Zj$;
+here extra copies of $k$ in $\Zj^\perp$ are retained.}
+\used{SR2, [CGSS] Theorem 4.4, Corollary 5.10, Section 6.}
+
+\begin{corollary}[Removing the constant direction]\label{cor:remove-ones}
+Let $G\succeq0$ be real symmetric of order $n>0$, with $G\Zj=b\Zj$
+and $b>0$. Then $G-(b/n)J\succeq0$ and its rank is $\rk G-1$.
+\end{corollary}
+\begin{proof}
+Apply Theorem~\ref{thm:ones} to $G$ with coefficients $0,1,-b/n$.
+Its eigenvalues are zero on the constant direction and the unchanged
+nonnegative eigenvalues of $G$ on its orthogonal complement.
+Theorems~\ref{thm:psd} and \ref{thm:trace} give positivity and rank:
+exactly one nonzero eigenvalue, namely $b$, was removed.
+\end{proof}
+\lean{Matrix.PosSemidef.rank_sub_allOnes}
+\status{New application of the all-ones spectrum to a second matrix.}
+\used{[CGSS] Theorem 4.4 and centred Gram representations.}
+
+\begin{corollary}[A scalar matrix plus the all-ones matrix]\label{cor:scalar-ones}
+For real $b,t$ and order $n>0$,
+\[
+ \begin{aligned}
+ \Spec(bI+tJ)&=\ms{(b+tn)^1,b^{n-1}},\\
+ \chi_{bI+tJ}(z)&=(z-b-tn)(z-b)^{n-1},\\
+ \det(bI+tJ)&=(b+tn)b^{n-1}.
+ \end{aligned}
+\]
+The multiset convention combines the two values when $t=0$.
+\end{corollary}
+\begin{proof}
+The all-ones vector is nonzero and $J\Zj=n\Zj$. Every vector with
+coordinate sum zero is killed by $J$. These two orthogonal spaces
+have dimensions one and $n-1$, as in Theorem~\ref{thm:ones}.
+Thus $bI+tJ$ acts by $b+tn$ on the first and by $b$ on the second.
+Theorem~\ref{thm:multiplicity} gives the spectrum and characteristic
+polynomial, and Theorem~\ref{thm:trace} gives the determinant.
+This proof includes $b=0$ and $n=1$, with a zeroth power interpreted
+as one. For order zero the characteristic polynomial and determinant
+are both one; the displayed formula is deliberately restricted to
+$n>0$.
+\end{proof}
+\lean{Matrix.spectrumMultiset_smul_one_add_smul_allOnes, Matrix.charpoly_smul_one_add_smul_allOnes, Matrix.det_smul_one_add_smul_allOnes}
+\status{Mathlib: M8 has the rank-one determinant lemma.
+New: these explicit real spectrum and determinant wrappers.}
+\used{LA6, DS3, DS5 and the determinant calculation in C19.}
+
+\section{Rectangular products and line graphs}\label{sec:line}
+
+\begin{theorem}[Rectangular characteristic polynomials]\label{thm:mn}
+Let $M$ be $p\times q$ and $N$ be $q\times p$ over a commutative ring.
+Then
+\[
+ t^q\chi_{MN}(t)=t^p\chi_{NM}(t).
+\]
+Over $\re$, the nonzero roots have equal algebraic multiplicities and
+\[
+ q+\mult_{MN}(0)=p+\mult_{NM}(0).
+\]
+For $\mu\ne0$, multiplication by $N$ is a linear equivalence
+$V_{MN}(\mu)\simeq V_{NM}(\mu)$, with inverse $\mu^{-1}M$.
+If $B$ is a real $p\times q$ matrix of rank $\rho$, both $BB^T$ and
+$B^TB$ are positive semidefinite; their positive spectra agree with
+multiplicity, and their zero multiplicities are $p-\rho$ and $q-\rho$.
+\end{theorem}
+\begin{proof}
+Work over the polynomial ring of the original coefficient ring and
+form
+\[
+ G=\pmat{tI_p&M\\N&I_q},\qquad
+ T=\pmat{-I_p&0\\N&-tI_q}.
+\]
+Block multiplication gives
+\[
+ GT=\pmat{MN-tI_p&-tM\\0&-tI_q},\qquad
+ TG=\pmat{-tI_p&-M\\0&NM-tI_q}.
+\]
+An upper block triangular determinant is the product of its diagonal
+block determinants: in the permutation formula, a nonzero term must
+map every lower-block row to a lower-block column, and then every
+upper-block row to an upper-block column. Thus
+$\det(GT)=(-1)^{p+q}t^q\chi_{MN}(t)$ and
+$\det(TG)=(-1)^{p+q}t^p\chi_{NM}(t)$.
+Multiplicativity and commutativity give $\det(GT)=\det(TG)$.
+Cancel the unit $(-1)^{p+q}$ to obtain the polynomial identity.
+For real coefficients, root multiplicities add in products. At
+$\mu\ne0$ the power of $t$ has multiplicity zero; at zero it has
+multiplicity its exponent. This gives both multiplicity assertions,
+without any splitting hypothesis on $MN$ or $NM$.
+
+For $MN\Zx=\mu\Zx$, we have
+$NM(N\Zx)=N(MN\Zx)=\mu N\Zx$ and
+$\mu^{-1}M(N\Zx)=\Zx$. The reverse composite is the identity on
+$V_{NM}(\mu)$ by the same eigenvector equation for $NM$.
+These are linear inverse maps.
+For the Gram products, positivity and ranks follow from
+Theorem~\ref{thm:gram}. Symmetric multiplicity and rank-nullity give
+the two zero counts. Their remaining eigenvalues are positive by
+Theorem~\ref{thm:psd}, and their multiplicities agree by the
+characteristic-polynomial identity. All formulas include $p=0$ or
+$q=0$; then the asserted nonzero spectra are empty.
+\end{proof}
+\lean{Matrix.eigenvalueMultiplicity_mul_comm_of_ne_zero, Matrix.spectrumMultiset_gram_products}
+\status{Mathlib: \code{Matrix.charpoly_mul_comm'} and the rank facts
+(M3--M4). New: multiset and eigenspace-transfer interfaces.}
+\used{SP5, [CGSS] Lemmas 5.5--5.7, Theorem 5.8, and Section 6.}
+
+\begin{theorem}[Incidence identities]\label{thm:incidence}
+Let $X$ be a finite simple graph with $n$ vertices and $m$ edges.
+Define $M(u,e)=1$ if the vertex $u$ is an endpoint of the edge $e$,
+and $0$ otherwise, with columns indexed by the actual edges. Then
+\[
+ MM^T=D+A(X),\qquad M^TM=2I+A(L(X)).
+\]
+If $b$ is the number of bipartite connected components of $X$, then
+\[
+ \rk M=n-b,\qquad
+ \mult_{L(X)}(-2)=m-n+b.
+\]
+The right side is nonnegative. Every line graph has least eigenvalue
+at least $-2$ whenever it is nonempty.
+\end{theorem}
+\begin{proof}
+The entry $(MM^T)(u,v)$ counts edges containing both vertices. For
+$u=v$ it is $\deg(u)$; for distinct $u,v$ it is one on an edge and
+zero otherwise. The entry $(M^TM)(e,f)$ counts common endpoints.
+For $e=f$ it is two, since there are no loops. Two distinct edges in
+a simple graph have at most one common endpoint, with one exactly
+when they are adjacent in the line graph. This proves both identities.
+By Theorem~\ref{thm:laplacian}, $MM^T$ has kernel dimension $b$.
+Its rank is $n-b$, equal to $\rk M$ by Theorem~\ref{thm:gram}.
+The other Gram product has rank $n-b$ and size $m$, so its zero
+multiplicity is $m-(n-b)$. Its eigenvalues are those of the line
+graph shifted by $2$, proving the formula and its nonnegativity.
+Finally $M^TM\succeq0$ gives the claimed lower bound by
+Corollary~\ref{cor:minus-two}.
+\end{proof}
+\lean{SimpleGraph.edgeIncMatrix, SimpleGraph.edgeIncMatrix_mul_transpose, SimpleGraph.transpose_edgeIncMatrix_mul, SimpleGraph.multiplicity_neg_two_lineGraph}
+\status{Mathlib: \code{SimpleGraph.incMatrix_mul_transpose} on all
+unordered pairs (M6). New: restriction to edges, the line-graph
+identity, and multiplicity.}
+\used{SP5, [CGSS] Section 4 opening and Lemmas 5.5--5.8.}
+
+\begin{lemma}[Connectivity of a line graph]\label{lem:line-connected}
+Let $X$ be a finite graph with at least one edge and no isolated
+vertices. Then $X$ is connected iff $L(X)$ is connected. For any edge
+$\{u,v\}$, its degree in the line graph is $\deg_X(u)+\deg_X(v)-2$.
+\end{lemma}
+\begin{proof}
+If $X$ is connected, take any two edges. A path between an endpoint
+of the first and an endpoint of the second, together with the first
+and last edges, gives a sequence of edges in which consecutive
+distinct edges share an endpoint. Delete consecutive repetitions.
+This is a walk in $L(X)$ joining the chosen edges, so $L(X)$ is
+connected and nonempty. Conversely choose incident edges at any two
+vertices of $X$, using the absence of isolates. A walk joining these
+edges in $L(X)$ is a chain of edges of $X$ with intersecting consecutive
+endpoint sets. Both endpoints of one edge are reachable from either
+endpoint, and transitivity of reachability propagates through the
+chain. Thus the two vertices are reachable and $X$ is connected.
+For the degree, the edges other than $\{u,v\}$ at $u$ and at $v$
+give $\deg(u)-1$ and $\deg(v)-1$ neighbours. These two sets are
+disjoint: a different edge with both endpoints $u,v$ would equal the
+given edge. Their union is exactly its neighbourhood in $L(X)$.
+\end{proof}
+\lean{SimpleGraph.lineGraph_connected_iff_of_no_isolated, SimpleGraph.degree_lineGraph}
+\status{New elementary interfaces over \code{SimpleGraph.lineGraph}.}
+\used{The hypotheses and degree counts of SP4 and [CGSS] Lemmas 5.5--5.6.}
+
+\begin{theorem}[SP4: regular line graphs]\label{thm:sp4}
+Let $X$ have at least one edge and no isolated vertices. If $L(X)$
+is connected and $h$-regular, then $X$ is either regular or bipartite
+with constant degree on each part. In the latter case, writing the
+part sizes as $p,q$ and the respective degrees as $k_1,k_2$, we have
+$k_1+k_2=h+2$ and $pk_1=qk_2=|E(X)|$.
+\end{theorem}
+\begin{proof}
+The preceding lemma gives connectedness of $X$ and
+$\deg(u)+\deg(v)=h+2$ on every edge. Fix a vertex of degree $k_1$
+and put $k_2=h+2-k_1$; it has a neighbour, so $k_2$ is a positive
+integer degree. Along a path from the fixed vertex, the edge equation
+forces the degrees to alternate $k_1,k_2,k_1,k_2,\ldots$.
+Connectedness makes these the only degrees. If they are equal, the
+graph is regular. If they differ, partition the vertices by these
+two degrees. Each edge joins opposite parts by the edge equation;
+both parts are nonempty because an edge exists. Thus this is a
+bipartition and degrees are constant on each part. Counting each
+edge at its endpoint in the first part gives $pk_1=|E(X)|$, and
+counting in the second gives $qk_2=|E(X)|$.
+\end{proof}
+\lean{SimpleGraph.regular_or_semiregular_of_lineGraph_regular}
+\status{New elementary proof. Isolated vertices must be removed;
+they are invisible to the line graph.}
+\used{[CGSS] Lemma 5.4 and Theorems 4.13, 5.6, 5.8.}
+
+\begin{theorem}[Recovering a regular graph's spectrum]\label{thm:line-regular}
+Let $X$ be a finite $k$-regular graph with at least one edge, and put
+$n=|V(X)|$, $m=|E(X)|$. Then the spectrum of $L(X)$ determines $k,n$
+and the full spectrum of $X$. In detail, with
+$h=\lambda_{\max}(L(X))$ and $\rho=\rk(2I+A(L(X)))$,
+\[
+ k=(h+2)/2,\qquad n=2m/k,
+\]
+and $\Spec(X)$ is obtained by taking all nonzero eigenvalues of
+$2I+A(L(X))$, adjoining $n-\rho$ zeros, and subtracting $k$ from every
+entry. Equivalently, without negative exponents,
+\[
+ (t+2)^n\chi_{L(X)}(t)=(t+2)^m\chi_X(t+2-k).
+\]
+Thus two regular graphs with an edge and cospectral line
+graphs are cospectral.
+\end{theorem}
+\begin{proof}
+An edge and regularity force $k>0$. Every edge has degree $2k-2$ in
+the line graph by Lemma~\ref{lem:line-connected}, whether or not
+$X$ is connected. Theorem~\ref{thm:sp1} gives $h=2k-2$.
+The multiset size of $L(X)$ is $m$, and the handshake equation
+$nk=2m$ gives $n$. The incidence products are $kI+A(X)$ and
+$2I+A(L(X))$ by Theorem~\ref{thm:incidence}. They have the same
+nonzero eigenvalues with multiplicities by Theorem~\ref{thm:mn}.
+The latter has rank $\rho$, so the former, of size $n$, has exactly
+$n-\rho$ zeros. Shift by $-k$ to obtain the asserted spectrum.
+Apply the characteristic-polynomial identity in
+Theorem~\ref{thm:mn} to the $n\times m$ incidence matrix and then
+substitute $t+2$ for its indeterminate. This gives the displayed
+identity. All quantities in the reconstruction depend only on the
+line-graph spectrum, proving the last assertion.
+\end{proof}
+\lean{SimpleGraph.spectrumMultiset_of_regular_lineGraph, SimpleGraph.cospectral_of_lineGraph_cospectral}
+\status{New from M4, M6 and SP1, with full zero counts.}
+\used{[CGSS] Lemma 5.5, Example 5.13 and C15. The edge hypothesis
+excludes the counterexample of edgeless graphs of different orders.}
+
+\begin{theorem}[Bipartite block spectra]\label{thm:block}
+Let $B$ be a real $p\times q$ matrix of rank $\rho$, and let
+$\lambda_1,\ldots,\lambda_\rho$ be the positive eigenvalues of $BB^T$,
+with repetition. For real $s,t$, the matrix
+\[
+ C=\pmat{sI_p&B\\B^T&tI_q}
+\]
+has the two eigenvalues
+\[
+ \gamma_j^{\pm}=\frac{s+t\pm\sqrt{(s-t)^2+4\lambda_j}}2
+ \quad(1\le j\le \rho),
+\]
+as well as $s$ repeated $p-\rho$ times and $t$ repeated $q-\rho$ times.
+This is a multiset assertion, so coinciding displayed values add their
+multiplicities. For $s=t=0$, it gives $\pm\sqrt{\lambda_j}$ and
+$p+q-2\rho$ zeros. Furthermore
+\[
+ (C-sI)(C-tI)=\pmat{BB^T&0\\0&B^TB}.
+\]
+\end{theorem}
+\begin{proof}
+Choose orthonormal eigenvectors $\Zu_j$ of $BB^T$ for the positive
+eigenvalues, and put $\Zv_j=B^T\Zu_j/\sqrt{\lambda_j}$.
+Then
+$\ip{\Zv_i}{\Zv_j}=\ip{\Zu_i}{BB^T\Zu_j}/
+\sqrt{\lambda_i\lambda_j}$ is $1$ for $i=j$ and zero otherwise.
+Moreover $B\Zv_j=\sqrt{\lambda_j}\Zu_j$ and
+$B^T\Zu_j=\sqrt{\lambda_j}\Zv_j$.
+The remaining $p-\rho$ orthonormal vectors in $\re^p$ lie in
+$\ker B^T=\ker BB^T$. The remaining $q-\rho$ directions in $\re^q$
+lie in $\ker B$: they are the orthogonal complement of
+$\im B^T$, and the $\rho$ vectors $\Zv_j$ span that image by rank.
+Thus the whole space is an orthogonal sum of the $\rho$ planes
+spanned by $(\Zu_j,0),(0,\Zv_j)$ and these two kernel spaces.
+On the $j$th plane the matrix of $C$ is
+$\pmat{s&\sqrt{\lambda_j}\\\sqrt{\lambda_j}&t}$, with characteristic
+polynomial $(z-s)(z-t)-\lambda_j$. Its discriminant is positive
+because $\lambda_j>0$, so its roots are the two stated distinct
+values. On the two kernel spaces $C$ acts by $s$ and $t$.
+The dimensions add to $2\rho+(p-\rho)+(q-\rho)=p+q$, so this accounts for
+every eigenvalue with multiplicity. Direct block multiplication of
+$C^2-(s+t)C+stI$ gives the last displayed identity: the off-diagonal
+blocks are $(s+t)B-(s+t)B=0$, and the diagonal blocks are the two
+Gram products.
+\end{proof}
+\lean{Matrix.spectrumMultiset_fromBlocks_scalar, Matrix.fromBlocks_scalar_quadratic}
+\status{New from M1 and the Gram-product facts.}
+\used{[CGSS] Lemma 5.6, Remark 5.7 and Theorem 5.8; DS1--DS4.}
+
+\begin{theorem}[Cospectral line graphs of bipartite graphs]\label{thm:line-bipartite}
+Let $X_1$ be a connected finite bipartite graph with an edge, and
+assume $L(X_1)$ is regular. Let $X_2$ be finite with no isolated
+vertices and with $L(X_2)$ cospectral with $L(X_1)$. Then $X_2$ is
+connected, and precisely one of the following alternatives holds:
+\begin{enumerate}
+\item $X_2$ is bipartite. Order the part sizes $p\le q$ in each
+graph. The part sizes and respective degrees $k_1,k_2$ agree, and
+the two biadjacency matrices $B_1,B_2$ have cospectral products
+$B_1B_1^T,B_2B_2^T$.
+\item $X_1$ is not regular; $X_2$ is regular and not bipartite;
+$|V(X_1)|=|V(X_2)|+1$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+The graph $L(X_1)$ is connected by Lemma~\ref{lem:line-connected}.
+Its cospectral mate is regular and connected by
+Corollary~\ref{cor:regular-mates}, and has the same positive number $m$ of vertices,
+thus both root graphs have $m$ edges. Removing no vertices is needed
+in $X_2$ because it has no isolates. Lemma~\ref{lem:line-connected}
+gives its connectedness, and Theorem~\ref{thm:sp4} gives the
+regular-or-semiregular alternative.
+Put $h=\lambda_{\max}(L(X_1))$, $s=h+2$, and let $R$ be the common
+rank of $2I+A(L(X_i))$, which is determined by the spectrum. In a
+connected bipartite root graph, Theorem~\ref{thm:laplacian} and
+Theorem~\ref{thm:incidence} show that its order is $N=R+1$ and that
+its signless Laplacian has precisely one zero eigenvalue. Its full
+spectrum is obtained from the common nonzero Gram spectrum by
+adjoining that one zero.
+
+For such a root graph, let the part sizes be $p\le q$ with degrees
+$k_1\ge k_2>0$. Counting gives
+\[
+ p+q=N,\qquad k_1+k_2=s,\qquad pk_1=qk_2=m,
+ \qquad k_1k_2=ms/N.
+\]
+Indeed $m/k_1+m/k_2=N$, so multiplication by $k_1k_2$ proves the
+last equality. Thus the degrees are the ordered roots of
+$z^2-sz+ms/N$, and then $p=m/k_1$, $q=m/k_2$.
+They are determined, including the case of equal degrees.
+The signless Laplacian is
+$C=\pmat{k_1I&B\\B^T&k_2I}$. By Theorem~\ref{thm:block}, applying
+$f(z)=(z-k_1)(z-k_2)$ gives $BB^T\oplus B^TB$.
+Its spectrum is determined by $\Spec(C)$ and
+Theorem~\ref{thm:calculus}. Every positive eigenvalue in this last
+multiset occurs twice as often as in $BB^T$, by
+Theorem~\ref{thm:mn}; halving these counts determines all positive
+multiplicities of $BB^T$. Its remaining multiplicity at zero is $p$
+minus their sum. This proves alternative (1) whenever $X_2$ is bipartite.
+
+If $X_2$ is not bipartite, it must be regular, of degree $s/2$,
+by Theorem~\ref{thm:sp4}. Its signless Laplacian has zero-dimensional
+kernel, so its order is $R=N-1$. If $X_1$ were regular, its degree
+would also be $s/2>0$. The two handshake equations with the common
+edge count $m$ would then give equal orders, contradicting $N$ and
+$N-1$. This proves all assertions of alternative (2). The alternatives
+are exclusive because they assert opposite bipartiteness properties.
+\end{proof}
+\lean{SimpleGraph.lineGraph_cospectral_bipartite}
+\status{New complete assembly of SP1--SP5 and block spectral mapping.}
+\used{[CGSS] Lemma 5.6 and Theorem 5.8. The no-isolates hypothesis
+on $X_2$ is necessary; otherwise any number of invisible isolates
+could be adjoined.}
+
+\begin{corollary}[The regular nonbipartite alternative]\label{cor:rival}
+Let $X_1$ be connected bipartite semiregular with part sizes $p\le q$
+and distinct degrees $k_1>k_2>0$, and let a connected regular
+nonbipartite graph $X_2$ have a line graph cospectral with $L(X_1)$.
+Put $\rho=\rk B$, $s=k_1+k_2$, where $B$ is the biadjacency matrix.
+The positive eigenvalues of $BB^T$ include $k_1k_2$ once. Delete this
+one occurrence and call the remaining list $\lambda_2,\ldots,\lambda_\rho$.
+Then the spectrum of $X_2$ is
+\[
+ \ms{\frac s2,\quad
+ \pm\sqrt{\lambda_j+\frac{(k_1-k_2)^2}{4}}\ (2\le j\le \rho),
+ \quad\left(\frac{k_1-k_2}{2}\right)^{p-\rho},
+ \quad\left(-\frac{k_1-k_2}{2}\right)^{q-\rho}}.
+\]
+\end{corollary}
+\begin{proof}
+The constant vectors give $B\Zj_q=k_1\Zj_p$ and
+$B^T\Zj_p=k_2\Zj_q$, so $BB^T\Zj_p=k_1k_2\Zj_p$.
+For $C=D(X_1)+A(X_1)$, the vector
+$(k_1\Zj_p,k_2\Zj_q)$ is positive and satisfies $C\Zx=s\Zx$.
+Its support is connected, so Theorem~\ref{thm:perron} and
+Corollary~\ref{cor:positive-certificate} say that $s$ is simple.
+Theorem~\ref{thm:block} pairs each occurrence of $k_1k_2$ with the
+two roots $0,s$ of $(z-k_1)(z-k_2)=k_1k_2$. Thus $k_1k_2$ occurs
+once. Also $C$ has exactly one zero by Theorem~\ref{thm:laplacian}.
+The signless Laplacian of $X_2$ is nonsingular and has the nonzero
+spectrum of $C$. Obtain its spectrum by deleting that one zero,
+then subtract $s/2$ because $X_2$ has degree $s/2$ by
+Theorem~\ref{thm:line-bipartite}. The paired roots for each remaining
+$\lambda_j$ give the displayed square roots, the surviving $s$ gives
+$s/2$, and the two kernel spaces of $B$ give the last two terms.
+\end{proof}
+\lean{SimpleGraph.lineGraph_cospectral_bipartite_spectrum}
+\status{New, with explicit corrections to the endpoint and zero modes.}
+\used{Error 14 of \code{cgss/errata.md}~\cite{errata} records both
+endpoint and multiplicity corrections. [CGSS] Remark 5.7 and Theorem 5.8. The pair $0,s$ loses its
+zero member before shifting; it does not give both $\pm s/2$ in
+$X_2$. The last multiplicities sum to $p+q-2\rho$, which equals $q-p$
+only when $B$ has full row rank. This states the needed hypothesis
+missing from the final sentence of Remark 5.7.}
+
+\section{Strongly regular graphs and two-eigenvalue matrices}\label{sec:srg}
+
+\begin{theorem}[SR1: parameter and matrix identities]\label{thm:sr1}
+Let $X$ be a finite strongly regular graph with parameters $(n,k,a,c)$:
+it has $n$ vertices, is $k$-regular, and the numbers of common neighbours
+of distinct adjacent and nonadjacent vertices are $a,c$, respectively.
+Then
+\[
+ A^2=(k-c)I+(a-c)A+cJ,\qquad AJ=JA=kJ.
+\]
+If $n>0$, then $k(k-a-1)=c(n-k-1)$ as an equality of integers.
+If $X$ is connected and $0<k<n-1$, then $0<c\le k$ and $a\le k-1$.
+\end{theorem}
+\begin{proof}
+The diagonal of $A^2$ is $k$. Its off-diagonal entries count common
+neighbours, and thus are $a$ or $c$ according as the pair is adjacent
+or nonadjacent. These are exactly the entries of the first displayed
+matrix. The row and column sums give $AJ=JA=kJ$.
+Apply the first identity to $\Zj\ne0$ to obtain
+$k^2=k-c+(a-c)k+cn=k+ak+c(n-k-1)$, which rearranges to the parameter
+identity without truncated subtraction.
+For an edge $uv$, common neighbours belong to $N(u)\setminus\{v\}$,
+so $a\le k-1$. A nonadjacent pair exists by $k<n-1$, and its common
+neighbours are a subset of a $k$-element neighbourhood, so $c\le k$.
+For $c>0$, choose a shortest path between a nonadjacent pair in the
+connected graph. The first and third vertices are not adjacent,
+since that would shorten the path. They have its second vertex as
+a common neighbour, forcing $c\ge1$.
+\end{proof}
+\lean{SimpleGraph.IsSRGWith.matrix_eq_integer, SimpleGraph.IsSRGWith.param_eq_integer}
+\status{Mathlib: M7. New: cast-friendly ring forms with the stated
+nontriviality bounds.}
+\used{SR1; [CGSS] Theorem 4.13, Remark 4.14 and the spectral calculations of the examples.}
+
+\begin{theorem}[SR3: spectrum and integral multiplicities]\label{thm:sr3}
+Let $X$ be connected and strongly regular with parameters $(n,k,a,c)$,
+where $0<k<n-1$. Put
+\[
+ \Delta=(a-c)^2+4(k-c),\qquad
+ \theta_1=\frac{a-c+\sqrt\Delta}{2},\quad
+ \theta_2=\frac{a-c-\sqrt\Delta}{2}.
+\]
+Then $\Delta>0$, $k>\theta_1>\theta_2$, and
+\[
+ \Spec(X)=\ms{k^1,\theta_1^{m_1},\theta_2^{m_2}},\qquad
+ m_1=\frac{-k-(n-1)\theta_2}{\theta_1-\theta_2},\quad
+ m_2=\frac{k+(n-1)\theta_1}{\theta_1-\theta_2}.
+\]
+Both displayed multiplicities are positive integers. Its spectral
+idempotents are
+\[
+ E_0=\frac1nJ,\quad
+ E_1=\frac{A-\theta_2I-\frac{k-\theta_2}{n}J}{\theta_1-\theta_2},\quad
+ E_2=\frac{A-\theta_1I-\frac{k-\theta_1}{n}J}{\theta_2-\theta_1}.
+\]
+In particular $\rk E_i=\tr E_i=m_i$ for $i=1,2$,
+$1+m_1+m_2=n$, and $k+m_1\theta_1+m_2\theta_2=0$.
+\end{theorem}
+\begin{proof}
+By Theorem~\ref{thm:sr1}, $k-c\ge0$, so $\Delta\ge0$.
+If it were zero, both its nonnegative terms would be zero, giving
+$a=c=k$, contrary to $a\le k-1$. Thus $\Delta>0$ and the two real
+roots are distinct. On $\Zj^\perp$, the matrix identity becomes
+$A^2-(a-c)A-(k-c)I=0$. Apply it to each eigenvector in that invariant
+space from Theorem~\ref{thm:ones}. Its eigenvalue is one of the
+two displayed roots. The all-ones direction has eigenvalue $k$,
+which is simple and largest by connectedness and
+Theorem~\ref{thm:sp1}.
+Both roots must occur on $\Zj^\perp$. Indeed, if just one value
+$b$ occurred, then $A=bI+(k-b)J/n$, by its action on the
+orthogonal decomposition $\spanop(\Zj)\oplus\Zj^\perp$.
+Every off-diagonal entry would be equal. There is both an edge
+($k>0$) and a distinct nonedge ($k<n-1$), with entries one and zero,
+a contradiction. Since both occur and the $k$-eigenspace has
+dimension one, both are strictly less than $k$.
+
+Let their multiplicities be $m_1,m_2$, positive natural numbers by
+occurrence and Theorem~\ref{thm:multiplicity}. Counting the basis
+vectors gives $m_1+m_2=n-1$. Since $\tr A=0$,
+$m_1\theta_1+m_2\theta_2=-k$ by Theorem~\ref{thm:walks}.
+Substitute $m_2=n-1-m_1$ in the second equation and divide by the
+nonzero number $\theta_1-\theta_2$ to obtain $m_1$; substituting
+$m_1=n-1-m_2$ gives $m_2$. This proves integrality as a consequence
+of equality with eigenspace dimensions, not as an assumed
+feasibility condition.
+The displayed $E_0$ is the identity on $\spanop(\Zj)$ and zero on
+its orthogonal complement. For $E_1$, substitution on the $k$
+direction gives zero; on a $\theta_1$ direction it gives one; on
+a $\theta_2$ direction it gives zero. For $E_2$, the three
+substitutions give zero, zero, one, respectively. Thus these are
+exactly the spectral idempotents of Theorem~\ref{thm:calculus},
+which supplies their trace, rank, products and spectral decomposition.
+\end{proof}
+\lean{SimpleGraph.IsSRGWith.spectrumMultiset_eq, SimpleGraph.IsSRGWith.spectralIdempotents, SimpleGraph.IsSRGWith.multiplicity_eq}
+\status{New from M1, M7 and the idempotent algebra of
+Theorem~\ref{thm:calculus}.}
+\used{SR3, SR5's integrality filters, [CGSS] Examples 4.5--4.9 and Remark 4.14.}
+
+\begin{theorem}[SR2: complements]\label{thm:sr2}
+Let $X$ be connected strongly regular with $(n,k,a,c)$ and
+$0<k<n-1$. Its complement has parameters
+\[
+ (n,n-k-1,n-2k+c-2,n-2k+a)
+\]
+and spectrum
+\[
+ \ms{(n-k-1)^1,(-1-\theta_1)^{m_1},(-1-\theta_2)^{m_2}},
+\]
+where the roots and multiplicities are those of
+Theorem~\ref{thm:sr3}. Coincident values in this list must be combined;
+the complement need not be connected.
+\end{theorem}
+\begin{proof}
+Complement degree is $n-k-1$. If $u,v$ are nonadjacent in $X$,
+the union of their original neighbourhoods has size $2k-c$ and
+contains neither $u$ nor $v$. Among the other $n-2$ vertices,
+exactly $n-2-2k+c$ lie in neither neighbourhood; these are the
+common neighbours in the complement. If $u,v$ are adjacent in
+$X$, their neighbourhood union has size $2k-a$ and contains
+both $u,v$. Removing them leaves $2k-a-2$ forbidden vertices
+among $n-2$, so the common-neighbour count is $n-2k+a$.
+These counts are nonnegative integers and prove the parameter
+formula. The spectral formula is Theorem~\ref{thm:ones}, because
+$A(\comp X)=J-I-A(X)$. It gives multiplicities as a multiset even
+when the new all-ones eigenvalue also occurs on $\Zj^\perp$.
+\end{proof}
+\lean{SimpleGraph.IsSRGWith.spectrumMultiset_compl}
+\status{Mathlib: the complement parameters in M7. New: the spectral
+formula including possible collisions.}
+\used{SR2, GQ3, [CGSS] Remark 4.14 and the complement conventions for the examples.}
+
+\begin{corollary}[SR4: least eigenvalue minus two]\label{cor:sr4}
+Let $X$ be connected strongly regular with $(n,k,a,c)$,
+$0<k<n-1$, and least eigenvalue $-2$. Then
+\[
+ \theta_1=a-c+2\in\ints,\quad k=c+2\theta_1,\quad
+ m_1=\frac{2n-k-2}{\theta_1+2},\quad
+ \rk(2I+A)=1+m_1.
+\]
+In particular the positive integer $\theta_1+2$ divides
+$2n-k-2$ in $\ints$, and the rank is one plus that quotient.
+\end{corollary}
+\begin{proof}
+The least root of Theorem~\ref{thm:sr3} is $\theta_2=-2$.
+The sum and product of the two roots of
+$z^2-(a-c)z-(k-c)$ give
+$\theta_1-2=a-c$ and $-2\theta_1=c-k$.
+These yield the first two equations and integrality of $\theta_1$.
+The multiplicity formula in that theorem yields
+$m_1=(2(n-1)-k)/(\theta_1+2)$.
+We have $\theta_1>-2$, and $k>0$, so in $2I+A$ the all-ones
+eigenvalue $k+2$ and the $m_1$ copies of $\theta_1+2$ are positive,
+while the remaining eigenvalues vanish. This proves the rank formula.
+The integer equation $(\theta_1+2)m_1=2n-k-2$ gives divisibility.
+\end{proof}
+\lean{SimpleGraph.IsSRGWith.parameters_of_leastEigenvalue_eq_neg_two, SimpleGraph.IsSRGWith.rank_two_add_adjMatrix}
+\status{New from SR3 and the rank bridge.}
+\used{SR4--SR5, the parameter certificate C18, and [CGSS] Remark 4.14.}
+
+\begin{definition}[Designs and their graphs]\label{def:design}
+A $2$-design $D$ consists of finite point and block types and an incidence
+relation, with parameters $(v,k,b,r,\lambda)$: $v>1$ points, $b>0$
+labelled blocks, $k>1$ points in each block, $r$ blocks at each point,
+and $\lambda$ blocks at each pair of distinct points. Repeated blocks
+are allowed. In Lean the fields are \code{v k b r lam}.
+Its zero-one point-block matrix is $N=D.\mathrm{incMatrix}$.
+The graph $I(D)=D.\mathrm{incidenceGraph}$ has the disjoint union of the
+point and block types as vertices and exactly the incidences as edges.
+The flag graph is $F(D)=D.\mathrm{flagGraph}=L(I(D))$.
+\lean{Design, Design.incMatrix, Design.incidenceGraph, Design.flagGraph}
+\status{Proposed definitions following \code{cgss/notation.md}, Section 7.}
+\end{definition}
+
+\begin{lemma}[A distinguished constant eigendirection]\label{lem:two-eigenvalues}
+Let $G$ be real symmetric of order $n>0$, with $G\Zj=b\Zj$, and
+suppose every eigenvalue of its restriction to $\Zj^\perp$ equals $s$
+(the restriction may have dimension zero). Then
+\[
+ G=sI+\frac{b-s}{n}J.
+\]
+\end{lemma}
+\begin{proof}
+The proposed matrix and $G$ act by $b$ on $\Zj$ and by $s$ on the
+orthonormal basis of $\Zj^\perp$ from Theorem~\ref{thm:ones}.
+Equality on this basis proves the identity.
+\end{proof}
+\lean{Matrix.IsHermitian.eq_smul_one_add_smul_allOnes_of_two_eigenvalues}
+\status{New scalar-action consequence of the all-ones decomposition.}
+\used{The design Gram characterization and SR3.}
+
+\begin{theorem}[Designs from two Gram eigenvalues]\label{thm:two-eigenvalues}
+Let $N$ be a $v\times b$ zero-one matrix, where $v>1$,
+with constant positive row sum $r$ and column sum $k>1$. Let
+$\lambda>0$ satisfy $r(k-1)=\lambda(v-1)$. If
+$\Spec(NN^T)=\ms{(rk)^1,(r-\lambda)^{v-1}}$, then
+\[
+ NN^T=(r-\lambda)I+\lambda J.
+\]
+Thus any two distinct rows have inner product $\lambda$, and $N$
+is the incidence matrix of a $2$-design with these parameters, with
+columns treated as block labels. If $r>\lambda$, then $b\ge v$.
+\end{theorem}
+\begin{proof}
+For $NN^T$, the row and column sums give
+$NN^T\Zj_v=rk\Zj_v$. Here $rk>r-\lambda$ because
+$rk-(r-\lambda)=r(k-1)+\lambda=\lambda v>0$.
+The spectrum hypothesis thus makes the $rk$-eigenspace
+one-dimensional, and it is spanned by $\Zj_v$; all remaining
+eigendirections have eigenvalue $r-\lambda$. Lemma~\ref{lem:two-eigenvalues}
+gives coefficient $(rk-r+\lambda)/v=\lambda$ on $J$.
+The entries of $NN^T$ count common incident columns, proving the
+design assertion without requiring distinct columns.
+If $r>\lambda$, both $r-\lambda$ and $rk$ are positive, so
+$\rk(NN^T)=v$. By Theorem~\ref{thm:gram}, $\rk N=v\le b$.
+\end{proof}
+\lean{Matrix.gram_eq_of_two_eigenvalues}
+\status{New from M1 and the all-ones decomposition.}
+\used{DS1, DS3--DS4 and the step ``it is the incidence matrix of a
+2-design'' in [CGSS] Theorem 5.8.}
+
+\begin{theorem}[Spectra of design incidence and flag graphs]\label{thm:design-spectra}
+Let $N=D.\mathrm{incMatrix}$ be the zero-one incidence matrix of a $2$-design $D$ on $v>1$
+points and $b$ labelled blocks of size $k>1$, with replication $r$
+and pair count $\lambda>0$. Suppose $r>\lambda$. Put $m=vr=bk$.
+Let $I(D)$ be its bipartite incidence graph and $F(D)=L(I(D))$ its
+flag graph. Define
+\[
+ \gamma^{\pm}=\frac{r+k\pm\sqrt{(r-k)^2+4(r-\lambda)}}2.
+\]
+Then $b\ge v$, $m-v-b+1\ge0$, and
+\[
+ \begin{aligned}
+ \Spec(I(D))&=\ms{\sqrt{rk},-\sqrt{rk},
+    (\sqrt{r-\lambda})^{v-1},(-\sqrt{r-\lambda})^{v-1},0^{b-v}},\\
+ \Spec(F(D))&=\ms{r+k-2,(\gamma^+-2)^{v-1},
+   (\gamma^--2)^{v-1},(k-2)^{b-v},(-2)^{m-v-b+1}}.
+ \end{aligned}
+\]
+Repeated displayed values are combined. Both graphs are connected,
+and the flag graph is $(r+k-2)$-regular.
+\end{theorem}
+\begin{proof}
+Counting incidences by points and blocks gives $vr=bk$.
+Fix a point and count pairs consisting of a block through it and
+a different point of that block. The two counts give
+$r(k-1)=\lambda(v-1)$. Entries count common blocks, so
+$NN^T=(r-\lambda)I+\lambda J$.
+Corollary~\ref{cor:scalar-ones} gives its eigenvalues
+$r-\lambda+\lambda v=rk$ once and $r-\lambda$ with multiplicity
+$v-1$. Both are positive, and their difference is $\lambda v>0$.
+Thus $N$ has rank $v$ by Theorem~\ref{thm:gram}, and $b\ge v$.
+Apply Theorem~\ref{thm:block} with the two scalar blocks zero to
+the adjacency matrix of $I(D)$ to obtain its displayed spectrum.
+
+Any two distinct points lie in a common block because
+$\lambda>0$, so a path of length two joins them. Every block has
+a point because $k>0$. These paths join all vertices of $I(D)$;
+there is an edge because $v,r>0$. Thus both graphs are connected
+by Lemma~\ref{lem:line-connected}. That lemma also gives the flag
+degree $r+k-2$. The signless Laplacian of $I(D)$ has scalar blocks
+$rI_v,kI_b$. The positive Gram eigenvalue $rk$ gives the two
+roots $0,r+k$ in Theorem~\ref{thm:block}; each occurrence of
+$r-\lambda$ gives $\gamma^+,\gamma^-$, and the $b-v$ kernel
+directions give $k$. Both $\gamma$ values are positive: their
+sum is $r+k>0$, their product is
+$rk-r+\lambda=\lambda v>0$, and they are real. Thus zero has
+exactly one occurrence. Theorem~\ref{thm:incidence} and
+Theorem~\ref{thm:mn} say that $2I+A(F(D))$ has this nonzero
+spectrum and $m-v-b+1$ zeros. This also proves that the last
+exponent is nonnegative. Subtracting two proves the flag spectrum.
+\end{proof}
+\lean{Design.spectrumMultiset_incidenceGraph, Design.spectrumMultiset_flagGraph}
+\status{New specialization of the proved block and incidence
+identities. Repeated blocks cause no difficulty because block
+labels are distinct vertices.}
+\used{DS1, DS3--DS4, [CGSS] Theorem 5.8 and Corollaries 5.10--5.11.
+For $(v,k,b,r,\lambda)=(6,3,10,5,2)$ this gives C15's list.}
+
+\begin{corollary}[The trivial design and complete bipartite graphs]\label{cor:complete-bipartite}
+For $p,q\ge1$,
+\[
+ \Spec(L(K_{p,q}))=
+ \ms{p+q-2,(p-2)^{q-1},(q-2)^{p-1},(-2)^{(p-1)(q-1)}}.
+\]
+Values that coincide are combined. This covers the design case
+$r=\lambda>0$, in which every point belongs to every block.
+\end{corollary}
+\begin{proof}
+The biadjacency matrix $B$ is all ones. Its image is the span of
+$\Zj_p$, of dimension one, and $BB^T=qJ_p$ has positive
+eigenvalue $pq$ once. The signless Laplacian has scalar blocks
+$qI_p,pI_q$. Theorem~\ref{thm:block} gives eigenvalues
+$0,p+q$, together with $q$ repeated $p-1$ times and $p$ repeated
+$q-1$ times. The graph is connected: opposite parts are joined
+by an edge and same-part vertices by a path through the other
+nonempty part. Its edge incidence matrix thus has rank
+$p+q-1$ by Theorem~\ref{thm:incidence}. The $pq$-dimensional
+other Gram product has the preceding nonzero spectrum and
+$pq-p-q+1=(p-1)(q-1)$ zeros, by Theorem~\ref{thm:mn}.
+Subtracting two gives the displayed formula. In a design with
+$r=\lambda>0$ on $v$ points, the count $r(k-1)=\lambda(v-1)$ gives $k=v$.
+Each block thus contains every point. This makes its incidence
+graph complete bipartite, as claimed.
+\end{proof}
+\lean{SimpleGraph.spectrumMultiset_lineGraph_completeBipartite}
+\status{New specialization retaining collisions and the cases
+$p=1$ or $q=1$.}
+\used{[CGSS] Corollary 5.9 and the trivial-design qualification
+after Theorem 5.8.}
+
+\begin{theorem}[The polynomial on the constant direction]\label{thm:hoffman-poly}
+Let $X$ be a connected finite $k$-regular graph on $n>0$ vertices,
+and let $f$ be a real polynomial which vanishes at every eigenvalue
+other than $k$. Then
+\[
+ f(A)=\frac{f(k)}n J.
+\]
+Conversely this matrix identity implies that $f$ vanishes at every
+eigenvalue on $\Zj^\perp$.
+\end{theorem}
+\begin{proof}
+The $k$-eigenspace is exactly $\spanop(\Zj)$ by
+Theorem~\ref{thm:sp1}. In the eigenbasis of
+Theorem~\ref{thm:ones}, $f(A)$ acts by $f(k)$ on that direction
+and by zero on the others, precisely as the stated multiple of
+$J$. Conversely apply the identity to an eigenvector in
+$\Zj^\perp$; the right side is zero and the left side is
+$f(\mu)\Zv$. Since $\Zv\ne0$, $f(\mu)=0$.
+\end{proof}
+\lean{SimpleGraph.IsRegularOfDegree.aeval_eq_smul_allOnes_of_connected}
+\status{New consequence of spectral idempotents.}
+\used{[CGSS] Theorem 5.8's final matrix identity and HR2:
+for spectrum $4^1,2^3,0^3,(-2)^5$, take $f(z)=z^3-4z$ to get
+$A^3=4A+4J$.}
+
+\section{Smith graphs}\label{sec:smith}
+
+We will give SM2 and SM3 explicitly, so that the use of
+Perron--Frobenius in Theorem 3.8 has no combinatorial black box.
+\begin{definition}[Smith models]\label{def:smith-models}
+Write $T(p,q,r)$ for the tree consisting of one vertex of degree three
+and three internally disjoint arms of positive edge-lengths $p,q,r$.
+Define $\widetilde{\mathrm A}_{\ell}$ to be the cycle on $\ell+1$
+vertices, $\ell\ge2$; $\widetilde{\mathrm D}_4=K_{1,4}$; and, for
+$\ell\ge5$, define $\widetilde{\mathrm D}_{\ell}$ by a path of length
+$\ell-4$ with two new leaves at each endpoint. Define
+\[
+ \widetilde{\mathrm E}_6=T(2,2,2),\quad
+ \widetilde{\mathrm E}_7=T(1,3,3),\quad
+ \widetilde{\mathrm E}_8=T(1,2,5).
+\]
+These are the Smith graphs of [CGSS], Figure 1; the finite-type and
+affine-type names are kept distinct.
+A labelled realization uses a central vertex and arm vertices $(a,j)$,
+$1\le j\le h_a$, joined consecutively and to the centre at $j=1$.
+For $\widetilde{\mathrm D}_\ell$ label the path consecutively and label
+each of its four added leaves separately; cycles use cyclic indices.
+Write $\code{SimpleGraph.smithE}(h)$ for $h\in\{6,7,8\}$.
+\lean{SimpleGraph.threeArmTree, SimpleGraph.smithA, SimpleGraph.smithD, SimpleGraph.smithE}
+\status{Proposed finite graph definitions with the displayed parameter domains.}
+\end{definition}
+
+\begin{theorem}[SM2: positive integer eigenvectors]\label{thm:smith-vectors}
+Every Smith graph has largest eigenvalue $2$, of multiplicity one.
+For a cycle, a certificate vector is $\Zj$. For
+$\widetilde{\mathrm D}_{\ell}$, it has value $2$ on the central path
+(or on the centre when $\ell=4$) and value $1$ on the four leaves.
+For $T(p,q,r)$ in the three exceptional cases, take central value
+$L=3,4,6$, respectively; at distance $j$ on an arm of length $h$ take
+\[
+ \Zx(j)=\frac{L(h+1-j)}{h+1}\qquad(1\le j\le h).
+\]
+For a Smith graph on $N$ vertices, $2I-A$ is positive semidefinite
+of rank $N-1$. Deleting any vertex from a Gram representation with
+this Gram matrix leaves a basis of its span.
+\end{theorem}
+\begin{proof}
+All the stated coordinates are positive integers. On a cycle each
+vertex has two neighbours of value one. On an affine $D$ graph,
+a leaf sees value two; an internal path vertex sees two values two;
+an endpoint of a nontrivial central path sees values $2,1,1$;
+and in $\widetilde{\mathrm D}_4$ the centre sees four values one.
+In each case the neighbour sum is twice the coordinate.
+On an exceptional arm the coordinates decrease in an arithmetic
+progression from $L$ to $L/(h+1)$, with next value zero beyond the
+leaf. Thus the sum of the two adjacent values is twice the current
+one; at the leaf the only actual neighbour has twice its value.
+At the centre the neighbour sum is
+$L(3-1/(p+1)-1/(q+1)-1/(r+1))=2L$, because the reciprocals sum to
+one for $(2,2,2),(1,3,3),(1,2,5)$. This proves $A\Zx=2\Zx$.
+Corollary~\ref{cor:positive-certificate} makes $2$ the largest
+eigenvalue; connectedness and Theorem~\ref{thm:perron} make it simple.
+Thus $2I-A$ is positive semidefinite and has precisely one zero
+eigenvalue. A graph with one vertex deleted is a nonempty proper
+subgraph, so has largest eigenvalue strictly less than $2$ by
+Theorem~\ref{thm:strict}. Its $2I-A$ is positive definite by
+Theorem~\ref{thm:psd}. This is the principal Gram submatrix of the
+remaining $N-1$ vectors, so they are independent by
+Theorem~\ref{thm:gram}. The original span has dimension $N-1$,
+so they form a basis.
+\end{proof}
+\lean{SimpleGraph.largestEigenvalue_smithA, SimpleGraph.largestEigenvalue_smithD, SimpleGraph.largestEigenvalue_smithE}
+\status{New parametric certificates and their proof from SM1.}
+\used{SM2, C17, [CGSS] Theorem 3.8 and the sentence following Figure 1.}
+
+\begin{lemma}[Trees of maximum degree two]\label{lem:tree-path}
+A finite tree whose vertices have degree at most two is a nonempty path.
+\end{lemma}
+\begin{proof}
+Choose a longest simple path, which exists by finiteness and nonemptiness.
+An outside vertex has a path meeting it for the first time. Attachment
+at an endpoint extends the chosen path; attachment internally gives
+three distinct neighbours. Both are impossible. Thus every vertex is
+on the chosen path; any additional edge would create a cycle.
+\end{proof}
+\lean{SimpleGraph.IsTree.isPath_of_degree_le_two}
+\status{New finite-tree lemma, reusable on the components after deletion.}
+\used{The two shape cases in Smith's theorem.}
+
+\begin{theorem}[SM3: Smith's theorem]\label{thm:smith}
+A connected finite graph has largest eigenvalue $2$ iff it is
+isomorphic to a Smith graph. It has largest eigenvalue less than
+$2$ iff it is a path, a tree $T(1,1,r)$ for $r\ge1$, or one of
+$T(1,2,2),T(1,2,3),T(1,2,4)$.
+\end{theorem}
+\begin{proof}
+First suppose a connected graph contains a Smith graph as a subgraph.
+If it is exactly that graph, its largest eigenvalue is $2$ by
+Theorem~\ref{thm:smith-vectors}. If the subgraph is proper, strict
+monotonicity makes its largest eigenvalue greater than $2$.
+We will classify connected graphs containing no Smith subgraph.
+Such a graph has no cycle, so is a tree; it has no vertex of degree
+at least four, since four of the incident edges would give $K_{1,4}$.
+It cannot have two vertices of degree three. Indeed, choose two
+whose distance is minimal. Internal vertices on their unique path
+have degree two; otherwise one would be a closer degree-three
+vertex. At each endpoint choose its two neighbours off this path.
+These four neighbours are distinct and off the path, since a
+coincidence would give a cycle in the tree. The path and these four
+incident edges form an affine $D$ subgraph.
+
+If the tree has no degree-three vertex, it is a path, including a
+single vertex. To see this directly, take a longest simple path.
+A vertex outside it would join it by a unique path; attachment at
+an endpoint extends it and attachment internally gives degree at
+least three, both impossible. If there is one degree-three vertex,
+delete it. Each of the three components has degree at most two
+away from the attachment, thus is a path by the same longest-path
+argument. The tree is thus $T(p,q,r)$, with
+$1\le p\le q\le r$ after reordering. If $p\ge2$, truncate all
+arms to length two to obtain $\widetilde{\mathrm E}_6$.
+Thus $p=1$. If $q\ge3$, truncate to $(1,3,3)$ to obtain
+$\widetilde{\mathrm E}_7$. Thus $q=1$ or $q=2$.
+When $q=2$, avoidance of $(1,2,5)$ gives $2\le r\le4$.
+This proves the asserted list of graphs avoiding Smith subgraphs.
+
+Every graph on that list is a proper subgraph of a Smith graph.
+A path on $N$ vertices embeds into a cycle on $N+2$ vertices.
+For $T(1,1,r)$, adjoin two new leaves at the far endpoint of the
+arm of length $r$. This gives the affine $D$ tree with central
+path length $r$. The three remaining trees embed properly in
+$T(1,2,5)$ by extending the last arm. Strict monotonicity now
+makes every listed graph's largest eigenvalue less than $2$.
+It also shows that a graph with largest eigenvalue at most $2$
+cannot contain a proper Smith subgraph. Combining this with the
+exhaustive avoidance argument proves both directions of both
+classification statements.
+\end{proof}
+\lean{SimpleGraph.smith, SimpleGraph.largestEigenvalue_lt_two_iff}
+\status{New complete combinatorial proof from SM1 and SM2.}
+\used{SM3 and [CGSS] Theorem 3.8.}
+
+\section{Exact certificates and rational transfer}\label{sec:certificates}
+
+\begin{lemma}[Moments on an annihilating support]\label{lem:annihilating-moments}
+Let $A$ be real symmetric of finite order and let $(\theta_i)_{i<s}$
+be distinct real nodes, where $s\ge0$. If
+$\prod_{i<s}(A-\theta_iI)=0$, every eigenvalue belongs to the nodes and
+\[
+ \tr A^j=\sum_{i<s}\mult_A(\theta_i)\theta_i^j\qquad(j\ge0).
+\]
+\end{lemma}
+\begin{proof}
+Apply the annihilator to a nonzero eigenvector. The scalar product
+$\prod_{i<s}(\mu-\theta_i)$ vanishes, so a factor vanishes.
+Theorem~\ref{thm:trace} sums powers over all eigenvalues; partition
+that sum by its unique node, using distinctness, to obtain the formula.
+If $s=0$, the annihilator is $I=0$. This forces the index set to be
+empty, and every asserted sum and trace is zero.
+\end{proof}
+\lean{Matrix.IsHermitian.eigenvalues_mem_of_annihilating, Matrix.IsHermitian.trace_pow_eq_multiplicities}
+\status{Implemented in \code{LineGraphs/Spectral/Basic.lean}.}
+\used{Both matrices in a fixed-support certificate.}
+
+\begin{theorem}[Moments determine multiplicities on a known support]\label{thm:certificate}
+Let $A$ be real symmetric of order $n$, let
+$\theta_0,\ldots,\theta_{s-1}$ be distinct real numbers with $s\ge0$,
+and let $m_0,\ldots,m_{s-1}$ be nonnegative integers. Suppose
+\[
+ \prod_{i=0}^{s-1}(A-\theta_iI)=0,\qquad
+ \tr A^j=\sum_{i=0}^{s-1}m_i\theta_i^j\quad(0\le j<s).
+\]
+Then
+$\Spec(A)=\ms{\theta_0^{m_0},\ldots,\theta_{s-1}^{m_{s-1}}}$.
+In particular $\sum_i m_i=n$, including the empty node list.
+\end{theorem}
+\begin{proof}
+Put $d_i=\mult_A(\theta_i)$. Lemma~\ref{lem:annihilating-moments}
+and the assumed moments give $\sum_i(d_i-m_i)\theta_i^j=0$ for $j<s$.
+Apply \code{Matrix.eq_zero_of_forall_pow_sum_mul_pow_eq_zero}
+to the injective node function and the vector of real differences.
+It gives $d_i=m_i$; injectivity of natural-number casts gives equality
+in $\nn$. The support assertion of that lemma and these counts give
+the multiset by extensionality. Taking its cardinality and applying
+Theorem~\ref{thm:multiplicity} gives $\sum_i m_i=n$, also for $s=0$.
+For $s>0$ this is also the zeroth moment, with $0^0=1$.
+\end{proof}
+\lean{Matrix.IsHermitian.spectrumMultiset_eq_of_annihilatingPolynomial_trace}
+\status{Implemented in \code{LineGraphs/Spectral/Basic.lean}, using M4
+Vandermonde uniqueness, including its empty system.}
+\used{The kernel certificates of C13 and C15, and any fixed-support spectrum computation.}
+
+\begin{corollary}[Two matrices on a common annihilating support]\label{cor:certificate-pair}
+Let $A,B$ be real symmetric matrices on possibly different finite index
+sets. Suppose they annihilate the product on the same distinct nodes
+$(\theta_i)_{i<s}$, $s\ge0$, and have equal traces in degrees $0\le j<s$.
+Then $\Spec(A)=\Spec(B)$ and $\chi_A=\chi_B$.
+\end{corollary}
+\begin{proof}
+Lemma~\ref{lem:annihilating-moments} for $B$ supplies moments with
+$m_i=\mult_B(\theta_i)$. The trace equalities give these same moments
+for $A$, so Theorem~\ref{thm:certificate} applied to $A$ gives precisely
+$B$'s multiset. The support statement of the lemma for $B$ identifies
+that multiset; Proposition~\ref{prop:cospectral} gives polynomial equality.
+This includes $s=0$, when both annihilators force empty index sets.
+\end{proof}
+\lean{Matrix.IsHermitian.charpoly_eq_of_annihilatingPolynomial_trace}
+\status{Implemented in \code{LineGraphs/Spectral/Basic.lean}.}
+\used{C13 and C15 certificates across different matrix index types.}
+
+\begin{theorem}[Similarity and intertwining certificates]\label{thm:similarity}
+Let $A,B,Q$ be square matrices of the same order over a field, with
+$\det Q\ne0$ and $QA=BQ$. Then $\chi_A=\chi_B$.
+In particular $Q^2=I$ and $QAQ=B$ suffice.
+For integer matrices $A,B,Q,R$ and an integer $d\ne0$, it is enough
+to check
+\[
+ QA=BQ,\qquad QR=RQ=dI.
+\]
+These identities imply equality of the real characteristic polynomials
+of $A$ and $B$. For adjacency matrices, they prove graph cospectrality.
+\end{theorem}
+\begin{proof}
+An invertible $Q$ has inverse $Q^{-1}$, and $B=QAQ^{-1}$.
+Thus
+$tI-B=Q(tI-A)Q^{-1}$; determinant multiplicativity gives
+$\chi_B=\det Q\,\chi_A\,\det Q^{-1}=\chi_A$.
+When $Q^2=I$, its inverse is $Q$ and the conjugation hypothesis
+is exactly the required equation. For the integer certificate,
+cast the identities into $\rats$; $(1/d)R$ is an explicit two-sided
+inverse of $Q$. The field assertion gives equality of rational
+characteristic polynomials. The inclusion $\rats\hookrightarrow\re$
+preserves determinant: its finite permutation sum uses only products,
+sums and signs, all preserved by a ring map. Thus the equality
+persists over $\re$. The graph assertion is
+Definition~\ref{def:graph}.
+\end{proof}
+\lean{Matrix.charpoly_eq_of_invertible_intertwiner, Matrix.charpoly_eq_of_scaled_inverse_intertwiner, SimpleGraph.cospectral_of_intertwiner}
+\status{Mathlib: \code{Matrix.charpoly_units_conj} and
+\code{Matrix.charpoly_map} (M4). Both matrix intertwiner wrappers are implemented in
+\code{LineGraphs/Spectral/Similarity.lean}, using
+\code{Matrix.charpoly_mul_comm}; the graph wrapper is proposed here.}
+\used{The kernel certificate of C15, and switching. An explicit inverse
+certificate avoids computing a large symbolic determinant.}
+
+\begin{theorem}[Seidel switching]\label{thm:seidel}
+Let $X$ be a finite simple graph and $U$ a subset of its vertices.
+Define $X^U$ by complementing adjacency across $U$ and its complement
+and retaining adjacency inside the two parts. Let $T$ be diagonal,
+with entry $-1$ on $U$ and $1$ elsewhere. Then
+\[
+ S(X^U)=T S(X)T,\qquad T^2=I.
+\]
+Thus Seidel switching preserves the Seidel spectrum with multiplicity.
+The matrix used in [CGSS] Corollary 5.10 is $-S=2A-J+I$, and its
+spectrum is obtained from that of $S$ by negating every entry.
+\end{theorem}
+\begin{proof}
+Both sides have diagonal zero. For distinct vertices in the same
+part the sign product is one, and neither the adjacency nor the
+Seidel entry changes. Across the parts the product is $-1$ and
+adjacency is complemented, changing the Seidel entry between $1$
+and $-1$. This proves the conjugation identity entry by entry.
+The diagonal signs square to one. Apply
+Theorem~\ref{thm:similarity} and Proposition~\ref{prop:cospectral}
+to the real symmetric Seidel matrices. Finally use
+Theorem~\ref{thm:calculus} with the polynomial $-z$.
+\end{proof}
+\lean{SimpleGraph.seidelMatrix_switch, SimpleGraph.spectrumMultiset_seidelMatrix_switch}
+\status{New Seidel definitions and entry calculation; Mathlib and
+Theorem~\ref{thm:similarity} give the conjugation step.}
+\used{SW2, [CGSS] Section 4 switching examples and Corollary 5.10, C13.}
+
+\begin{theorem}[Rational eigenvalues of integer matrices]\label{thm:rational}
+If an integer square matrix has a rational eigenvalue $b$, viewed as
+an eigenvalue of its real matrix, then $b$ is an integer.
+\end{theorem}
+\begin{proof}
+The characteristic polynomial $f$ is monic with integer coefficients,
+and $f(b)=0$: the real eigenvector makes the real determinant zero,
+and injectivity of the rational inclusion makes the rational
+evaluation zero. Its degree is positive, since a constant monic
+polynomial has no root. Write $b=h/d$ in lowest terms, with
+$d>0$ and $\gcd(h,d)=1$. If the degree is $N\ge1$, multiply
+$f(h/d)=0$ by $d^N$. The leading term is $h^N$ and every other
+term is divisible by $d$. Thus $d\mid h^N$. Coprimality of $h$
+and $d$ implies coprimality of $h^N$ and $d$: repeatedly apply
+Euclid's lemma, or Bezout's identity, to the factors $h$.
+The only positive divisor of $h^N$ coprime to $h^N$ is $1$,
+so $d=1$ and $b=h\in\ints$.
+\end{proof}
+\lean{Matrix.eigenvalue_isInteger_of_rat}
+\status{Mathlib: the monic rational-root theorem and
+\code{Matrix.charpoly_map} (M4). New: the matrix-eigenvalue wrapper.}
+\used{LA6, SR4's arithmetic context, and $x\mid n$ in [CGSS] Section 6.}
+
+\begin{lemma}[Adjacency matrix guards]\label{lem:adjacency-guards}
+Let $A$ be a symmetric integer matrix on a finite set, with zero diagonal
+and entries in $\{0,1\}$. The relation $A(u,v)=1$ defines a simple
+graph whose integer adjacency matrix is $A$.
+\end{lemma}
+\begin{proof}
+The three guards are the three fields of Mathlib's
+\code{Matrix.IsAdjMatrix}. Symmetry of $A$ gives symmetry of the
+relation, and the zero diagonal gives irreflexivity; this graph is
+\code{Matrix.IsAdjMatrix.toGraph}. On the diagonal both adjacency and
+input entries are zero. Off the diagonal, the zero-one guard makes the
+test for equality with one return exactly the input entry; this is
+\code{Matrix.IsAdjMatrix.adjMatrix_toGraph_eq}.
+\end{proof}
+\lean{Matrix.IsAdjMatrix.of_symmetric_zero_one}
+\status{Mathlib: \code{Matrix.IsAdjMatrix} and its graph (M6); the proposed
+name only packages the three guards as its constructor. The integer-list
+version is \code{Computations.graphOfMatrix} with
+\code{Computations.adjMatrix_graphOfMatrix} in
+\code{LineGraphs/Computations/GraphCertificates.lean}.}
+\used{Each proposed adjacency matrix, separately, in a graph certificate.}
+
+\begin{theorem}[A precise Boolean certificate interface]\label{thm:checker}
+Encode an integer $n\times n$ matrix by a list of $n$ rows of length
+$n$. Consider the following three checkers, using exact integers and
+natural numbers, with no floating-point operations.
+\begin{enumerate}
+\item A spectral checker first verifies the square shape and symmetry,
+then a possibly empty list of distinct integer nodes $\theta_i$ and an
+equally long list of natural multiplicities $m_i$. It verifies the
+matrix product $\prod_i(A-\theta_iI)=0$ and the trace identities
+of Theorem~\ref{thm:certificate} for $0\le j<s$.
+\item A largest-eigenvalue checker verifies square shape, $n>0$,
+symmetry, nonnegative entries, a length-$n$ integer vector with
+strictly positive entries, and $A\Zx=b\Zx$ for the proposed integer $b$.
+\item A similarity checker verifies that $A,B,Q,R$ have the same
+square shape, that $d\ne0$, and the three identities in
+Theorem~\ref{thm:similarity}.
+\end{enumerate}
+Returning \code{true} implies, respectively, the stated real multiset
+spectrum, the stated largest eigenvalue, or equality of real
+characteristic polynomials. Graph certificates additionally require zero
+diagonal, zero-one entries, and symmetry for every proposed adjacency
+matrix. In the similarity checker these guards apply to both $A$ and $B$.
+\end{theorem}
+\begin{proof}
+We will specify the arithmetic so that the reflection claim has a
+precise meaning. For equal-length lists define their dot product
+recursively by
+$\operatorname{dot}([],[])=0$ and
+$\operatorname{dot}(a::v,b::w)=ab+\operatorname{dot}(v,w)$.
+Matrix multiplication takes the dot product of each row with each
+column, after shape checks. Addition and scalar multiplication act
+entrywise, the identity has entries $1$ on equal indices and $0$
+otherwise, and trace is the sum of diagonal entries. A list equality
+test compares lengths and then corresponding entries. A universal
+test is the conjunction of its finitely many Boolean tests, with
+empty conjunction true.
+Induction on the common length proves that dot computes
+$\sum_i v(i)w(i)$: the empty sum is zero and the successor step
+splits off the first summand. Applying this to each row and column
+proves correctness of matrix multiplication. Induction on list
+length proves that a universal test returns true exactly when all
+its tests do, and the equality test does so exactly when all entries
+agree. Thus true shape tests give well-defined matrices on
+$\operatorname{Fin}(n)$, and true algebraic tests give the stated
+identities over $\ints$.
+
+For the polynomial product start at $I$ and multiply successively
+by $A-\theta_iI$; induction on the processed nodes shows that the
+accumulator is that initial segment's product. For powers start at
+$P_0=I$ and put $P_{j+1}=P_jA$; induction gives $P_j=A^j$.
+The trace test thus checks exactly the specified moments,
+including $j=0$. The inclusion $\ints\hookrightarrow\re$ preserves
+all finite sums and products, so these matrix and trace identities
+remain true over $\re$. It also preserves inequalities and is
+injective; the node distinctness, vector positivity and nonzero
+denominator tests thus give the same hypotheses over $\re$.
+Apply Theorem~\ref{thm:certificate},
+Corollary~\ref{cor:positive-certificate}, or
+Theorem~\ref{thm:similarity}, respectively.
+With the graph guards, Lemma~\ref{lem:adjacency-guards} defines
+adjacency on $\operatorname{Fin}(n)$ by $A(u,v)=1$ and shows that its
+adjacency matrix is exactly the encoded matrix. In the similarity
+checker it applies to $A$ and to $B$ separately. This proves each graph
+conclusion.
+\end{proof}
+\lean{Matrix.spectrumCertificate_sound, Matrix.positiveEigenvectorCertificate_sound, Matrix.similarityCertificate_sound}
+\status{Implemented as \code{Computations.checkSpectrum_sound},
+\code{Computations.checkPositiveEigenvector_sound}, and
+\code{Computations.checkSimilarity_sound} in
+\code{LineGraphs/Computations/SpectrumChecker.lean},
+\code{PositiveEigenvector.lean}, and \code{SimilarityChecker.lean},
+respectively, with the three displayed \code{Matrix} names as aliases.
+The graph similarity corollary
+\code{Computations.cospectral_graphOfMatrix_of_checkSimilarity}
+requires \code{checkAdjacency} for both matrices. A Python run is not a kernel proof.}
+\used{The kernel certificates of C13, C15 and C17. All finite checking
+can be proved with kernel reduction after these soundness lemmas.}
+
+The concrete spectral inputs needed for C13 and C15 are small.
+The column of moments below starts at degree zero; the annihilating
+polynomial is the product of $z-\theta$ over the listed nodes.
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Computation & Nodes & Multiplicities & Moments\\
+\midrule
+C13, $A$ & $4,2,0,-2$ & $1,3,3,5$ & $12,0,48,48$\\
+C13, $S$ & $-5,-1,3$ & $3,3,6$ & $12,0,132$\\
+C13, $-S$ & $5,1,-3$ & $3,3,6$ & $12,0,132$\\
+C15 & $6,4,1,0,-2$ & $1,5,4,5,15$ & $30,0,180,420,2820$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The sign convention is $S=J-I-2A$, as in SW2 of \code{cgss/prerequisites.md}~\cite{plan};
+Corollary 5.10 of [CGSS] uses $2A-J+I=-S$. The C13 rows apply to both sets of twelve vectors printed in [CGSS].
+The C15 row applies to $L(L(\mathrm{Petersen}))$ and to the flag graph
+of the $2$-$(6,3,2)$ design. The Python checks construct both
+matrices in each case and check these products and moments exactly.
+They also check the positive integer vectors of
+Theorem~\ref{thm:smith-vectors} for C17. The entries of this table are
+certificate data; the preceding soundness theorem is the proof that
+checking them suffices. Each instantiated certificate requires a Lean proof
+that its specific checker returns true.
+
+\section{Further spectral applications used in CGSS}\label{sec:applications}
+
+\begin{theorem}[Scaled idempotents and singular principal minors]\label{thm:scaled}
+Let $C$ be real symmetric of order $n$ and let $b>0$ satisfy
+$C^2=bC$. Then $C\succeq0$, its eigenvalues lie in $\{0,b\}$,
+and $\rk C=\tr C/b$. If $B$ is an $n\times q$ matrix with $CB=0$,
+then $\rk C\le n-\rk B$. Every principal submatrix of order
+greater than $\rk C$ is singular.
+\end{theorem}
+\begin{proof}
+Applying the equation to an eigenvector gives
+$\mu(\mu-b)=0$, so each eigenvalue is $0$ or $b>0$.
+Theorems~\ref{thm:psd} and \ref{thm:trace} give positivity and
+$\tr C=b\rk C$. The equation $CB=0$ gives
+$\im B\sbs\ker C$. Taking dimensions and using rank-nullity
+gives $\rk B\le n-\rk C$. A principal submatrix is a composite
+of the inclusion of a coordinate subspace, the map $C$, and a
+coordinate projection, so its rank is at most $\rk C$. If its
+order is larger, it has nonzero kernel by rank-nullity and
+thus zero determinant.
+\end{proof}
+\lean{Matrix.IsHermitian.posSemidef_of_sq_eq_pos_smul, Matrix.IsHermitian.rank_eq_trace_div_of_sq_eq_smul, Matrix.det_principal_submatrix_eq_zero_of_rank_lt}
+\status{New short interfaces from M1--M4.}
+\used{HC3: $C^2=35C$, $CN^T=0$, $n=21$, $\rk N=15$ give positivity
+and rank at most $6$ for Connor's matrix.}
+
+\begin{theorem}[Symmetric matrices and rank-one Gram matrices]\label{thm:symmetric-space}
+The real symmetric $\ell\times\ell$ matrices form an inner product
+space for $\ip{P}{Q}=\tr(PQ)$, of dimension $\ell(\ell+1)/2$.
+For $\ell>0$ the traceless subspace has dimension
+$\ell(\ell+1)/2-1$. For arbitrary real vectors $\Zv_u$, their rank-one
+matrices $P_u=\Zv_u\Zv_u^T$ have Gram matrix
+$\tr(P_uP_v)=\ip{\Zv_u}{\Zv_v}^2$.
+Thus, if $n$ unit vectors in $\re^\ell$ have distinct-pair
+inner products in $\{0,1/2\}$, then $n\le\ell(\ell+1)/2$.
+\end{theorem}
+\begin{proof}
+For symmetric $P,Q$,
+$\tr(PQ)=\sum_{u,v}P(u,v)Q(u,v)$. This is bilinear and symmetric,
+and $\tr(P^2)=\sum_{u,v}P(u,v)^2$ is nonnegative, with equality
+only when every entry is zero. Thus it is an inner product.
+Take one matrix with a single diagonal entry one for each index,
+and one with entries one at $(u,v),(v,u)$ for each unordered
+distinct pair. These matrices have disjoint entry supports; their
+coefficients in a linear combination are read from the indicated
+entries, so they are independent. Every symmetric matrix is the
+sum with coefficients its corresponding entries, so they span.
+Their number is $\ell+\ell(\ell-1)/2=\ell(\ell+1)/2$.
+For $\ell>0$, the trace linear map onto $\re$ is surjective since
+a single diagonal basis matrix has trace one. Rank-nullity gives
+the traceless dimension.
+
+Expansion of entries gives
+\[
+ \tr(P_uP_v)
+ =\sum_{i,j}\Zv_u(i)\Zv_u(j)\Zv_v(j)\Zv_v(i)
+ =\Bigl(\sum_i\Zv_u(i)\Zv_v(i)\Bigr)^2.
+\]
+In the last assertion let $G=I+A/2$ be the original Gram matrix,
+where $A$ records the pairs with inner product $1/2$.
+The rank-one Gram matrix is $I+A/4=(I+G)/2$.
+Its form on any nonzero $\Zx$ is
+$(\norm{\Zx}^2+\Zx^TG\Zx)/2>0$, because $G\succeq0$.
+It thus has rank $n$. By Theorem~\ref{thm:gram}, the $P_u$
+span an $n$-dimensional subspace of the symmetric matrices, proving
+the dimension bound. For $n=0$ the bound is immediate, and if
+$\ell=0$ no unit vector exists, so this also handles that case.
+\end{proof}
+\lean{Matrix.finrank_symmetric, Matrix.finrank_traceless_symmetric, Matrix.gram_rankOne_eq_inner_sq, SimpleGraph.card_le_symm_dimension_of_representation}
+\status{New elementary dimension and rank-one calculation;
+Mathlib supplies \code{Sym2.card} (M8), finite-dimensional inner
+product and rank facts.}
+\used{LA5 and [CGSS] Theorem 4.3's bound $n\le36$ in dimension $8$;
+the centred version underlies Theorem 4.4.}
+
+\begin{definition}[Hadamard pair matrices]\label{def:hadamard-pairs}
+For a real matrix $H$ on a finite row type $U$ and column type $V$,
+let $P=\code{Matrix.hadamardPairs}\ H$ have rows indexed by the
+unordered two-element subsets $\{i,j\}\subseteq U$, with
+$P(\{i,j\},u)=H(i,u)H(j,u)$. This does not depend on the ordering
+of $i,j$. For square $H$ of order $n$ and real $x>0$, define
+$\code{Matrix.hadamardSignedAdj}\ H\ x=(PP^T-nI)/x$ and write it $C_H$.
+The name does not by itself assert that the entries are $0,1,-1$;
+that requires an additional hypothesis.
+\lean{Matrix.hadamardPairs, Matrix.hadamardSignedAdj}
+\status{Proposed definitions following \code{cgss/notation.md}, Section 7.}
+\end{definition}
+
+\begin{theorem}[The Hadamard pair matrix]\label{thm:hadamard}
+Let $H$ be an $n\times n$ real matrix with entries $\pm1$,
+$HH^T=nI$, and $n\ge2$. Let $P$ have one row for each unordered
+pair of distinct rows of $H$, with
+$P(\{i,j\},u)=H(i,u)H(j,u)$, and put $m=\binom n2$. Then
+\[
+ P^TP=\frac{n^2}{2}I-\frac n2J,\qquad
+ \Spec(PP^T)=\ms{(n^2/2)^{n-1},0^{m-n+1}},\qquad
+ \rk P=n-1.
+\]
+For a positive real $x$, put $C_H=(PP^T-nI)/x$. Then
+\[
+ (xC_H+nI)\left(xC_H-\frac{n(n-2)}2I\right)=0,
+\]
+and its spectrum consists of $n(n-2)/(2x)$ with multiplicity
+$n-1$ and $-n/x$ with multiplicity $m-n+1$.
+If $n>2$, $x$ is a positive integer, and $C_H$ has integer
+entries, then $x\mid n$.
+\end{theorem}
+\begin{proof}
+Since $n>0$, the identity $H(H^T/n)=I$ makes $H$ surjective and
+thus invertible in finite equal dimension. Its inverse is $H^T/n$,
+so also $H^TH=nI$. For two column indices $u,v$, put
+$b_i=H(i,u)H(i,v)$. The identity
+$2\sum_{i<j}b_ib_j=(\sum_i b_i)^2-\sum_i b_i^2$ follows by
+separating diagonal terms in the square of the sum. Here
+$\sum_i b_i=n$ if $u=v$, and zero otherwise, by column
+orthogonality; each $b_i^2=1$. Thus
+$(P^TP)(u,v)=n^2\delta_{uv}/2-n/2$, as asserted.
+On $\Zj$, this matrix acts by zero. On $\Zj^\perp$ it acts by
+$n^2/2>0$. Its rank is $n-1$. Theorem~\ref{thm:mn} transfers its
+nonzero spectrum to $PP^T$, which has $m-n+1$ zeros and rank $n-1$.
+This number is $(n-1)(n-2)/2\ge0$.
+Polynomial calculus proves $PP^T(PP^T-(n^2/2)I)=0$;
+substituting $PP^T=xC_H+nI$ gives the displayed identity and
+the shifted, scaled eigenvalue list. For $n>2$ the zero multiplicity
+of $PP^T$ is positive, so $-n/x$ really occurs as a rational
+eigenvalue of the integer matrix $C_H$. By
+Theorem~\ref{thm:rational}, $-n/x=z\in\ints$. Multiplying by
+$x$ gives $n=x(-z)$, which is $x\mid n$.
+\end{proof}
+\lean{Matrix.IsHadamard.hadamardPairs_transpose_mul, Matrix.IsHadamard.spectrumMultiset_hadamardPairs_gram, Matrix.IsHadamard.dvd_order_of_integral_hadamardSignedAdj}
+\status{New assembly of entry counting, M3--M4, and polynomial
+calculus over Mathlib's \code{Matrix.IsHadamard} (M8).}
+\used{[CGSS] Section 6, C16 and HD1. This gives the spectral and
+divisibility input to Theorem 6.2; the root-system classification
+and four-row agreement counting are separate results.}
+
+\begin{remark}[A row-sum assertion in Section 6]\label{rem:hadamard-row}
+The additional printed identity $xC_HJ=-nJ$ does not follow from
+the stated definition of $P$. It is equivalent to
+$PP^T\Zj_m=0$, and thus to $P^T\Zj_m=0$ by
+Theorem~\ref{thm:gram}. The valid identity $P\Zj_n=0$ instead
+sums the products of \emph{two rows} of $H$, which are orthogonal;
+these are different assertions, on different spaces.
+For an explicit counterexample, take the normalized Sylvester matrix
+\[
+ H=\pmat{1&1&1&1\\1&-1&1&-1\\1&1&-1&-1\\1&-1&-1&1},\qquad x=4.
+\]
+Its six pair rows are the three nonconstant rows of $H$, each twice.
+Thus $PP^T$ is, after reordering, three blocks $4J_2$.
+The matrix $C_H=(PP^T-4I)/4$ is three blocks
+$\pmat{0&1\\1&0}$, whose row sums are $1$, not $-1$.
+This example also satisfies Hypothesis 6.1 with $n=x=4$:
+the unique four-row set agrees in exactly one column, which is
+$(n+x)/8$. Error 9 in \code{cgss/errata.md}~\cite{errata} records this
+row-sum error. Its repair also admits the shorter argument: for $n>2$,
+the eigenvalue $-n/x$ has multiplicity $(n-1)(n-2)/2>0$, so the
+monic rational-root theorem gives $x\mid n$. The divisibility conclusion in
+Theorem~\ref{thm:hadamard} is thus deliberately proved from
+the actual eigenvalue $-n/x$, without this row-sum assertion.
+\end{remark}
+
+\section{Further directions}\label{sec:further}
+
+The matrix multiplicity bridge, polynomial trace and multiset
+spectral mapping, Rayleigh equality, and rectangular Gram-spectrum
+lemmas are natural additions to Mathlib. They use existing
+definitions and would shorten several independent developments.
+The signless Laplacian kernel and its bipartite-component basis
+fit beside the existing Laplacian file. Symmetric Perron--Frobenius
+and interlacing can follow after the Rayleigh interface; a natural
+question is which support-graph formulation gives the most useful
+bridge to Mathlib's existing \code{Matrix.IsIrreducible}.
+
+For graphs, we will keep the multiset definition separate from the
+set spectrum, and keep graph cospectrality separate from vertex
+cospectrality. The strongly regular eigenvalue and idempotent
+formulas are also suitable for upstreaming once their nontriviality
+hypotheses are reflected in the API. We will retain the standing
+positive-semidefinite hypothesis for the root-system development:
+only statements requiring an extreme eigenvalue need a nonempty
+vertex type.
+
+The companion structured document supplies named proof steps.
+The spectral certificate, positive-vector and similarity lemmas
+already have proofs in \code{LineGraphs/Spectral/}; that directory also
+defines matrix and graph switching equivalence. The Boolean soundness
+lemmas are implemented in \code{LineGraphs/Computations/}, while the
+Seidel switching theorems and
+other proposed interfaces remain mathematical specifications. The checks in \code{checks/check_spectraltools.py}
+use integer products for C13, C15 and C17, and NumPy and SymPy for
+independent small sanity checks. They do not establish Lean kernel
+proofs or the non-spectral classification claims of CGSS.
+No ordinary proof stated as a theorem here is left open. The
+unqualified statements that required repair were the empty or
+isolated-vertex cases, the Seidel sign in the first statement of C13, the endpoint
+and rank qualifications in Remark 5.7, and the row-sum assertion
+discussed in Remark~\ref{rem:hadamard-row}.
+
+\begin{thebibliography}{9}
+\bibitem{errata} \emph{Errata to CGSS}, \code{cgss/errata.md}, Errors 9 and 14.
+\bibitem{CGSS}
+P. J. Cameron, J. M. Goethals, J. J. Seidel and E. E. Shult,
+\emph{Line graphs, root systems, and elliptic geometry},
+J. Algebra \textbf{43} (1976), 305--327.
+We read it with the corrections recorded in \code{cgss/errata.md}.
+\bibitem{mathlib}
+The Mathlib community, \emph{Mathlib}, commit \code{082e2d37}
+(4 September 2026), the version pinned in \code{lake-manifest.json}.
+Exact declarations and files are listed in Section~\ref{sec:catalogue}.
+\bibitem{plan}
+\emph{Prerequisites}, \code{cgss/prerequisites.md}; and
+\emph{Notation}, \code{cgss/notation.md}, Section 10,
+in this repository.
+\end{thebibliography}
+\end{document}
