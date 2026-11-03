@@ -14,7 +14,7 @@ This repository holds two pieces of work.
   proves that there are exactly 54,732,619 exceptional graphs, that is,
   connected graphs with least eigenvalue at least −2 that are not generalized line graphs, and the
   **database** of all of them, one for each isomorphism class, with the programs that produced
-  and checked it. The mathematics of the note is in Lean as well; the computation is not.
+  and checked it. The mathematics of the note is in Lean as well, but note that the computation is not.
 
 ## Contents
 
