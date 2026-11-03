@@ -1,5 +1,7 @@
 # Graphs with least eigenvalue −2: a Lean formalization and a database of the exceptional graphs
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23925794.svg)](https://doi.org/10.5281/zenodo.23925794)
+
 This repository holds two pieces of work.
 
 - **A formalization of [CGSS] in Lean 4**, on top of Mathlib, where [CGSS] is
@@ -72,7 +74,11 @@ the files, how to regenerate them, and how to verify them.
 
 Please cite the note, K. Guo, *A database of exceptional graphs with least eigenvalue ≥ −2*
 (in [`exceptional/note/`](exceptional/note)), and this repository,
-https://github.com/kguo-sagecode/least-eig-minus-2.
+https://github.com/kguo-sagecode/least-eig-minus-2, which is archived on Zenodo:
+K. Guo, *kguo-sagecode/least-eig-minus-2: v1.0.0*, Zenodo, 2026,
+[doi:10.5281/zenodo.23925794](https://doi.org/10.5281/zenodo.23925794). That DOI is for version
+v1.0.0; the DOI [10.5281/zenodo.23925793](https://doi.org/10.5281/zenodo.23925793) always
+resolves to the latest version.
 
 ## Licences
 

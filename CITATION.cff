@@ -1,0 +1,60 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software or the database, please cite it as below, and cite the note
+  "A database of exceptional graphs with least eigenvalue ≥ −2" in exceptional/note/.
+type: software
+title: "Graphs with least eigenvalue −2: a Lean formalization and a database of the exceptional graphs"
+authors:
+  - given-names: Krystal
+    family-names: Guo
+    email: k.guo@uva.nl
+    affiliation: "Korteweg-de Vries Institute for Mathematics, University of Amsterdam"
+version: 1.0.0
+date-released: "2026-11-03"
+doi: 10.5281/zenodo.23925794
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23925794
+    description: "Version v1.0.0"
+  - type: doi
+    value: 10.5281/zenodo.23925793
+    description: "All versions (resolves to the latest)"
+repository-code: "https://github.com/kguo-sagecode/least-eig-minus-2"
+url: "https://doi.org/10.5281/zenodo.23925794"
+license:
+  - Apache-2.0
+  - CC-BY-4.0
+keywords:
+  - Lean 4
+  - Mathlib
+  - formalization
+  - line graphs
+  - root systems
+  - least eigenvalue
+  - exceptional graphs
+  - graph database
+references:
+  - type: unpublished
+    title: "A database of exceptional graphs with least eigenvalue ≥ −2"
+    authors:
+      - given-names: Krystal
+        family-names: Guo
+    year: 2026
+    notes: "The note in exceptional/note/ of this repository."
+  - type: article
+    title: "Line graphs, root systems, and elliptic geometry"
+    authors:
+      - given-names: P. J.
+        family-names: Cameron
+      - given-names: J. M.
+        family-names: Goethals
+      - given-names: J. J.
+        family-names: Seidel
+      - given-names: E. E.
+        family-names: Shult
+    journal: "Journal of Algebra"
+    volume: 43
+    start: 305
+    end: 327
+    year: 1976
+    doi: 10.1016/0021-8693(76)90162-9
